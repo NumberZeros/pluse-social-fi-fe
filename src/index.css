@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  /* Lens-inspired Palette */
+  --color-lens-lime: #ABFE2C;
+  --color-lens-dark: #00501E;
+  --color-lens-black: #000000;
+  --color-lens-cream: #F7F7F7;
+  --color-lens-gray: #2C2D30;
+  
+  /* Solana Accents */
+  --color-solana-purple: #9945FF;
+  --color-solana-green: #14F195;
+
+  /* Typography */
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+
+  /* Animations */
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+}
+
+/* Custom Utilities */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.text-gradient-lens {
+  background: linear-gradient(to right, #ABFE2C, #14F195);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.mesh-gradient-lens {
+  background: 
+    radial-gradient(at 0% 0%, rgba(171, 254, 44, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(20, 241, 149, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(153, 69, 255, 0.1) 0px, transparent 50%);
+}
+
+.mask-linear-gradient {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.direction-reverse {
+  animation-direction: reverse;
+}
