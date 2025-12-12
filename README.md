@@ -199,7 +199,46 @@ Used for creator shares trading - price increases quadratically with supply
 - **Shared utilities** - 11 reusable formatting/clipboard functions
 - **Dead code removed** - No unused imports or files
 
-## 📖 Documentation
+## � Deployment
+
+### Vercel (Recommended)
+
+1. Install Vercel CLI:
+```bash
+pnpm add -g vercel
+```
+
+2. Deploy to Vercel:
+```bash
+vercel
+```
+
+3. Set environment variables in Vercel Dashboard:
+   - `VITE_SOLANA_NETWORK` - devnet or mainnet-beta
+   - `VITE_SOLANA_RPC_URL` - Your RPC endpoint
+   - `VITE_API_URL` - Your API endpoint (optional)
+
+The project includes `vercel.json` with optimized settings:
+- ✅ SPA routing configured
+- ✅ Asset caching (1 year for immutable assets)
+- ✅ Automatic PNPM detection
+- ✅ Vite framework preset
+
+### Manual Deployment
+
+Build the project:
+```bash
+pnpm build
+```
+
+The `dist/` folder contains the production build. Deploy it to any static hosting service:
+- Vercel
+- Netlify
+- Cloudflare Pages
+- AWS S3 + CloudFront
+- GitHub Pages
+
+## �📖 Documentation
 
 - **Whitepaper**: [public/whitepaper.md](public/whitepaper.md) - Complete technical documentation
 - **Tokenomics**: [public/tokenomics.md](public/tokenomics.md) - $PULSE token economics
