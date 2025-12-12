@@ -9,7 +9,35 @@ interface Particle {
   opacity: number;
 }
 
-export function ParticleBackground() {
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const normalized = hex.replace('#', '').trim();
+  if (normalized.length === 3) {
+    const r = parseInt(normalized[0] + normalized[0], 16);
+    const g = parseInt(normalized[1] + normalized[1], 16);
+    const b = parseInt(normalized[2] + normalized[2], 16);
+    return { r, g, b };
+  }
+  if (normalized.length === 6) {
+    const r = parseInt(normalized.slice(0, 2), 16);
+    const g = parseInt(normalized.slice(2, 4), 16);
+    const b = parseInt(normalized.slice(4, 6), 16);
+    return { r, g, b };
+  }
+  return null;
+}
+
+function toRgba(hex: string, alpha: number): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return `rgba(255, 255, 255, ${alpha})`;
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+}
+
+interface ParticleBackgroundProps {
+  className?: string;
+  opacity?: number;
+}
+
+export function ParticleBackground({ className, opacity = 0.35 }: ParticleBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -26,6 +54,11 @@ export function ParticleBackground() {
     };
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+
+    const root = getComputedStyle(document.documentElement);
+    const lensLime = root.getPropertyValue('--color-lens-lime').trim() || '#ABFE2C';
+    const solanaGreen = root.getPropertyValue('--color-solana-green').trim() || '#14F195';
+    const solanaPurple = root.getPropertyValue('--color-solana-purple').trim() || '#9945FF';
 
     // Create particles
     const particles: Particle[] = [];
@@ -67,9 +100,9 @@ export function ParticleBackground() {
           particle.y,
           particle.size * 3
         );
-        gradient.addColorStop(0, `rgba(0, 255, 255, ${particle.opacity})`);
-        gradient.addColorStop(0.5, `rgba(139, 92, 246, ${particle.opacity * 0.5})`);
-        gradient.addColorStop(1, 'rgba(255, 0, 255, 0)');
+        gradient.addColorStop(0, toRgba(lensLime, particle.opacity));
+        gradient.addColorStop(0.5, toRgba(solanaGreen, particle.opacity * 0.5));
+        gradient.addColorStop(1, toRgba(solanaPurple, 0));
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -91,7 +124,7 @@ export function ParticleBackground() {
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance < 150) {
-            ctx.strokeStyle = `rgba(139, 92, 246, ${0.2 * (1 - distance / 150)})`;
+            ctx.strokeStyle = toRgba(solanaPurple, 0.2 * (1 - distance / 150));
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
@@ -114,8 +147,8 @@ export function ParticleBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 pointer-events-none"
-      style={{ opacity: 0.4 }}
+      className={['absolute inset-0 pointer-events-none', className].filter(Boolean).join(' ')}
+      style={{ opacity }}
     />
   );
 }

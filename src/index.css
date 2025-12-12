@@ -44,16 +44,16 @@
 }
 
 .text-gradient-lens {
-  background: linear-gradient(to right, #ABFE2C, #14F195);
+  background: linear-gradient(to right, var(--color-lens-lime), var(--color-solana-green));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .mesh-gradient-lens {
-  background: 
-    radial-gradient(at 0% 0%, rgba(171, 254, 44, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(20, 241, 149, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(153, 69, 255, 0.1) 0px, transparent 50%);
+  background:
+    radial-gradient(at 0% 0%, color-mix(in srgb, var(--color-lens-lime) 15%, transparent) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, color-mix(in srgb, var(--color-solana-green) 15%, transparent) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, color-mix(in srgb, var(--color-solana-purple) 10%, transparent) 0px, transparent 50%);
 }
 
 .mask-linear-gradient {
@@ -63,4 +63,103 @@
 
 .direction-reverse {
   animation-direction: reverse;
+}
+
+.hero-3d-root {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+.hero-grid {
+  transform-style: preserve-3d;
+  transform: rotateX(70deg) translateZ(-180px);
+  background:
+    linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(circle at 60% 40%, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(circle at 60% 40%, black 0%, transparent 70%);
+  opacity: 0.45;
+}
+
+.hero-orb {
+  transform-style: preserve-3d;
+  background:
+    radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-lens-lime) 26%, transparent), transparent 55%),
+    radial-gradient(circle at 70% 70%, color-mix(in srgb, var(--color-solana-purple) 18%, transparent), transparent 60%);
+  filter: blur(40px);
+  opacity: 0.9;
+}
+
+.hero-ribbon {
+  transform-style: preserve-3d;
+  border-radius: 9999px;
+  background:
+    conic-gradient(
+      from 180deg,
+      color-mix(in srgb, var(--color-solana-purple) 45%, transparent),
+      color-mix(in srgb, var(--color-solana-green) 45%, transparent),
+      color-mix(in srgb, var(--color-lens-lime) 45%, transparent),
+      color-mix(in srgb, var(--color-solana-purple) 45%, transparent)
+    );
+  mask-image: radial-gradient(circle, transparent 58%, black 60%, black 64%, transparent 66%);
+  -webkit-mask-image: radial-gradient(circle, transparent 58%, black 60%, black 64%, transparent 66%);
+  filter: blur(0px);
+  opacity: 0.75;
+}
+
+.hero-ribbon--alt {
+  opacity: 0.6;
+  mask-image: radial-gradient(circle, transparent 62%, black 64%, black 67%, transparent 69%);
+  -webkit-mask-image: radial-gradient(circle, transparent 62%, black 64%, black 67%, transparent 69%);
+}
+
+.hero-ring {
+  transform-style: preserve-3d;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 0 80px color-mix(in srgb, var(--color-lens-lime) 18%, transparent),
+    0 0 120px color-mix(in srgb, var(--color-solana-purple) 12%, transparent);
+  animation: heroSpin 22s linear infinite;
+}
+
+.hero-ring--thin {
+  border-color: rgba(255, 255, 255, 0.08);
+  animation-duration: 16s;
+  animation-direction: reverse;
+}
+
+.hero-shard {
+  position: absolute;
+  width: 220px;
+  height: 320px;
+  border-radius: 24px;
+  background:
+    linear-gradient(
+      140deg,
+      color-mix(in srgb, var(--color-solana-green) 20%, transparent),
+      color-mix(in srgb, var(--color-solana-purple) 18%, transparent)
+    );
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  opacity: 0.55;
+}
+
+.hero-shard-a { right: 6%; top: 12%; transform: translateZ(180px) rotateZ(18deg) rotateX(10deg) rotateY(-18deg); }
+.hero-shard-b { right: 22%; top: 48%; transform: translateZ(120px) rotateZ(-14deg) rotateX(-6deg) rotateY(16deg); width: 180px; height: 260px; opacity: 0.5; }
+.hero-shard-c { right: -2%; top: 52%; transform: translateZ(220px) rotateZ(22deg) rotateX(14deg) rotateY(-10deg); width: 260px; height: 380px; opacity: 0.45; }
+.hero-shard-d { right: 34%; top: 18%; transform: translateZ(80px) rotateZ(-20deg) rotateX(12deg) rotateY(22deg); width: 140px; height: 220px; opacity: 0.42; }
+
+.hero-vignette {
+  background:
+    radial-gradient(circle at 70% 40%, transparent 0%, rgba(0, 0, 0, 0.1) 55%, rgba(0, 0, 0, 0.5) 100%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.2), transparent 40%, rgba(0, 0, 0, 0.5));
+  opacity: 0.6;
+}
+
+@keyframes heroSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

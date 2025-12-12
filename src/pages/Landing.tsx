@@ -1,5 +1,18 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { lazy, Suspense, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { IconGraph, IconIdentity, IconStorage, IconTip, PulseMark } from '../components/icons/PulseIcons';
+
+const HeroSceneCanvas = lazy(() =>
+  import('../components/hero/HeroSceneCanvas').then((m) => ({ default: m.HeroSceneCanvas }))
+);
+
+type TechStackItem = {
+  name: string;
+  desc: string;
+  color: string;
+  icon: React.ReactNode;
+};
 
 const BentoItem = ({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => (
   <motion.div
@@ -7,7 +20,7 @@ const BentoItem = ({ children, className, delay = 0 }: { children: React.ReactNo
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, margin: "-50px" }}
     transition={{ duration: 0.5, delay }}
-    className={`glass-card rounded-[2rem] p-8 hover:border-[#ABFE2C]/30 transition-all duration-500 overflow-hidden relative group ${className}`}
+    className={`glass-card rounded-[2rem] p-8 border border-white/5 hover:border-white/15 transition-all duration-500 overflow-hidden relative group ${className}`}
   >
     {children}
   </motion.div>
@@ -17,7 +30,7 @@ const Marquee = ({ items, reverse = false }: { items: string[], reverse?: boolea
   <div className="flex overflow-hidden py-4 group select-none">
     <div className={`flex gap-12 animate-marquee ${reverse ? 'direction-reverse' : ''} whitespace-nowrap`}>
       {[...items, ...items, ...items].map((item, i) => (
-        <span key={i} className="text-4xl md:text-6xl font-display font-bold text-white/10 group-hover:text-[#ABFE2C]/20 transition-colors uppercase tracking-tighter">
+        <span key={i} className="text-3xl md:text-5xl font-display font-bold text-white/10 group-hover:text-white/20 transition-colors tracking-tighter">
           {item}
         </span>
       ))}
@@ -25,14 +38,14 @@ const Marquee = ({ items, reverse = false }: { items: string[], reverse?: boolea
   </div>
 );
 
-const TechCard = ({ tech }: { tech: any }) => (
-  <div className="w-[280px] h-[200px] bg-[#111] rounded-2xl border border-white/5 flex flex-col items-center justify-center hover:border-white/20 transition-all cursor-pointer group relative overflow-hidden flex-shrink-0 mx-4">
+const TechCard = ({ tech }: { tech: TechStackItem }) => (
+  <div className="w-[280px] h-[200px] bg-black/40 backdrop-blur-sm rounded-2xl border border-white/10 flex flex-col items-center justify-center hover:border-white/20 transition-all cursor-pointer group relative overflow-hidden flex-shrink-0 mx-4">
     <div 
-      className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500"
+      className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500"
       style={{ background: `radial-gradient(circle at center, ${tech.color}, transparent 70%)` }}
     />
     <div className="relative z-10 text-center p-4 flex flex-col items-center">
-      <div className="mb-4 text-white/80 group-hover:text-white group-hover:scale-110 transition-transform duration-300">
+      <div className="mb-4 text-white/70 group-hover:text-white group-hover:scale-110 transition-transform duration-300">
         {tech.icon}
       </div>
       <div className="text-xl font-bold text-white mb-1">{tech.name}</div>
@@ -41,7 +54,7 @@ const TechCard = ({ tech }: { tech: any }) => (
   </div>
 );
 
-const TechMarquee = ({ items, reverse = false }: { items: any[], reverse?: boolean }) => (
+const TechMarquee = ({ items, reverse = false }: { items: TechStackItem[]; reverse?: boolean }) => (
   <div className="flex overflow-hidden py-4 group select-none mask-linear-gradient">
     <div className={`flex animate-marquee ${reverse ? 'direction-reverse' : ''} whitespace-nowrap`}>
       {[...items, ...items, ...items].map((item, i) => (
@@ -51,7 +64,7 @@ const TechMarquee = ({ items, reverse = false }: { items: any[], reverse?: boole
   </div>
 );
 
-const TECH_STACK = [
+const TECH_STACK: TechStackItem[] = [
   { 
     name: 'Solana', 
     desc: 'The Global State Machine', 
@@ -142,7 +155,6 @@ export function Landing() {
     offset: ["start start", "end end"]
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   return (
@@ -153,24 +165,27 @@ export function Landing() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-6 flex justify-between items-center max-w-[1400px] mx-auto w-full mix-blend-difference">
         <div className="text-2xl font-display font-bold tracking-tighter flex items-center gap-2">
-          <div className="w-3 h-3 bg-[#ABFE2C] rounded-full animate-pulse" />
+          <PulseMark className="w-7 h-7" />
           Pulse
         </div>
         <div className="hidden md:flex gap-8 text-sm font-medium text-gray-300">
-          <a href="#" className="hover:text-[#ABFE2C] transition-colors">Whitepaper</a>
-          <a href="#" className="hover:text-[#ABFE2C] transition-colors">Ecosystem</a>
-          <a href="#" className="hover:text-[#ABFE2C] transition-colors">Community</a>
+          <a href="#" className="hover:text-[var(--color-solana-green)] transition-colors">Whitepaper</a>
+          <a href="#" className="hover:text-[var(--color-solana-green)] transition-colors">Ecosystem</a>
+          <a href="#" className="hover:text-[var(--color-solana-green)] transition-colors">Community</a>
         </div>
-        <button className="px-6 py-3 bg-white text-black rounded-full font-bold text-sm hover:bg-[#ABFE2C] transition-colors">
+        <button className="px-6 py-3 bg-white text-black rounded-full font-bold text-sm hover:bg-[var(--color-solana-green)] transition-colors">
           Connect Phantom
         </button>
       </nav>
 
       {/* Hero Section */}
       <section className="relative z-10 min-h-screen flex flex-col justify-center px-6 max-w-[1400px] mx-auto pt-20">
+        <Suspense fallback={null}>
+          <HeroSceneCanvas scrollYProgress={scrollYProgress} />
+        </Suspense>
         <motion.div 
           style={{ opacity }}
-          className="max-w-5xl"
+          className="relative z-10 max-w-5xl"
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -178,106 +193,134 @@ export function Landing() {
             transition={{ duration: 0.6 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm mb-8"
           >
-            <span className="w-2 h-2 bg-[#ABFE2C] rounded-full" />
-            <span className="text-sm font-medium text-[#ABFE2C]">MVP Live on Solana Mainnet</span>
+            <span className="w-2 h-2 bg-[var(--color-solana-green)] rounded-full shadow-[0_0_10px_var(--color-solana-green)]" />
+            <span className="text-sm font-medium text-[var(--color-solana-green)]">MVP Live on Solana Mainnet</span>
           </motion.div>
 
-          <h1 className="text-7xl sm:text-8xl md:text-9xl font-display font-bold tracking-tighter leading-[0.9] mb-12">
+          <h1 className="text-6xl sm:text-7xl md:text-8xl font-display font-bold tracking-tighter leading-[0.95] mb-10">
             The Social <br />
             <span className="text-white/40">Layer for</span> <br />
             <span className="text-gradient-lens">Solana</span>
           </h1>
           
           <div className="flex flex-wrap gap-6 items-center">
-            <button className="px-10 py-5 bg-[#ABFE2C] text-black rounded-full font-bold text-lg hover:scale-105 transition-transform flex items-center gap-2">
-              Mint @username <span>→</span>
-            </button>
-            <button className="px-10 py-5 border border-white/20 rounded-full font-bold text-lg hover:bg-white/10 transition-colors">
+            <Link to="/feed" className="px-10 py-5 bg-[var(--color-solana-green)] text-black rounded-full font-bold text-lg hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(20,241,149,0.3)]">
+              Mint @handle <span>→</span>
+            </Link>
+            <Link to="/feed" className="px-10 py-5 border border-white/20 rounded-full font-bold text-lg hover:bg-white/10 transition-colors">
               Explore Feed
-            </button>
+            </Link>
+          </div>
+
+          {/* Below-CTA value props */}
+          <div className="mt-12 max-w-4xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="glass-card rounded-2xl p-5 border border-white/10 bg-white/5">
+                <div className="flex items-center gap-2">
+                  <IconIdentity className="w-4 h-4 text-[var(--color-solana-green)]" />
+                  <div className="text-sm font-bold tracking-tight">Handles</div>
+                </div>
+                <div className="mt-1 text-sm text-white/70 leading-snug">Mint an identity and show it everywhere.</div>
+              </div>
+              <div className="glass-card rounded-2xl p-5 border border-white/10 bg-white/5">
+                <div className="flex items-center gap-2">
+                  <IconTip className="w-4 h-4 text-[var(--color-solana-green)]" />
+                  <div className="text-sm font-bold tracking-tight">1-Click Tips</div>
+                </div>
+                <div className="mt-1 text-sm text-white/70 leading-snug">Send SOL fast — no copy/paste addresses.</div>
+              </div>
+              <div className="glass-card rounded-2xl p-5 border border-white/10 bg-white/5">
+                <div className="flex items-center gap-2">
+                  <IconGraph className="w-4 h-4 text-[var(--color-solana-purple)]" />
+                  <div className="text-sm font-bold tracking-tight">Verifiable Graph</div>
+                </div>
+                <div className="mt-1 text-sm text-white/70 leading-snug">Proof of interactions, portable across apps.</div>
+              </div>
+              <div className="glass-card rounded-2xl p-5 border border-white/10 bg-white/5">
+                <div className="flex items-center gap-2">
+                  <IconStorage className="w-4 h-4 text-[var(--color-lens-lime)]" />
+                  <div className="text-sm font-bold tracking-tight">Permanent Storage</div>
+                </div>
+                <div className="mt-1 text-sm text-white/70 leading-snug">Content pinned to permanent storage.</div>
+              </div>
+            </div>
+
+            <div className="mt-5 text-sm text-white/60">
+              Built for Solana speed. Designed for SocialFi.
+            </div>
           </div>
         </motion.div>
 
-        {/* Abstract 3D-like Visual */}
-        <motion.div 
-          style={{ y }}
-          className="absolute right-0 top-1/2 -translate-y-1/2 -z-10 opacity-60 pointer-events-none hidden lg:block"
-        >
-          <div className="relative w-[800px] h-[800px]">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#ABFE2C]/20 to-[#14F195]/20 rounded-full blur-[100px] animate-pulse-slow" />
-            <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 border border-white/10 rounded-full animate-[spin_20s_linear_infinite]" />
-            <div className="absolute top-1/3 left-1/3 w-1/3 h-1/3 border border-[#ABFE2C]/20 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
-          </div>
-        </motion.div>
+        {/* Depth is handled by the WebGL hero scene */}
       </section>
 
       {/* Marquee Section */}
-      <div className="border-y border-white/10 bg-black/50 backdrop-blur-sm py-12 relative z-10 overflow-hidden">
-        <Marquee items={['ZK Compression', '1-Click Tipping', 'Arweave Storage', 'Solana Speed', 'Token-2022']} />
+      <div className="border-y border-white/5 bg-black/30 backdrop-blur-sm py-10 relative z-10 overflow-hidden">
+        <Marquee items={['Mint Handles', 'Tip in 1 Click', 'Store Forever', 'Solana Speed']} />
       </div>
 
       {/* Bento Grid Features */}
-      <section className="relative z-10 py-40 px-6 max-w-[1400px] mx-auto">
-        <div className="mb-32">
-          <h2 className="text-5xl md:text-7xl font-display font-bold mb-8 tracking-tight">
+      <section className="relative z-10 py-28 px-6 max-w-[1400px] mx-auto">
+        <div className="mb-16">
+          <h2 className="text-4xl md:text-6xl font-display font-bold mb-6 tracking-tight">
             Social primitives <br />
             <span className="text-gray-500">reimagined on Solana.</span>
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[400px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[360px]">
           {/* Feature 1: Identity */}
-          <BentoItem className="md:col-span-2 bg-gradient-to-br from-[#111] to-[#000]">
+          <BentoItem className="md:col-span-2 bg-black/30">
             <div className="h-full flex flex-col justify-between relative z-10">
               <div>
-                <div className="w-16 h-16 rounded-2xl bg-[#ABFE2C]/10 flex items-center justify-center text-3xl mb-8 text-[#ABFE2C]">
-                  🆔
+                <div className="w-16 h-16 rounded-2xl bg-[var(--color-solana-green)]/10 flex items-center justify-center text-3xl mb-8 text-[var(--color-solana-green)]">
+                  <IconIdentity className="w-8 h-8" />
                 </div>
-                <h3 className="text-4xl font-display font-bold mb-4">ZK Compressed Identity</h3>
-                <p className="text-gray-400 text-xl max-w-lg">
-                  Mint your unique @username.pulse on-chain. Powered by ZK Compression for ultra-low costs (~/bin/zsh.001).
+                <h3 className="text-4xl font-display font-bold mb-4">ZK Identity</h3>
+                <p className="text-gray-400 text-lg max-w-lg">
+                  Mint @username.pulse on-chain. Zero cost. ZK Private.
                 </p>
               </div>
               {/* Visual representation of ID card */}
               <div className="absolute right-8 bottom-8 w-64 h-40 bg-white/5 rounded-xl border border-white/10 backdrop-blur-md rotate-[-5deg] group-hover:rotate-0 transition-transform duration-500 p-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#ABFE2C] to-[#14F195]" />
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[var(--color-solana-green)] to-[var(--color-solana-purple)]" />
                   <div className="h-3 w-24 bg-white/20 rounded-full" />
                 </div>
                 <div className="space-y-2">
                   <div className="h-2 w-full bg-white/10 rounded-full" />
                   <div className="h-2 w-2/3 bg-white/10 rounded-full" />
                 </div>
-                <div className="mt-4 text-right text-[#ABFE2C] font-mono text-xs">@pulse.sol</div>
+                <div className="mt-4 text-right text-[var(--color-solana-green)] font-mono text-xs">@pulse.sol</div>
               </div>
             </div>
           </BentoItem>
 
           {/* Feature 2: Tipping */}
-          <BentoItem className="bg-[#050505]">
+          <BentoItem className="bg-black/20">
             <div className="h-full flex flex-col">
-              <h3 className="text-3xl font-display font-bold mb-4">1-Click Tipping</h3>
+              <h3 className="text-3xl font-display font-bold mb-4">Real Money Tipping</h3>
               <p className="text-gray-400 mb-8">
-                Tip creators instantly with USDC or SOL. No signing delays.
+                Tip creators instantly. No wallet signing.
               </p>
               <div className="flex-grow relative flex items-center justify-center">
-                 <div className="relative w-32 h-32 bg-[#ABFE2C]/10 rounded-full flex items-center justify-center animate-pulse">
-                    <span className="text-4xl">💸</span>
+                 <div className="relative w-32 h-32 bg-[var(--color-solana-green)]/10 rounded-full flex items-center justify-center animate-pulse">
+                    <IconTip className="w-9 h-9 text-[var(--color-solana-green)]" />
                  </div>
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-[#ABFE2C]/20 rounded-full animate-[spin_4s_linear_infinite]" />
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-white/10 rounded-full animate-[spin_4s_linear_infinite]" />
               </div>
             </div>
           </BentoItem>
 
           {/* Feature 3: Content */}
-          <BentoItem className="md:row-span-2 bg-[#080808]">
+          <BentoItem className="md:row-span-2 bg-black/25">
             <div className="h-full flex flex-col">
-              <div className="w-16 h-16 rounded-2xl bg-[#9945FF]/10 flex items-center justify-center text-3xl mb-8 text-[#9945FF]">
-                📦
+              <div className="w-16 h-16 rounded-2xl bg-[var(--color-solana-purple)]/10 flex items-center justify-center text-3xl mb-8 text-[var(--color-solana-purple)]">
+                <IconStorage className="w-8 h-8" />
               </div>
-              <h3 className="text-3xl font-display font-bold mb-4">Permanent Storage</h3>
+              <h3 className="text-3xl font-display font-bold mb-4">Uncensored Storage</h3>
               <p className="text-gray-400 mb-8">
-                Posts, images, and videos stored on Arweave & ShdwDrive. Uncensored and permanent.
+                Your data. Your rules. Cannot be deplatformed.
               </p>
               <div className="flex-grow relative overflow-hidden rounded-xl bg-white/5 border border-white/5 p-6">
                 <div className="space-y-4">
@@ -295,12 +338,12 @@ export function Landing() {
           </BentoItem>
 
           {/* Feature 4: Social Graph */}
-          <BentoItem className="md:col-span-2 bg-[#111]">
+          <BentoItem className="md:col-span-2 bg-black/30">
             <div className="flex flex-col md:flex-row items-center gap-12 h-full">
               <div className="flex-1">
-                <h3 className="text-3xl font-display font-bold mb-4">On-Chain Graph</h3>
+                <h3 className="text-3xl font-display font-bold mb-4">Social Capital</h3>
                 <p className="text-gray-400 text-lg mb-8">
-                  Follows, likes, and reposts are real on-chain events. Verified via Merkle roots for speed and security.
+                  Your reputation travels with you. Portable across apps.
                 </p>
                 <div className="flex gap-4">
                   <span className="px-3 py-1 rounded border border-white/10 text-xs font-mono text-gray-400">Redis</span>
@@ -310,7 +353,7 @@ export function Landing() {
               </div>
               <div className="flex-1 w-full h-full bg-[#000] rounded-xl border border-white/10 p-6 font-mono text-sm text-gray-400 overflow-hidden flex items-center justify-center">
                  <div className="text-center">
-                    <div className="text-[#ABFE2C] text-4xl font-bold mb-2">100K+</div>
+                    <div className="text-[var(--color-solana-green)] text-4xl font-bold mb-2">100K+</div>
                     <div className="text-gray-500">Compressed Accounts</div>
                  </div>
               </div>
@@ -320,13 +363,13 @@ export function Landing() {
       </section>
 
       {/* Tech Stack / Ecosystem Section */}
-      <section className="py-32 border-t border-white/10 bg-[#050505] overflow-hidden">
+      <section className="py-32 border-t border-white/5 bg-black/20 overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-6 mb-20">
           <div className="flex flex-col md:flex-row justify-between items-end">
             <h2 className="text-4xl md:text-6xl font-display font-bold">
               Powered by <br /> Giants
             </h2>
-            <button className="mt-8 md:mt-0 px-8 py-4 border border-white/20 rounded-full hover:bg-white hover:text-black transition-colors font-bold">
+            <button className="mt-8 md:mt-0 px-8 py-4 border border-white/10 rounded-full hover:bg-white/10 hover:border-white/20 transition-colors font-bold">
               View Architecture
             </button>
           </div>
@@ -343,19 +386,19 @@ export function Landing() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#000] to-[#050505]" />
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-6xl md:text-8xl font-display font-bold mb-12 tracking-tighter">
-            Join the <span className="text-[#ABFE2C]">Pulse.</span>
+            Join the <span className="text-gradient-lens">Pulse.</span>
           </h2>
-          <button className="px-16 py-8 bg-white text-black rounded-full font-bold text-2xl hover:scale-105 transition-transform hover:bg-[#ABFE2C]">
+          <Link to="/feed" className="inline-block px-16 py-8 bg-white text-black rounded-full font-bold text-2xl hover:scale-105 transition-transform hover:bg-[var(--color-solana-green)]">
             Launch App
-          </button>
+          </Link>
         </div>
       </section>
 
       <footer className="py-12 px-6 border-t border-white/10 text-center text-gray-500 text-sm bg-black">
         <div className="flex justify-center gap-8 mb-8">
-          <a href="#" className="hover:text-[#ABFE2C] transition-colors">@pulse</a>
-          <a href="#" className="hover:text-[#ABFE2C] transition-colors">pulse.sol</a>
-          <a href="#" className="hover:text-[#ABFE2C] transition-colors">GitHub</a>
+          <a href="#" className="hover:text-[var(--color-solana-green)] transition-colors">@pulse</a>
+          <a href="#" className="hover:text-[var(--color-solana-green)] transition-colors">pulse.sol</a>
+          <a href="#" className="hover:text-[var(--color-solana-green)] transition-colors">GitHub</a>
         </div>
         <p>&copy; 2025 Pulse Protocol. All rights reserved.</p>
       </footer>
