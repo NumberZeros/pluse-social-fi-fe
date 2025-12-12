@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Navbar } from '../components/layout/Navbar';
+import { Footer } from '../components/layout/Footer';
 import { IconArt, IconBolt, IconCoin, IconGaming, IconSparkle, IconTrend } from '../components/icons/PulseIcons';
 
 const EXPLORE_CATEGORIES = [
@@ -136,6 +137,8 @@ export function Explore() {
           </motion.button>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }

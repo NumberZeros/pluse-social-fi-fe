@@ -14,18 +14,29 @@ interface SolanaProviderProps {
 }
 
 export function SolanaProvider({ children }: SolanaProviderProps) {
-  // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
-  const network = WalletAdapterNetwork.Mainnet;
+  const network = useMemo(() => {
+    const raw = (import.meta.env.VITE_SOLANA_NETWORK as string | undefined)?.toLowerCase();
 
-  // You can also provide a custom RPC endpoint
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+    if (raw === 'devnet') return WalletAdapterNetwork.Devnet;
+    if (raw === 'testnet') return WalletAdapterNetwork.Testnet;
+    if (raw === 'mainnet' || raw === 'mainnet-beta' || raw === 'mainnetbeta') {
+      return WalletAdapterNetwork.Mainnet;
+    }
+
+    return WalletAdapterNetwork.Devnet;
+  }, []);
+
+  const endpoint = useMemo(() => {
+    const rpcUrl = import.meta.env.VITE_SOLANA_RPC_URL as string | undefined;
+    return rpcUrl?.length ? rpcUrl : clusterApiUrl(network);
+  }, [network]);
 
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
+      new SolflareWalletAdapter({ network }),
     ],
-    []
+    [network]
   );
 
   return (

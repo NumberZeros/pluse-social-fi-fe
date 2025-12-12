@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';
+import { Footer } from '../components/layout/Footer';
 import { PostCard } from '../components/feed/PostCard.tsx';
 import { IconVerified } from '../components/icons/PulseIcons';
 
@@ -150,6 +151,8 @@ export function Profile() {
           ))}
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }

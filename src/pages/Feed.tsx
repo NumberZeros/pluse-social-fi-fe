@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Navbar } from '../components/layout/Navbar';
+import { Footer } from '../components/layout/Footer';
 import { CreatePost } from '../components/feed/CreatePost';
 import { PostCard } from '../components/feed/PostCard';
 import { TrendingSidebar } from '../components/feed/TrendingSidebar';
@@ -117,6 +118,8 @@ export function Feed() {
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }

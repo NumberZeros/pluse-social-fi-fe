@@ -1,7 +1,10 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { lazy, Suspense, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { IconGraph, IconIdentity, IconStorage, IconTip, PulseMark } from '../components/icons/PulseIcons';
+
+import { Footer } from '../components/layout/Footer';
 
 const HeroSceneCanvas = lazy(() =>
   import('../components/hero/HeroSceneCanvas').then((m) => ({ default: m.HeroSceneCanvas }))
@@ -173,9 +176,7 @@ export function Landing() {
           <a href="#" className="hover:text-[var(--color-solana-green)] transition-colors">Ecosystem</a>
           <a href="#" className="hover:text-[var(--color-solana-green)] transition-colors">Community</a>
         </div>
-        <button className="px-6 py-3 bg-white text-black rounded-full font-bold text-sm hover:bg-[var(--color-solana-green)] transition-colors">
-          Connect Phantom
-        </button>
+        <WalletMultiButton className="!px-6 !py-3 !bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[var(--color-solana-green)] !transition-colors" />
       </nav>
 
       {/* Hero Section */}
@@ -394,14 +395,7 @@ export function Landing() {
         </div>
       </section>
 
-      <footer className="py-12 px-6 border-t border-white/10 text-center text-gray-500 text-sm bg-black">
-        <div className="flex justify-center gap-8 mb-8">
-          <a href="#" className="hover:text-[var(--color-solana-green)] transition-colors">@pulse</a>
-          <a href="#" className="hover:text-[var(--color-solana-green)] transition-colors">pulse.sol</a>
-          <a href="#" className="hover:text-[var(--color-solana-green)] transition-colors">GitHub</a>
-        </div>
-        <p>&copy; 2025 Pulse Protocol. All rights reserved.</p>
-      </footer>
+      <Footer />
     </div>
   );
 }
