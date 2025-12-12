@@ -56,67 +56,75 @@ export const useSocialStore = create<SocialStore>()(
       setCurrentUser: (user) => set({ currentUser: user }),
 
       // Post actions
-      addPost: (post) => set((state) => ({ 
-        posts: [post, ...state.posts] 
-      })),
+      addPost: (post) =>
+        set((state) => ({
+          posts: [post, ...state.posts],
+        })),
 
-      updatePost: (postId, updates) => set((state) => ({
-        posts: state.posts.map((post) =>
-          post.id === postId ? { ...post, ...updates } : post
-        ),
-      })),
+      updatePost: (postId, updates) =>
+        set((state) => ({
+          posts: state.posts.map((post) =>
+            post.id === postId ? { ...post, ...updates } : post,
+          ),
+        })),
 
-      deletePost: (postId) => set((state) => ({
-        posts: state.posts.filter((post) => post.id !== postId),
-      })),
+      deletePost: (postId) =>
+        set((state) => ({
+          posts: state.posts.filter((post) => post.id !== postId),
+        })),
 
       // Social interaction actions
-      likePost: (postId) => set((state) => ({
-        posts: state.posts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                isLiked: !post.isLiked,
-                likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-              }
-            : post
-        ),
-      })),
+      likePost: (postId) =>
+        set((state) => ({
+          posts: state.posts.map((post) =>
+            post.id === postId
+              ? {
+                  ...post,
+                  isLiked: !post.isLiked,
+                  likes: post.isLiked ? post.likes - 1 : post.likes + 1,
+                }
+              : post,
+          ),
+        })),
 
-      repostPost: (postId) => set((state) => ({
-        posts: state.posts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                isReposted: !post.isReposted,
-                reposts: post.isReposted ? post.reposts - 1 : post.reposts + 1,
-              }
-            : post
-        ),
-      })),
+      repostPost: (postId) =>
+        set((state) => ({
+          posts: state.posts.map((post) =>
+            post.id === postId
+              ? {
+                  ...post,
+                  isReposted: !post.isReposted,
+                  reposts: post.isReposted ? post.reposts - 1 : post.reposts + 1,
+                }
+              : post,
+          ),
+        })),
 
-      tipPost: (postId, amount) => set((state) => ({
-        posts: state.posts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                tips: post.tips + amount,
-              }
-            : post
-        ),
-      })),
+      tipPost: (postId, amount) =>
+        set((state) => ({
+          posts: state.posts.map((post) =>
+            post.id === postId
+              ? {
+                  ...post,
+                  tips: post.tips + amount,
+                }
+              : post,
+          ),
+        })),
 
       // Following actions
-      follow: (username) => set((state) => ({
-        following: [...state.following, username],
-      })),
+      follow: (username) =>
+        set((state) => ({
+          following: [...state.following, username],
+        })),
 
-      unfollow: (username) => set((state) => ({
-        following: state.following.filter((u) => u !== username),
-      })),
+      unfollow: (username) =>
+        set((state) => ({
+          following: state.following.filter((u) => u !== username),
+        })),
     }),
     {
       name: 'pulse-social-storage',
-    }
-  )
+    },
+  ),
 );

@@ -11,15 +11,36 @@ export function PulseMark({ title = 'Pulse', ...props }: IconProps) {
   return (
     <svg viewBox="0 0 48 48" fill="none" aria-label={title} role="img" {...props}>
       <defs>
-        <linearGradient id={gradientId} x1="8" y1="40" x2="40" y2="8" gradientUnits="userSpaceOnUse">
+        <linearGradient
+          id={gradientId}
+          x1="8"
+          y1="40"
+          x2="40"
+          y2="8"
+          gradientUnits="userSpaceOnUse"
+        >
           <stop stopColor="#14F195" />
           <stop offset="0.52" stopColor="#9945FF" />
           <stop offset="1" stopColor="#ABFE2C" />
         </linearGradient>
       </defs>
 
-      <circle cx="24" cy="24" r="18" stroke={`url(#${gradientId})`} strokeWidth="2" opacity="0.95" />
-      <circle cx="24" cy="24" r="14" stroke={`url(#${gradientId})`} strokeWidth="1" opacity="0.25" />
+      <circle
+        cx="24"
+        cy="24"
+        r="18"
+        stroke={`url(#${gradientId})`}
+        strokeWidth="2"
+        opacity="0.95"
+      />
+      <circle
+        cx="24"
+        cy="24"
+        r="14"
+        stroke={`url(#${gradientId})`}
+        strokeWidth="1"
+        opacity="0.25"
+      />
 
       <path
         d="M10 24h6l2.3-6.2L22 31l3.2-12 2.1 5h10.7"
@@ -32,7 +53,11 @@ export function PulseMark({ title = 'Pulse', ...props }: IconProps) {
   );
 }
 
-function BaseIcon({ title, children, ...props }: IconProps & { children: React.ReactNode }) {
+function BaseIcon({
+  title,
+  children,
+  ...props
+}: IconProps & { children: React.ReactNode }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-label={title} role="img" {...props}>
       {children}
@@ -62,9 +87,24 @@ export function IconFeed(props: IconProps) {
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
-      <path d="M7.6 9.2h8.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M7.6 12.4h6.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M7.6 15.6h7.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M7.6 9.2h8.8"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M7.6 12.4h6.6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M7.6 15.6h7.4"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
     </BaseIcon>
   );
 }
@@ -180,9 +220,23 @@ export function IconIdentity(props: IconProps) {
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
-      <path d="M8.2 10.2h4.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M8.2 13.2h6.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M14.8 11.2a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2Z" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M8.2 10.2h4.2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8.2 13.2h6.6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M14.8 11.2a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
     </BaseIcon>
   );
 }
@@ -196,8 +250,18 @@ export function IconTip(props: IconProps) {
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
-      <path d="M9.4 19.1h5.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M10.4 21h3.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M9.4 19.1h5.2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M10.4 21h3.2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
     </BaseIcon>
   );
 }
@@ -225,8 +289,18 @@ export function IconStorage(props: IconProps) {
 export function IconGraph(props: IconProps) {
   return (
     <BaseIcon title={props.title ?? 'Graph'} {...props}>
-      <path d="M6.2 17.8V6.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M6.2 17.8h11.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M6.2 17.8V6.2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M6.2 17.8h11.6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
       <path
         d="M7.8 14.7 11 11.8l2.4 2.2 3.1-4"
         stroke="currentColor"
@@ -244,8 +318,20 @@ export function IconGraph(props: IconProps) {
 export function IconTrend(props: IconProps) {
   return (
     <BaseIcon title={props.title ?? 'Trending'} {...props}>
-      <path d="M5 15.5 10 10l3 3 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M15 7h4v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M5 15.5 10 10l3 3 6-6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15 7h4v4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </BaseIcon>
   );
 }
@@ -253,8 +339,19 @@ export function IconTrend(props: IconProps) {
 export function IconSparkle(props: IconProps) {
   return (
     <BaseIcon title={props.title ?? 'New'} {...props}>
-      <path d="M12 3l1.1 4 3.9 1-3.9 1L12 13l-1.1-4L7 8l3.9-1L12 3Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M18.2 12.2l.6 2.2 2.2.6-2.2.6-.6 2.2-.6-2.2-2.2-.6 2.2-.6.6-2.2Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" opacity="0.85" />
+      <path
+        d="M12 3l1.1 4 3.9 1-3.9 1L12 13l-1.1-4L7 8l3.9-1L12 3Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M18.2 12.2l.6 2.2 2.2.6-2.2.6-.6 2.2-.6-2.2-2.2-.6 2.2-.6.6-2.2Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+        opacity="0.85"
+      />
     </BaseIcon>
   );
 }
@@ -262,9 +359,24 @@ export function IconSparkle(props: IconProps) {
 export function IconArt(props: IconProps) {
   return (
     <BaseIcon title={props.title ?? 'Art'} {...props}>
-      <path d="M7 17.5c2.2-2.2 7.8-7.8 10-10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M14.8 6.7 17.3 9.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M6.5 18.2h4.3l-4.3-4.3v4.3Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path
+        d="M7 17.5c2.2-2.2 7.8-7.8 10-10"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M14.8 6.7 17.3 9.2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M6.5 18.2h4.3l-4.3-4.3v4.3Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
     </BaseIcon>
   );
 }
@@ -278,8 +390,18 @@ export function IconGaming(props: IconProps) {
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
-      <path d="M8.3 13.6h2.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M9.6 12.3v2.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M8.3 13.6h2.6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M9.6 12.3v2.6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
       <circle cx="15.9" cy="13.1" r="0.9" fill="currentColor" opacity="0.9" />
       <circle cx="17.8" cy="14.8" r="0.9" fill="currentColor" opacity="0.9" />
     </BaseIcon>
@@ -290,9 +412,24 @@ export function IconCoin(props: IconProps) {
   return (
     <BaseIcon title={props.title ?? 'DeFi'} {...props}>
       <ellipse cx="12" cy="12" rx="7" ry="8" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M9.2 9.2h4.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M9.2 12h5.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M9.2 14.8h4.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M9.2 9.2h4.1"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M9.2 12h5.6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M9.2 14.8h4.1"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
     </BaseIcon>
   );
 }

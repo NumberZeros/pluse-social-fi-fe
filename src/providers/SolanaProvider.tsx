@@ -15,7 +15,9 @@ interface SolanaProviderProps {
 
 export function SolanaProvider({ children }: SolanaProviderProps) {
   const network = useMemo(() => {
-    const raw = (import.meta.env.VITE_SOLANA_NETWORK as string | undefined)?.toLowerCase();
+    const raw = (
+      import.meta.env.VITE_SOLANA_NETWORK as string | undefined
+    )?.toLowerCase();
 
     if (raw === 'devnet') return WalletAdapterNetwork.Devnet;
     if (raw === 'testnet') return WalletAdapterNetwork.Testnet;
@@ -32,19 +34,14 @@ export function SolanaProvider({ children }: SolanaProviderProps) {
   }, [network]);
 
   const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter({ network }),
-    ],
-    [network]
+    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter({ network })],
+    [network],
   );
 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          {children}
-        </WalletModalProvider>
+        <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );

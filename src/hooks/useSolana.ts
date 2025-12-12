@@ -25,16 +25,16 @@ export function useSolanaTipping() {
           fromPubkey: publicKey,
           toPubkey: recipientPubkey,
           lamports,
-        })
+        }),
       );
 
       const signature = await sendTransaction(transaction, connection);
-      
+
       toast.success(`Tip sent! Transaction: ${signature.slice(0, 8)}...`);
-      
+
       // Wait for confirmation
       await connection.confirmTransaction(signature, 'confirmed');
-      
+
       return true;
     } catch (error) {
       console.error('Error sending tip:', error);

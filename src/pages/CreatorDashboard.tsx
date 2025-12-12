@@ -1,0 +1,348 @@
+import { motion } from 'framer-motion';
+import { useState, useMemo } from 'react';
+import { Navbar } from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
+import {
+  Crown,
+  DollarSign,
+  Users,
+  TrendingUp,
+  Sparkles,
+  Plus,
+  Edit,
+  Trash2,
+} from 'lucide-react';
+import useSubscriptionStore from '../stores/useSubscriptionStore';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useUserStore } from '../stores/useUserStore';
+import toast from 'react-hot-toast';
+
+export function CreatorDashboard() {
+  const { publicKey } = useWallet();
+  const totalTipsReceived = useUserStore((state) => state.profile.totalTipsReceived);
+  const {
+    getTiersByCreator,
+    getSubscribersByCreator,
+    getTotalRevenue,
+    getMonthlyRevenue,
+    deleteTier,
+  } = useSubscriptionStore();
+
+  const [showCreateTierModal, setShowCreateTierModal] = useState(false);
+
+  const myTiers = useMemo(() => {
+    if (!publicKey) return [];
+    return getTiersByCreator(publicKey.toBase58());
+  }, [publicKey, getTiersByCreator]);
+
+  const mySubscribers = useMemo(() => {
+    if (!publicKey) return [];
+    return getSubscribersByCreator(publicKey.toBase58());
+  }, [publicKey, getSubscribersByCreator]);
+
+  const totalRevenue = useMemo(() => {
+    if (!publicKey) return 0;
+    return getTotalRevenue(publicKey.toBase58());
+  }, [publicKey, getTotalRevenue]);
+
+  const monthlyRevenue = useMemo(() => {
+    if (!publicKey) return 0;
+    return getMonthlyRevenue(publicKey.toBase58());
+  }, [publicKey, getMonthlyRevenue]);
+
+  const handleDeleteTier = (tierId: string, tierName: string) => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete the "${tierName}" tier? This action cannot be undone.`,
+      )
+    ) {
+      deleteTier(tierId);
+      toast.success(`Tier "${tierName}" deleted successfully`);
+    }
+  };
+
+  if (!publicKey) {
+    return (
+      <div className="bg-black min-h-screen text-white">
+        <Navbar />
+        <div className="max-w-4xl mx-auto px-6 py-24 text-center">
+          <Crown className="w-16 h-16 text-[#D4AF37] mx-auto mb-6" />
+          <h1 className="text-4xl font-bold mb-4">Creator Dashboard</h1>
+          <p className="text-gray-400 mb-8">
+            Connect your wallet to access your creator dashboard
+          </p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-black min-h-screen text-white">
+      <Navbar />
+
+      <div className="max-w-7xl mx-auto px-6 py-24">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12"
+        >
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-[#D4AF37]/20 to-[#ABFE2C]/20 rounded-xl">
+                <Crown className="w-8 h-8 text-[#D4AF37]" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold">Creator Dashboard</h1>
+                <p className="text-gray-400 mt-1">
+                  Manage your subscriptions and earnings
+                </p>
+              </div>
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowCreateTierModal(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#ABFE2C] to-[#D4AF37] text-black rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              Create New Tier
+            </motion.button>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="p-6 bg-gradient-to-br from-[#ABFE2C]/10 to-[#D4AF37]/10 rounded-xl border border-[#ABFE2C]/30"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <Users className="w-5 h-5 text-[#ABFE2C]" />
+                <span className="text-gray-400 text-sm">Active Subscribers</span>
+              </div>
+              <p className="text-3xl font-bold">{mySubscribers.length}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                +{Math.floor(Math.random() * 5)} this week
+              </p>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="p-6 bg-gradient-to-br from-[#D4AF37]/10 to-[#ABFE2C]/10 rounded-xl border border-[#D4AF37]/30"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <DollarSign className="w-5 h-5 text-[#D4AF37]" />
+                <span className="text-gray-400 text-sm">Monthly Revenue</span>
+              </div>
+              <p className="text-3xl font-bold">{monthlyRevenue.toFixed(2)} SOL</p>
+              <p className="text-xs text-gray-500 mt-1">
+                ≈ ${(monthlyRevenue * 100).toFixed(2)} USD
+              </p>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="p-6 bg-gradient-to-br from-[#9945FF]/10 to-[#14F195]/10 rounded-xl border border-[#9945FF]/30"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <TrendingUp className="w-5 h-5 text-[#9945FF]" />
+                <span className="text-gray-400 text-sm">Total Revenue</span>
+              </div>
+              <p className="text-3xl font-bold">
+                {(totalRevenue + totalTipsReceived).toFixed(2)} SOL
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Tips: {totalTipsReceived.toFixed(2)} SOL
+              </p>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <Crown className="w-5 h-5 text-[#ABFE2C]" />
+                <span className="text-gray-400 text-sm">Active Tiers</span>
+              </div>
+              <p className="text-3xl font-bold">{myTiers.length}</p>
+              <p className="text-xs text-gray-500 mt-1">Subscription offerings</p>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Subscription Tiers */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">Your Subscription Tiers</h2>
+
+          {myTiers.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-16 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700"
+            >
+              <Sparkles className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-400 mb-2">
+                No subscription tiers yet
+              </h3>
+              <p className="text-gray-500 mb-6">
+                Create your first tier to start earning recurring revenue!
+              </p>
+              <button
+                onClick={() => setShowCreateTierModal(true)}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#ABFE2C] to-[#D4AF37] text-black rounded-xl font-bold hover:shadow-lg transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                Create Your First Tier
+              </button>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {myTiers.map((tier) => (
+                <motion.div
+                  key={tier.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -4 }}
+                  className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700 hover:border-[#ABFE2C]/50 transition-all"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold mb-1">{tier.name}</h3>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold text-[#ABFE2C]">
+                          {tier.price}
+                        </span>
+                        <span className="text-sm text-gray-400">SOL/mo</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
+                        <Edit className="w-4 h-4 text-gray-400" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTier(tier.id, tier.name)}
+                        className="p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-400 mb-4">{tier.description}</p>
+
+                  <div className="space-y-2 mb-4">
+                    {tier.benefits.slice(0, 3).map((benefit, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 text-sm text-gray-300"
+                      >
+                        <Crown className="w-3 h-3 text-[#D4AF37]" />
+                        {benefit}
+                      </div>
+                    ))}
+                    {tier.benefits.length > 3 && (
+                      <p className="text-xs text-gray-500">
+                        +{tier.benefits.length - 3} more
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-700 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500">Subscribers</p>
+                      <p className="text-lg font-bold text-white">
+                        {tier.subscriberCount}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500">Revenue/mo</p>
+                      <p className="text-lg font-bold text-[#ABFE2C]">
+                        {(tier.price * tier.subscriberCount).toFixed(2)} SOL
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Recent Subscribers */}
+        <div>
+          <h2 className="text-2xl font-bold mb-6">Recent Subscribers</h2>
+
+          {mySubscribers.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700"
+            >
+              <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-500">No subscribers yet</p>
+            </motion.div>
+          ) : (
+            <div className="space-y-3">
+              {mySubscribers.slice(0, 5).map((subscription) => {
+                const tier = myTiers.find((t) => t.id === subscription.tierId);
+                return (
+                  <motion.div
+                    key={subscription.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center justify-between p-4 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700 hover:border-[#ABFE2C]/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${subscription.subscriberId}`}
+                        alt="Subscriber"
+                        className="w-12 h-12 rounded-full bg-gray-800"
+                      />
+                      <div>
+                        <p className="font-semibold">
+                          {subscription.subscriberId.slice(0, 8)}...
+                          {subscription.subscriberId.slice(-6)}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Subscribed to{' '}
+                          <span className="text-[#ABFE2C]">{tier?.name}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-[#ABFE2C]">{tier?.price} SOL</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(subscription.startDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <Footer />
+
+      {/* TODO: Add Create Tier Modal component */}
+      {showCreateTierModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-gray-900 p-6 rounded-xl max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-4">Create Tier - Coming Soon</h3>
+            <p className="text-gray-400 mb-4">
+              Tier creation UI is under development. Use the store directly for now.
+            </p>
+            <button
+              onClick={() => setShowCreateTierModal(false)}
+              className="w-full px-4 py-2 bg-gradient-to-r from-[#50C878] to-[#3BA565] rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

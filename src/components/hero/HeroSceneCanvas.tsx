@@ -26,7 +26,12 @@ type NetworkNode = {
 };
 
 /* Connection line between two nodes */
-function ConnectionLine({ start, end, color, opacity = 0.6 }: {
+function ConnectionLine({
+  start,
+  end,
+  color,
+  opacity = 0.6,
+}: {
   start: THREE.Vector3;
   end: THREE.Vector3;
   color: string;
@@ -51,9 +56,7 @@ function ConnectionLine({ start, end, color, opacity = 0.6 }: {
 }
 
 /* Animated node in the network */
-function NetworkNodeMesh({ node }: {
-  node: NetworkNode;
-}) {
+function NetworkNodeMesh({ node }: { node: NetworkNode }) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   const material = useMemo(() => {
@@ -78,9 +81,12 @@ function NetworkNodeMesh({ node }: {
     if (meshRef.current) {
       const t = state.clock.getElapsedTime();
       const angle = t * node.orbitSpeed + node.orbitOffset;
-      meshRef.current.position.x = node.position[0] + Math.cos(angle) * node.orbitRadius * 0.3;
-      meshRef.current.position.y = node.position[1] + Math.sin(angle * 0.7) * node.orbitRadius * 0.2;
-      meshRef.current.position.z = node.position[2] + Math.sin(angle) * node.orbitRadius * 0.3;
+      meshRef.current.position.x =
+        node.position[0] + Math.cos(angle) * node.orbitRadius * 0.3;
+      meshRef.current.position.y =
+        node.position[1] + Math.sin(angle * 0.7) * node.orbitRadius * 0.2;
+      meshRef.current.position.z =
+        node.position[2] + Math.sin(angle) * node.orbitRadius * 0.3;
     }
   });
 
@@ -91,7 +97,11 @@ function NetworkNodeMesh({ node }: {
   );
 }
 
-function Scene({ scrollRef, pointerRef, palette }: {
+function Scene({
+  scrollRef,
+  pointerRef,
+  palette,
+}: {
   scrollRef: React.MutableRefObject<number>;
   pointerRef: React.MutableRefObject<{ x: number; y: number }>;
   palette: Palette;
@@ -103,34 +113,131 @@ function Scene({ scrollRef, pointerRef, palette }: {
   const lookAt = useMemo(() => new THREE.Vector3(0.5, 0, 0), []);
 
   // Central "You" node
-  const centralNode = useMemo(() => ({
-    position: [0, 0, 0] as [number, number, number],
-    color: palette.gold,
-    size: 0.35,
-    orbitSpeed: 0,
-    orbitRadius: 0,
-    orbitOffset: 0,
-  }), [palette.gold]);
+  const centralNode = useMemo(
+    () => ({
+      position: [0, 0, 0] as [number, number, number],
+      color: palette.gold,
+      size: 0.35,
+      orbitSpeed: 0,
+      orbitRadius: 0,
+      orbitOffset: 0,
+    }),
+    [palette.gold],
+  );
 
   // Surrounding network nodes (connections/followers)
-  const networkNodes: NetworkNode[] = useMemo(() => [
-    // Inner ring - closer connections
-    { position: [1.2, 0.3, 0.5], color: palette.purple, size: 0.18, orbitSpeed: 0.4, orbitRadius: 0.8, orbitOffset: 0 },
-    { position: [-1.0, 0.5, 0.3], color: palette.cyan, size: 0.2, orbitSpeed: 0.35, orbitRadius: 0.7, orbitOffset: Math.PI * 0.5 },
-    { position: [0.8, -0.6, 0.4], color: palette.rose, size: 0.16, orbitSpeed: 0.45, orbitRadius: 0.6, orbitOffset: Math.PI },
-    { position: [-0.9, -0.4, 0.6], color: palette.purple, size: 0.17, orbitSpeed: 0.38, orbitRadius: 0.75, orbitOffset: Math.PI * 1.5 },
-    { position: [0.3, 0.9, 0.2], color: palette.gold, size: 0.19, orbitSpeed: 0.42, orbitRadius: 0.65, orbitOffset: Math.PI * 0.25 },
-    // Outer ring - extended network
-    { position: [1.8, 0.8, -0.3], color: palette.cyan, size: 0.12, orbitSpeed: 0.3, orbitRadius: 1.0, orbitOffset: Math.PI * 0.3 },
-    { position: [-1.6, 0.9, -0.2], color: palette.purple, size: 0.13, orbitSpeed: 0.28, orbitRadius: 0.9, orbitOffset: Math.PI * 0.7 },
-    { position: [1.5, -0.9, -0.4], color: palette.rose, size: 0.11, orbitSpeed: 0.32, orbitRadius: 1.1, orbitOffset: Math.PI * 1.1 },
-    { position: [-1.4, -0.8, 0.1], color: palette.gold, size: 0.14, orbitSpeed: 0.25, orbitRadius: 0.85, orbitOffset: Math.PI * 1.4 },
-    { position: [0.1, 1.4, -0.5], color: palette.purple, size: 0.1, orbitSpeed: 0.33, orbitRadius: 0.95, orbitOffset: Math.PI * 1.8 },
-    { position: [-0.3, -1.3, 0.2], color: palette.cyan, size: 0.12, orbitSpeed: 0.29, orbitRadius: 1.05, orbitOffset: Math.PI * 0.1 },
-    // Far nodes
-    { position: [2.2, 0.2, -0.8], color: palette.purple, size: 0.08, orbitSpeed: 0.22, orbitRadius: 1.2, orbitOffset: Math.PI * 0.6 },
-    { position: [-2.0, 0.1, -0.6], color: palette.rose, size: 0.09, orbitSpeed: 0.2, orbitRadius: 1.15, orbitOffset: Math.PI * 1.2 },
-  ], [palette.cyan, palette.gold, palette.purple, palette.rose]);
+  const networkNodes: NetworkNode[] = useMemo(
+    () => [
+      // Inner ring - closer connections
+      {
+        position: [1.2, 0.3, 0.5],
+        color: palette.purple,
+        size: 0.18,
+        orbitSpeed: 0.4,
+        orbitRadius: 0.8,
+        orbitOffset: 0,
+      },
+      {
+        position: [-1.0, 0.5, 0.3],
+        color: palette.cyan,
+        size: 0.2,
+        orbitSpeed: 0.35,
+        orbitRadius: 0.7,
+        orbitOffset: Math.PI * 0.5,
+      },
+      {
+        position: [0.8, -0.6, 0.4],
+        color: palette.rose,
+        size: 0.16,
+        orbitSpeed: 0.45,
+        orbitRadius: 0.6,
+        orbitOffset: Math.PI,
+      },
+      {
+        position: [-0.9, -0.4, 0.6],
+        color: palette.purple,
+        size: 0.17,
+        orbitSpeed: 0.38,
+        orbitRadius: 0.75,
+        orbitOffset: Math.PI * 1.5,
+      },
+      {
+        position: [0.3, 0.9, 0.2],
+        color: palette.gold,
+        size: 0.19,
+        orbitSpeed: 0.42,
+        orbitRadius: 0.65,
+        orbitOffset: Math.PI * 0.25,
+      },
+      // Outer ring - extended network
+      {
+        position: [1.8, 0.8, -0.3],
+        color: palette.cyan,
+        size: 0.12,
+        orbitSpeed: 0.3,
+        orbitRadius: 1.0,
+        orbitOffset: Math.PI * 0.3,
+      },
+      {
+        position: [-1.6, 0.9, -0.2],
+        color: palette.purple,
+        size: 0.13,
+        orbitSpeed: 0.28,
+        orbitRadius: 0.9,
+        orbitOffset: Math.PI * 0.7,
+      },
+      {
+        position: [1.5, -0.9, -0.4],
+        color: palette.rose,
+        size: 0.11,
+        orbitSpeed: 0.32,
+        orbitRadius: 1.1,
+        orbitOffset: Math.PI * 1.1,
+      },
+      {
+        position: [-1.4, -0.8, 0.1],
+        color: palette.gold,
+        size: 0.14,
+        orbitSpeed: 0.25,
+        orbitRadius: 0.85,
+        orbitOffset: Math.PI * 1.4,
+      },
+      {
+        position: [0.1, 1.4, -0.5],
+        color: palette.purple,
+        size: 0.1,
+        orbitSpeed: 0.33,
+        orbitRadius: 0.95,
+        orbitOffset: Math.PI * 1.8,
+      },
+      {
+        position: [-0.3, -1.3, 0.2],
+        color: palette.cyan,
+        size: 0.12,
+        orbitSpeed: 0.29,
+        orbitRadius: 1.05,
+        orbitOffset: Math.PI * 0.1,
+      },
+      // Far nodes
+      {
+        position: [2.2, 0.2, -0.8],
+        color: palette.purple,
+        size: 0.08,
+        orbitSpeed: 0.22,
+        orbitRadius: 1.2,
+        orbitOffset: Math.PI * 0.6,
+      },
+      {
+        position: [-2.0, 0.1, -0.6],
+        color: palette.rose,
+        size: 0.09,
+        orbitSpeed: 0.2,
+        orbitRadius: 1.15,
+        orbitOffset: Math.PI * 1.2,
+      },
+    ],
+    [palette.cyan, palette.gold, palette.purple, palette.rose],
+  );
 
   // Central node material (larger, more prominent)
   const centralMaterial = useMemo(() => {
@@ -173,8 +280,16 @@ function Scene({ scrollRef, pointerRef, palette }: {
       group.current.rotation.x = t * 0.02 + py * 0.15;
 
       // Position offset
-      group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, 0.8 + px * 0.15, 0.05);
-      group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, s * -0.4, 0.06);
+      group.current.position.x = THREE.MathUtils.lerp(
+        group.current.position.x,
+        0.8 + px * 0.15,
+        0.05,
+      );
+      group.current.position.y = THREE.MathUtils.lerp(
+        group.current.position.y,
+        s * -0.4,
+        0.06,
+      );
     }
 
     state.camera.lookAt(lookAt);
@@ -195,7 +310,18 @@ function Scene({ scrollRef, pointerRef, palette }: {
     });
 
     // Some node-to-node connections for network effect
-    const pairs = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0], [5, 6], [7, 8], [9, 10], [0, 5], [2, 7]];
+    const pairs = [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 4],
+      [4, 0],
+      [5, 6],
+      [7, 8],
+      [9, 10],
+      [0, 5],
+      [2, 7],
+    ];
     pairs.forEach(([i, j]) => {
       if (networkNodes[i] && networkNodes[j]) {
         result.push({
@@ -220,14 +346,43 @@ function Scene({ scrollRef, pointerRef, palette }: {
 
       {/* Environment for reflections */}
       <Environment resolution={64}>
-        <Lightformer intensity={1.8} position={[0, 5, 2]} scale={[8, 4, 1]} color={'#ffffff'} />
-        <Lightformer intensity={1.2} position={[6, 1, 2]} scale={[4, 3, 1]} color={palette.gold} />
-        <Lightformer intensity={1.0} position={[-6, 1, 1]} scale={[4, 3, 1]} color={palette.purple} />
+        <Lightformer
+          intensity={1.8}
+          position={[0, 5, 2]}
+          scale={[8, 4, 1]}
+          color={'#ffffff'}
+        />
+        <Lightformer
+          intensity={1.2}
+          position={[6, 1, 2]}
+          scale={[4, 3, 1]}
+          color={palette.gold}
+        />
+        <Lightformer
+          intensity={1.0}
+          position={[-6, 1, 1]}
+          scale={[4, 3, 1]}
+          color={palette.purple}
+        />
       </Environment>
 
       {/* Sparkles around the network */}
-      <Sparkles count={150} scale={[8, 5, 8]} size={0.4} speed={0.4} opacity={0.18} color={palette.gold} />
-      <Sparkles count={80} scale={[6, 4, 6]} size={0.25} speed={0.25} opacity={0.12} color={palette.purple} />
+      <Sparkles
+        count={150}
+        scale={[8, 5, 8]}
+        size={0.4}
+        speed={0.4}
+        opacity={0.18}
+        color={palette.gold}
+      />
+      <Sparkles
+        count={80}
+        scale={[6, 4, 6]}
+        size={0.25}
+        speed={0.25}
+        opacity={0.12}
+        color={palette.purple}
+      />
 
       {/* Connection lines */}
       <group ref={connectionsRef}>
@@ -284,12 +439,12 @@ export function HeroSceneCanvas({ scrollYProgress }: HeroSceneCanvasProps) {
   // Solana-aligned palette: Green, Purple, Lime
   const palette: Palette = useMemo(
     () => ({
-      gold: '#14F195',      // Solana Green (Primary)
-      cyan: '#ABFE2C',      // Lens Lime (Secondary)
-      purple: '#9945FF',    // Solana Purple (Tertiary)
-      rose: '#FFFFFF',      // White (Accent)
+      gold: '#14F195', // Solana Green (Primary)
+      cyan: '#ABFE2C', // Lens Lime (Secondary)
+      purple: '#9945FF', // Solana Purple (Tertiary)
+      rose: '#FFFFFF', // White (Accent)
     }),
-    []
+    [],
   );
 
   useMotionValueEvent(scrollYProgress, 'change', (v) => {

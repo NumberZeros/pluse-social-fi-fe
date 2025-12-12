@@ -1,20 +1,20 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   /* Lens-inspired Palette */
-  --color-lens-lime: #ABFE2C;
-  --color-lens-dark: #00501E;
+  --color-lens-lime: #abfe2c;
+  --color-lens-dark: #00501e;
   --color-lens-black: #000000;
-  --color-lens-cream: #F7F7F7;
-  --color-lens-gray: #2C2D30;
-  
+  --color-lens-cream: #f7f7f7;
+  --color-lens-gray: #2c2d30;
+
   /* Solana Accents */
-  --color-solana-purple: #9945FF;
-  --color-solana-green: #14F195;
+  --color-solana-purple: #9945ff;
+  --color-solana-green: #14f195;
 
   /* Typography */
-  --font-sans: "Inter", sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
 
   /* Animations */
   --animate-marquee: marquee 30s linear infinite;
@@ -22,14 +22,65 @@
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
   @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
   }
+}
+
+/* Accessibility - Focus Styles */
+*:focus-visible {
+  outline: 2px solid var(--color-lens-lime);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-lens-lime);
+  outline-offset: 2px;
+}
+
+/* Skip to main content link for screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:focus {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  width: auto;
+  height: auto;
+  padding: 1rem;
+  clip: auto;
+  background-color: var(--color-lens-lime);
+  color: black;
+  font-weight: bold;
+  z-index: 9999;
+  border-radius: 0.5rem;
 }
 
 /* Custom Utilities */
@@ -44,21 +95,43 @@
 }
 
 .text-gradient-lens {
-  background: linear-gradient(to right, var(--color-lens-lime), var(--color-solana-green));
+  background: linear-gradient(
+    to right,
+    var(--color-lens-lime),
+    var(--color-solana-green)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .mesh-gradient-lens {
   background:
-    radial-gradient(at 0% 0%, color-mix(in srgb, var(--color-lens-lime) 15%, transparent) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, color-mix(in srgb, var(--color-solana-green) 15%, transparent) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, color-mix(in srgb, var(--color-solana-purple) 10%, transparent) 0px, transparent 50%);
+    radial-gradient(
+      at 0% 0%,
+      color-mix(in srgb, var(--color-lens-lime) 15%, transparent) 0px,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 100% 0%,
+      color-mix(in srgb, var(--color-solana-green) 15%, transparent) 0px,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 100% 100%,
+      color-mix(in srgb, var(--color-solana-purple) 10%, transparent) 0px,
+      transparent 50%
+    );
 }
 
 .mask-linear-gradient {
   mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
 }
 
 .direction-reverse {
@@ -85,8 +158,16 @@
 .hero-orb {
   transform-style: preserve-3d;
   background:
-    radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-lens-lime) 26%, transparent), transparent 55%),
-    radial-gradient(circle at 70% 70%, color-mix(in srgb, var(--color-solana-purple) 18%, transparent), transparent 60%);
+    radial-gradient(
+      circle at 30% 30%,
+      color-mix(in srgb, var(--color-lens-lime) 26%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 70% 70%,
+      color-mix(in srgb, var(--color-solana-purple) 18%, transparent),
+      transparent 60%
+    );
   filter: blur(40px);
   opacity: 0.9;
 }
@@ -94,24 +175,47 @@
 .hero-ribbon {
   transform-style: preserve-3d;
   border-radius: 9999px;
-  background:
-    conic-gradient(
-      from 180deg,
-      color-mix(in srgb, var(--color-solana-purple) 45%, transparent),
-      color-mix(in srgb, var(--color-solana-green) 45%, transparent),
-      color-mix(in srgb, var(--color-lens-lime) 45%, transparent),
-      color-mix(in srgb, var(--color-solana-purple) 45%, transparent)
-    );
-  mask-image: radial-gradient(circle, transparent 58%, black 60%, black 64%, transparent 66%);
-  -webkit-mask-image: radial-gradient(circle, transparent 58%, black 60%, black 64%, transparent 66%);
+  background: conic-gradient(
+    from 180deg,
+    color-mix(in srgb, var(--color-solana-purple) 45%, transparent),
+    color-mix(in srgb, var(--color-solana-green) 45%, transparent),
+    color-mix(in srgb, var(--color-lens-lime) 45%, transparent),
+    color-mix(in srgb, var(--color-solana-purple) 45%, transparent)
+  );
+  mask-image: radial-gradient(
+    circle,
+    transparent 58%,
+    black 60%,
+    black 64%,
+    transparent 66%
+  );
+  -webkit-mask-image: radial-gradient(
+    circle,
+    transparent 58%,
+    black 60%,
+    black 64%,
+    transparent 66%
+  );
   filter: blur(0px);
   opacity: 0.75;
 }
 
 .hero-ribbon--alt {
   opacity: 0.6;
-  mask-image: radial-gradient(circle, transparent 62%, black 64%, black 67%, transparent 69%);
-  -webkit-mask-image: radial-gradient(circle, transparent 62%, black 64%, black 67%, transparent 69%);
+  mask-image: radial-gradient(
+    circle,
+    transparent 62%,
+    black 64%,
+    black 67%,
+    transparent 69%
+  );
+  -webkit-mask-image: radial-gradient(
+    circle,
+    transparent 62%,
+    black 64%,
+    black 67%,
+    transparent 69%
+  );
 }
 
 .hero-ring {
@@ -135,31 +239,233 @@
   width: 220px;
   height: 320px;
   border-radius: 24px;
-  background:
-    linear-gradient(
-      140deg,
-      color-mix(in srgb, var(--color-solana-green) 20%, transparent),
-      color-mix(in srgb, var(--color-solana-purple) 18%, transparent)
-    );
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: linear-gradient(
+    140deg,
+    color-mix(in srgb, var(--color-solana-green) 20%, transparent),
+    color-mix(in srgb, var(--color-solana-purple) 18%, transparent)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px);
   opacity: 0.55;
 }
 
-.hero-shard-a { right: 6%; top: 12%; transform: translateZ(180px) rotateZ(18deg) rotateX(10deg) rotateY(-18deg); }
-.hero-shard-b { right: 22%; top: 48%; transform: translateZ(120px) rotateZ(-14deg) rotateX(-6deg) rotateY(16deg); width: 180px; height: 260px; opacity: 0.5; }
-.hero-shard-c { right: -2%; top: 52%; transform: translateZ(220px) rotateZ(22deg) rotateX(14deg) rotateY(-10deg); width: 260px; height: 380px; opacity: 0.45; }
-.hero-shard-d { right: 34%; top: 18%; transform: translateZ(80px) rotateZ(-20deg) rotateX(12deg) rotateY(22deg); width: 140px; height: 220px; opacity: 0.42; }
+.hero-shard-a {
+  right: 6%;
+  top: 12%;
+  transform: translateZ(180px) rotateZ(18deg) rotateX(10deg) rotateY(-18deg);
+}
+.hero-shard-b {
+  right: 22%;
+  top: 48%;
+  transform: translateZ(120px) rotateZ(-14deg) rotateX(-6deg) rotateY(16deg);
+  width: 180px;
+  height: 260px;
+  opacity: 0.5;
+}
+.hero-shard-c {
+  right: -2%;
+  top: 52%;
+  transform: translateZ(220px) rotateZ(22deg) rotateX(14deg) rotateY(-10deg);
+  width: 260px;
+  height: 380px;
+  opacity: 0.45;
+}
+.hero-shard-d {
+  right: 34%;
+  top: 18%;
+  transform: translateZ(80px) rotateZ(-20deg) rotateX(12deg) rotateY(22deg);
+  width: 140px;
+  height: 220px;
+  opacity: 0.42;
+}
 
 .hero-vignette {
   background:
-    radial-gradient(circle at 70% 40%, transparent 0%, rgba(0, 0, 0, 0.1) 55%, rgba(0, 0, 0, 0.5) 100%),
+    radial-gradient(
+      circle at 70% 40%,
+      transparent 0%,
+      rgba(0, 0, 0, 0.1) 55%,
+      rgba(0, 0, 0, 0.5) 100%
+    ),
     linear-gradient(to bottom, rgba(0, 0, 0, 0.2), transparent 40%, rgba(0, 0, 0, 0.5));
   opacity: 0.6;
 }
 
 @keyframes heroSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Markdown Content Styling */
+.markdown-content {
+  @apply text-lg;
+}
+
+.markdown-content h1 {
+  @apply text-5xl md:text-6xl font-display font-bold tracking-tight mb-8 mt-0;
+}
+
+.markdown-content h2 {
+  @apply text-3xl md:text-4xl font-display font-bold tracking-tight mt-16 mb-6 pb-4 border-b border-white/10;
+}
+
+.markdown-content h3 {
+  @apply text-2xl font-display font-bold tracking-tight mt-12 mb-4 text-[var(--color-solana-green)];
+}
+
+.markdown-content h4 {
+  @apply text-xl font-bold mt-8 mb-3;
+}
+
+.markdown-content p {
+  @apply text-gray-300 leading-relaxed mb-6;
+}
+
+.markdown-content a {
+  @apply text-[var(--color-solana-green)] no-underline hover:underline transition-colors;
+}
+
+.markdown-content strong {
+  @apply text-white font-bold;
+}
+
+.markdown-content em {
+  @apply italic text-gray-400;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  @apply my-6 space-y-2 ml-6;
+}
+
+.markdown-content ul {
+  @apply list-disc;
+}
+
+.markdown-content ol {
+  @apply list-decimal;
+}
+
+.markdown-content li {
+  @apply text-gray-300 leading-relaxed;
+}
+
+.markdown-content code {
+  @apply text-[var(--color-solana-green)] bg-white/5 px-2 py-1 rounded font-mono text-sm;
+}
+
+.markdown-content pre {
+  @apply bg-black/40 border border-white/10 rounded-xl p-4 overflow-x-auto my-6;
+}
+
+.markdown-content pre code {
+  @apply bg-transparent p-0;
+}
+
+.markdown-content table {
+  @apply border-collapse w-full my-8 text-sm;
+}
+
+.markdown-content thead {
+  @apply bg-white/5;
+}
+
+.markdown-content th {
+  @apply border border-white/10 p-3 text-left font-bold text-white;
+}
+
+.markdown-content td {
+  @apply border border-white/10 p-3 text-gray-300;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-[var(--color-solana-green)] pl-6 my-6 italic text-gray-400;
+}
+
+.markdown-content hr {
+  @apply border-t border-white/10 my-8;
+}
+
+.markdown-content img {
+  @apply rounded-xl my-6 max-w-full;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  /* Better touch targets */
+  button,
+  a,
+  input,
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent zoom on input focus */
+  input[type='text'],
+  input[type='number'],
+  input[type='email'],
+  input[type='password'],
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Optimize modal for mobile */
+  .fixed.inset-0 {
+    padding: 1rem !important;
+  }
+
+  /* Prevent horizontal scroll */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Touch feedback */
+  button:active,
+  a:active {
+    opacity: 0.7;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .glass-card {
+    backdrop-filter: blur(15px);
+  }
+}
+
+/* High DPI screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .glass-card {
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Dark mode preference */
+@media (prefers-color-scheme: dark) {
+  /* Already dark by default */
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Safe area for notched devices */
+@supports (padding: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
 }
