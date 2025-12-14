@@ -110,18 +110,37 @@ export function Navbar() {
           <div className="flex items-center gap-3">
             <AnimatePresence mode="wait">
               {connected && publicKey ? (
-                <motion.button
-                  key="create-button"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[var(--color-solana-green)] text-black rounded-full font-bold hover:bg-[#9FE51C] transition-colors"
-                >
-                  <span>+</span>
-                  <span>Create</span>
-                </motion.button>
+                <>
+                  <motion.button
+                    key="create-button"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[var(--color-solana-green)] text-black rounded-full font-bold hover:bg-[#9FE51C] transition-colors"
+                  >
+                    <span>+</span>
+                    <span>Create</span>
+                  </motion.button>
+                  <Link to={`/${publicKey.toBase58()}`}>
+                    <motion.div
+                      key="profile-avatar"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-solana-green)] to-[var(--color-social-cyan)] p-0.5 cursor-pointer shadow-lg"
+                    >
+                      <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                        <span className="text-xs font-bold text-white">
+                          {publicKey.toBase58().slice(0, 2).toUpperCase()}
+                        </span>
+                      </div>
+                    </motion.div>
+                  </Link>
+                </>
               ) : null}
             </AnimatePresence>
 
@@ -181,6 +200,24 @@ export function Navbar() {
                 <span className="font-medium">{item.label}</span>
               </Link>
             ))}
+            
+            {/* Profile Link for Mobile */}
+            {connected && publicKey && (
+              <Link
+                to={`/${publicKey.toBase58()}`}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg mt-2 border-t border-white/10 pt-4 text-gray-400 hover:text-white hover:bg-white/5"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--color-solana-green)] to-[var(--color-social-cyan)] p-0.5">
+                  <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">
+                      {publicKey.toBase58().slice(0, 2).toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+                <span className="font-medium">My Profile</span>
+              </Link>
+            )}
           </motion.div>
         )}
       </div>
