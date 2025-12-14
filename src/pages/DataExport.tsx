@@ -240,7 +240,7 @@ export const DataExport = () => {
               {userExports.map((exportRequest) => (
                 <div
                   key={exportRequest.id}
-                  className="bg-white/5 border border-white/10 rounded-lg p-4">
+                  className="bg-white/5 border border-white/10 rounded-lg p-4"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>

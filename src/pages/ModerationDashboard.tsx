@@ -211,7 +211,7 @@ export const ModerationDashboard = () => {
                 filteredReports.map((report) => (
                   <div
                     key={report.id}
-                    className="glass-card rounded-xl p-6 border border-white/10">
+                    className="glass-card rounded-xl p-6 border border-white/10"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
@@ -420,7 +420,7 @@ export const ModerationDashboard = () => {
               contentActions.map((action) => (
                 <div
                   key={action.id}
-                  className="glass-card rounded-xl p-4 border border-white/10">
+                  className="glass-card rounded-xl p-4 border border-white/10"
                 >
                   <div className="flex items-center justify-between">
                     <div>
