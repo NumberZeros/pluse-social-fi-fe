@@ -5,10 +5,12 @@ import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import useGroupStore, { type Group } from '../stores/useGroupStore';
 import { useUserStore } from '../stores/useUserStore';
+import { useGroup } from '../hooks/useGroup';
 import CreateGroupModal from '../components/groups/CreateGroupModal';
 import { Plus, Search, Filter, Lock, Globe, Users as UsersIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
+import { PublicKey } from '@solana/web3.js';
 
 // Inline GroupCard component
 const GroupCard = ({ group, isJoined, onJoin }: { group: Group; isJoined?: boolean; onJoin?: (id: string) => void }) => (
@@ -42,7 +44,7 @@ const GroupCard = ({ group, isJoined, onJoin }: { group: Group; isJoined?: boole
             e.preventDefault();
             onJoin(group.id);
           }}
-          className="px-3 py-1 bg-gradient-to-r from-[#50C878] to-[#3BA565] rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+          className="px-3 py-1 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] rounded-lg transition-all text-sm font-medium text-black"
         >
           Join
         </button>
@@ -74,9 +76,13 @@ export default function GroupsDiscovery() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [filterPrivacy, setFilterPrivacy] = useState<'all' | 'public' | 'private'>('all');
 
-  const groups = useGroupStore((state) => state.groups);
-  const myGroups = useGroupStore((state) => state.myGroups);
-  const joinGroup = useGroupStore((state) => state.joinGroup);
+  // Use blockchain hook for group operations
+  const { joinGroup: joinGroupBlockchain } = useGroup();
+
+  // Groups from blockchain - query all group PDAs
+  const groups: any[] = []; // TODO: Fetch all group accounts from blockchain
+  const myGroups = new Set<string>(); // TODO: Query user's group_member PDAs
+  const joinGroup = useGroupStore((state) => state.joinGroup); // Fallback for UI
   const profile = useUserStore((state) => state.profile);
 
   // Filter groups
@@ -113,7 +119,7 @@ export default function GroupsDiscovery() {
     return true;
   });
 
-  const handleJoinGroup = (groupId: string) => {
+  const handleJoinGroup = async (groupId: string) => {
     if (!publicKey) {
       toast.error('Please connect your wallet to join groups');
       return;
@@ -122,34 +128,36 @@ export default function GroupsDiscovery() {
     const group = groups.find((g) => g.id === groupId);
     if (!group) return;
 
-    // Handle different entry requirements
-    if (group.entryRequirement === 'pay_sol') {
-      // In a real app, this would trigger a Solana payment
-      toast.loading('Processing payment...', { duration: 1500 });
-      setTimeout(() => {
-        joinGroup(groupId, publicKey.toBase58(), profile.username);
-        toast.success(`Joined ${group.name}! Paid ${group.entryPrice} SOL`);
-      }, 1500);
-    } else if (group.entryRequirement === 'hold_token') {
-      // In a real app, verify token ownership on-chain
-      toast.loading('Verifying token ownership...', { duration: 1000 });
-      setTimeout(() => {
-        // Mock verification - assume user has token
-        joinGroup(groupId, publicKey.toBase58(), profile.username);
-        toast.success(`Joined ${group.name}!`);
-      }, 1000);
-    } else if (group.entryRequirement === 'hold_nft') {
-      // In a real app, verify NFT ownership on-chain
-      toast.loading('Verifying NFT ownership...', { duration: 1000 });
-      setTimeout(() => {
-        // Mock verification - assume user has NFT
-        joinGroup(groupId, publicKey.toBase58(), profile.username);
-        toast.success(`Joined ${group.name}!`);
-      }, 1000);
-    } else {
-      // Free to join
+    try {
+      // Convert group ID to PublicKey (in real app, this would be the actual group PDA)
+      const groupPubkey = new PublicKey(groupId);
+      await joinGroupBlockchain(groupPubkey);
+      
+      // Update local store for UI consistency
       joinGroup(groupId, publicKey.toBase58(), profile.username);
-      toast.success(`Joined ${group.name}!`);
+    } catch (error: any) {
+      console.error('Join group failed:', error);
+      // Fall back to local store if blockchain fails
+      if (error.message?.includes('Invalid public key')) {
+        // Handle different entry requirements
+        if (group.entryRequirement === 'pay_sol') {
+          // TODO: Implement Solana payment for entry
+          toast.error('Payment-based entry not implemented yet');
+          return;
+        } else if (group.entryRequirement === 'hold_token') {
+          // TODO: Implement on-chain token verification
+          toast.error('Token verification not implemented yet');
+          return;
+        } else if (group.entryRequirement === 'hold_nft') {
+          // TODO: Implement on-chain NFT verification
+          toast.error('NFT verification not implemented yet');
+          return;
+        } else {
+          // Free to join
+          joinGroup(groupId, publicKey.toBase58(), profile.username);
+          toast.success(`Joined ${group.name}!`);
+        }
+      }
     }
   };
 
@@ -173,7 +181,7 @@ export default function GroupsDiscovery() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#50C878] to-[#3BA565] rounded-xl font-bold"
+              className="flex items-center gap-2 px-6 py-3 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] rounded-xl font-bold text-black transition-all"
             >
               <Plus className="w-5 h-5" />
               Create Group
@@ -248,7 +256,7 @@ export default function GroupsDiscovery() {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   selectedCategory === category
-                    ? 'bg-gradient-to-r from-[#50C878] to-[#3BA565] text-white'
+                    ? 'bg-[var(--color-solana-green)] text-black'
                     : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10'
                 }`}
               >

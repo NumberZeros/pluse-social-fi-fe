@@ -1,11 +1,11 @@
 import { useState } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import {
   useExportStore,
   type ExportDataType,
   type ExportFormat,
   type ExportRequest,
 } from '../stores/useExportStore';
-import { useSocialStore } from '../stores/useSocialStore';
 import { formatFileSize, formatDateTime } from '../utils/format';
 
 export const DataExport = () => {
@@ -14,13 +14,13 @@ export const DataExport = () => {
   );
   const [format, setFormat] = useState<ExportFormat>('json');
 
-  const user = useSocialStore((state) => state.currentUser);
+  const { publicKey } = useWallet();
   const requestExport = useExportStore((state) => state.requestExport);
   const downloadExport = useExportStore((state) => state.downloadExport);
   const deleteExport = useExportStore((state) => state.deleteExport);
   const getUserExports = useExportStore((state) => state.getUserExports);
 
-  const userExports = user ? getUserExports(user.address) : [];
+  const userExports = publicKey ? getUserExports(publicKey.toBase58()) : [];
 
   const dataTypeOptions: { value: ExportDataType; label: string; description: string }[] =
     [
@@ -71,10 +71,10 @@ export const DataExport = () => {
   };
 
   const handleRequestExport = () => {
-    if (!user || selectedDataTypes.size === 0) return;
+    if (!publicKey || selectedDataTypes.size === 0) return;
 
     const dataTypes = Array.from(selectedDataTypes);
-    requestExport(user.address, dataTypes, format);
+    requestExport(publicKey.toBase58(), dataTypes, format);
   };
 
   const getStatusColor = (status: ExportRequest['status']) => {
@@ -82,7 +82,7 @@ export const DataExport = () => {
       case 'pending':
         return 'bg-yellow-500/20 text-yellow-400';
       case 'processing':
-        return 'bg-blue-500/20 text-blue-400';
+        return 'bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)]';
       case 'completed':
         return 'bg-green-500/20 text-green-400';
       case 'failed':
@@ -90,10 +90,10 @@ export const DataExport = () => {
     }
   };
 
-  if (!user) {
+  if (!publicKey) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
-        <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-12 text-center max-w-md">
+      <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center">
+        <div className="glass-card border border-white/10 rounded-xl p-12 text-center max-w-md">
           <div className="text-4xl mb-4">🔒</div>
           <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
           <p className="text-gray-400">Connect your wallet to export your data</p>
@@ -103,7 +103,7 @@ export const DataExport = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <div className="min-h-screen bg-[#000000] text-white">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -112,7 +112,7 @@ export const DataExport = () => {
         </div>
 
         {/* GDPR Notice */}
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6 mb-8">
+        <div className="glass-card rounded-xl p-6 mb-8 border border-white/10">
           <div className="flex gap-4">
             <div className="text-3xl">ℹ️</div>
             <div>
@@ -131,7 +131,7 @@ export const DataExport = () => {
         </div>
 
         {/* Export Request Form */}
-        <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 mb-8">
+        <div className="glass-card rounded-xl p-6 mb-8 border border-white/10">
           <h2 className="text-2xl font-bold text-white mb-4">Request New Export</h2>
 
           {/* Data Types */}
@@ -144,8 +144,8 @@ export const DataExport = () => {
                   onClick={() => toggleDataType(option.value)}
                   className={`text-left p-4 rounded-lg border-2 transition-all ${
                     selectedDataTypes.has(option.value)
-                      ? 'border-purple-500 bg-purple-500/10'
-                      : 'border-purple-500/20 bg-white/5 hover:bg-white/10'
+                      ? 'border-[var(--color-solana-green)] bg-[var(--color-solana-green)]/10'
+                      : 'border-white/10 bg-white/5 hover:bg-white/10'
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -153,7 +153,7 @@ export const DataExport = () => {
                       <div
                         className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
                           selectedDataTypes.has(option.value)
-                            ? 'border-purple-500 bg-purple-500'
+                            ? 'border-[var(--color-solana-green)] bg-[var(--color-solana-green)]'
                             : 'border-gray-500'
                         }`}
                       >
@@ -192,8 +192,8 @@ export const DataExport = () => {
                 onClick={() => setFormat('json')}
                 className={`flex-1 p-4 rounded-lg border-2 transition-all ${
                   format === 'json'
-                    ? 'border-purple-500 bg-purple-500/10'
-                    : 'border-purple-500/20 bg-white/5 hover:bg-white/10'
+                    ? 'border-[var(--color-solana-green)] bg-[var(--color-solana-green)]/10'
+                    : 'border-white/10 bg-white/5 hover:bg-white/10'
                 }`}
               >
                 <div className="text-white font-semibold mb-1">JSON</div>
@@ -203,8 +203,8 @@ export const DataExport = () => {
                 onClick={() => setFormat('csv')}
                 className={`flex-1 p-4 rounded-lg border-2 transition-all ${
                   format === 'csv'
-                    ? 'border-purple-500 bg-purple-500/10'
-                    : 'border-purple-500/20 bg-white/5 hover:bg-white/10'
+                    ? 'border-[var(--color-solana-green)] bg-[var(--color-solana-green)]/10'
+                    : 'border-white/10 bg-white/5 hover:bg-white/10'
                 }`}
               >
                 <div className="text-white font-semibold mb-1">CSV</div>
@@ -217,14 +217,14 @@ export const DataExport = () => {
           <button
             onClick={handleRequestExport}
             disabled={selectedDataTypes.size === 0}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all"
+            className="w-full bg-[var(--color-solana-green)] hover:bg-[#9FE51C] disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-bold py-4 px-6 rounded-xl transition-all"
           >
             {selectedDataTypes.size === 0 ? 'Select Data Types' : 'Request Export'}
           </button>
         </div>
 
         {/* Export History */}
-        <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
+        <div className="glass-card rounded-xl p-6 border border-white/10">
           <h2 className="text-2xl font-bold text-white mb-4">Export History</h2>
 
           {userExports.length === 0 ? (
@@ -240,7 +240,7 @@ export const DataExport = () => {
               {userExports.map((exportRequest) => (
                 <div
                   key={exportRequest.id}
-                  className="bg-white/5 border border-purple-500/20 rounded-lg p-4"
+                  className="bg-white/5 border border-white/10 rounded-lg p-4">
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
@@ -250,7 +250,7 @@ export const DataExport = () => {
                         >
                           {exportRequest.status.toUpperCase()}
                         </span>
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400">
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)]">
                           {exportRequest.format.toUpperCase()}
                         </span>
                       </div>
@@ -298,7 +298,7 @@ export const DataExport = () => {
                     <div className="mt-3">
                       <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
                         <div
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 h-full animate-pulse"
+                          className="bg-gradient-to-r from-[var(--color-solana-green)] to-[#14C58E] h-full animate-pulse"
                           style={{ width: '60%' }}
                         />
                       </div>
@@ -314,7 +314,7 @@ export const DataExport = () => {
         </div>
 
         {/* Additional Information */}
-        <div className="mt-8 bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
+        <div className="mt-8 glass-card rounded-xl p-6 border border-white/10">
           <h3 className="text-lg font-bold text-white mb-3">📋 Export Information</h3>
           <div className="space-y-2 text-sm text-gray-400">
             <p>• Exports are generated in the background and may take a few minutes</p>

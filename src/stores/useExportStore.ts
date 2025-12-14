@@ -65,15 +65,15 @@ export const useExportStore = create<ExportStore>()(
           exports: [...state.exports, exportRequest],
         }));
 
-        // Auto-generate after a delay (simulating async processing)
-        setTimeout(() => {
-          get().generateExport(exportRequest.id);
-        }, 2000);
+        // TODO: Implement actual export generation on backend
+        // For now, exports remain in pending state
 
         return exportRequest.id;
       },
 
       generateExport: async (exportId) => {
+        // TODO: Implement actual export generation on backend
+        // This should query blockchain data and generate proper export files
         const exportRequest = get().exports.find((e) => e.id === exportId);
         if (!exportRequest) return;
 
@@ -84,39 +84,12 @@ export const useExportStore = create<ExportStore>()(
           ),
         }));
 
-        try {
-          // Simulate data collection and file generation
-          await new Promise((resolve) => setTimeout(resolve, 3000));
-
-          // Generate mock download URL
-          const blob = new Blob(['{}'], { type: 'application/json' });
-          const downloadUrl = URL.createObjectURL(blob);
-          const fileSize = Math.floor(Math.random() * 5000000) + 100000; // 100KB - 5MB
-          const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
-
-          // Update to completed
-          set((state) => ({
-            exports: state.exports.map((e) =>
-              e.id === exportId
-                ? {
-                    ...e,
-                    status: 'completed' as const,
-                    completedAt: Date.now(),
-                    downloadUrl,
-                    fileSize,
-                    expiresAt,
-                  }
-                : e,
-            ),
-          }));
-        } catch {
-          // Update to failed
-          set((state) => ({
-            exports: state.exports.map((e) =>
-              e.id === exportId ? { ...e, status: 'failed' as const } : e,
-            ),
-          }));
-        }
+        // For now, mark as failed since backend is not implemented
+        set((state) => ({
+          exports: state.exports.map((e) =>
+            e.id === exportId ? { ...e, status: 'failed' as const } : e,
+          ),
+        }));
       },
 
       downloadExport: (exportId) => {

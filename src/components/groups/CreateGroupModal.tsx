@@ -381,7 +381,7 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
           </button>
           <button
             onClick={handleSubmit}
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-[#50C878] to-[#3BA565] rounded-lg hover:opacity-90 transition-opacity font-medium"
+            className="flex-1 px-6 py-3 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg transition-all font-bold"
           >
             Create Group
           </button>

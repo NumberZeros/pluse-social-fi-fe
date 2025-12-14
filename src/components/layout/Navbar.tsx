@@ -1,13 +1,13 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IconExplore, IconFeed, IconHome, PulseMark } from '../icons/PulseIcons';
 
 export function Navbar() {
   const location = useLocation();
-  const { connected } = useWallet();
+  const { connected, publicKey } = useWallet();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -108,18 +108,24 @@ export function Navbar() {
 
           {/* Wallet & Actions */}
           <div className="flex items-center gap-3">
-            {connected && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#D4AF37] text-black rounded-full font-bold hover:bg-[#C9A62F] transition-colors"
-              >
-                <span>+</span>
-                <span>Create</span>
-              </motion.button>
-            )}
+            <AnimatePresence mode="wait">
+              {connected && publicKey ? (
+                <motion.button
+                  key="create-button"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[var(--color-solana-green)] text-black rounded-full font-bold hover:bg-[#9FE51C] transition-colors"
+                >
+                  <span>+</span>
+                  <span>Create</span>
+                </motion.button>
+              ) : null}
+            </AnimatePresence>
 
-            <WalletMultiButton className="!bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[#D4AF37] !transition-colors" />
+            <WalletMultiButton className="!bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[var(--color-solana-green)] !transition-colors" />
 
             {/* Mobile Menu Button */}
             <button

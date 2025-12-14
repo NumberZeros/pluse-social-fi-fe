@@ -7,15 +7,6 @@ import { useMarketplaceStore } from '../stores/useMarketplaceStore';
 import { Search, TrendingUp, Clock, Gavel, Tag, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-const MOCK_LISTINGS = [
-  { username: 'sol', price: 500, category: 'short' as const, verified: true },
-  { username: 'defi', price: 250, category: 'premium' as const, verified: true },
-  { username: 'web3', price: 300, category: 'premium' as const, verified: false },
-  { username: 'nft', price: 400, category: 'short' as const, verified: true },
-  { username: 'dao', price: 200, category: 'short' as const, verified: false },
-  { username: 'crypto', price: 350, category: 'premium' as const, verified: true },
-];
-
 export function UsernameMarketplace() {
   const { publicKey, connected } = useWallet();
   const [activeTab, setActiveTab] = useState<'buy' | 'sell' | 'auctions' | 'my-listings'>(
@@ -37,15 +28,6 @@ export function UsernameMarketplace() {
   const [newListingCategory, setNewListingCategory] = useState<
     'premium' | 'short' | 'rare' | 'custom'
   >('premium');
-
-  // Initialize mock listings if empty
-  useState(() => {
-    if (listings.length === 0 && publicKey) {
-      MOCK_LISTINGS.forEach((mock) => {
-        createListing(mock.username, mock.price, 'marketplace', mock.category);
-      });
-    }
-  });
 
   const filteredListings = listings
     .filter((l) => {
@@ -112,11 +94,11 @@ export function UsernameMarketplace() {
       case 'short':
         return 'bg-yellow-500/20 text-yellow-400';
       case 'premium':
-        return 'bg-purple-500/20 text-purple-400';
+        return 'bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)]';
       case 'rare':
         return 'bg-pink-500/20 text-pink-400';
       default:
-        return 'bg-blue-500/20 text-blue-400';
+        return 'bg-white/10 text-gray-400';
     }
   };
 
@@ -131,7 +113,7 @@ export function UsernameMarketplace() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[var(--color-value-amber)] to-[var(--color-primary-green)] bg-clip-text text-transparent">
             Username Marketplace
           </h1>
           <p className="text-gray-400 text-lg">
@@ -159,7 +141,7 @@ export function UsernameMarketplace() {
               className="glass-card rounded-2xl p-6 border border-white/10"
             >
               <div className="flex items-center gap-3 mb-2">
-                <stat.icon className="w-5 h-5 text-[#D4AF37]" />
+                <stat.icon className="w-5 h-5 text-[var(--color-value-amber)]" />
                 <div className="text-2xl font-bold">{stat.value}</div>
               </div>
               <div className="text-sm text-gray-400">{stat.label}</div>
@@ -188,7 +170,7 @@ export function UsernameMarketplace() {
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="marketplaceTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D4AF37]"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-solana-green)]"
                     transition={{ type: 'spring', duration: 0.5 }}
                   />
                 )}
@@ -255,7 +237,7 @@ export function UsernameMarketplace() {
                   key={listing.id}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="glass-card rounded-2xl p-6 border border-white/10 hover:border-[#D4AF37]/50 transition-all"
+                  className="glass-card rounded-2xl p-6 border border-white/10 hover:border-[var(--color-solana-green)]/50 transition-all"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -267,7 +249,7 @@ export function UsernameMarketplace() {
                       </span>
                     </div>
                     {listing.verified && (
-                      <div className="w-6 h-6 rounded-full bg-[#D4AF37] flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-full bg-[var(--color-solana-green)] flex items-center justify-center">
                         <svg
                           className="w-4 h-4 text-black"
                           fill="currentColor"
@@ -280,7 +262,7 @@ export function UsernameMarketplace() {
                   </div>
 
                   <div className="mb-4">
-                    <div className="text-3xl font-bold text-[#D4AF37]">
+                    <div className="text-3xl font-bold text-[var(--color-value-amber)]">
                       {listing.price} SOL
                     </div>
                     <div className="text-sm text-gray-400">
@@ -291,7 +273,7 @@ export function UsernameMarketplace() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handlePurchase(listing.id, listing.price)}
-                      className="flex-1 px-4 py-2 bg-[#D4AF37] text-black rounded-lg font-medium hover:bg-[#C9A62F] transition-colors"
+                      className="flex-1 px-4 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold transition-all"
                     >
                       Buy Now
                     </button>
@@ -343,7 +325,7 @@ export function UsernameMarketplace() {
 
                       <div className="mb-4">
                         <div className="text-sm text-gray-400 mb-1">Current Bid</div>
-                        <div className="text-2xl font-bold text-[#D4AF37]">
+                        <div className="text-2xl font-bold text-[var(--color-value-amber)]">
                           {auction.currentBid} SOL
                         </div>
                       </div>
@@ -376,7 +358,7 @@ export function UsernameMarketplace() {
                             toast.error('Bid must be higher than current bid');
                           }
                         }}
-                        className="px-4 py-2 bg-[#D4AF37] text-black rounded-lg font-medium hover:bg-[#C9A62F] transition-colors"
+                        className="px-4 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold transition-all"
                       >
                         Place Bid
                       </button>
@@ -437,7 +419,7 @@ export function UsernameMarketplace() {
                         onClick={() => setNewListingCategory(cat)}
                         className={`px-4 py-3 rounded-lg font-medium transition-colors ${
                           newListingCategory === cat
-                            ? 'bg-[#D4AF37] text-black'
+                            ? 'bg-[var(--color-solana-green)] text-black'
                             : 'bg-white/5 text-white hover:bg-white/10'
                         }`}
                       >
@@ -449,7 +431,7 @@ export function UsernameMarketplace() {
 
                 <button
                   onClick={handleCreateListing}
-                  className="w-full px-6 py-3 bg-[#D4AF37] text-black rounded-lg font-bold text-lg hover:bg-[#C9A62F] transition-colors"
+                  className="w-full px-6 py-3 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold text-lg transition-all"
                 >
                   List Username
                 </button>
@@ -477,7 +459,7 @@ export function UsernameMarketplace() {
                       >
                         {listing.category}
                       </span>
-                      <div className="text-xl font-bold text-[#D4AF37]">
+                      <div className="text-xl font-bold text-[var(--color-value-amber)]">
                         {listing.price} SOL
                       </div>
                     </div>
@@ -501,7 +483,7 @@ export function UsernameMarketplace() {
                 <p className="text-gray-400 mb-4">You don't have any listings yet</p>
                 <button
                   onClick={() => setActiveTab('sell')}
-                  className="px-6 py-2 bg-[#D4AF37] text-black rounded-lg font-medium hover:bg-[#C9A62F] transition-colors"
+                  className="px-6 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold transition-all"
                 >
                   Create Listing
                 </button>

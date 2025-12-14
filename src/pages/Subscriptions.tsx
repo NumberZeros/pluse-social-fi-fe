@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import {
@@ -12,22 +12,20 @@ import {
   Clock,
   XCircle,
 } from 'lucide-react';
-import useSubscriptionStore from '../stores/useSubscriptionStore';
+
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export function Subscriptions() {
   const { publicKey } = useWallet();
-  const { getMyActiveSubscriptions, getTierById, cancelSubscription, toggleAutoRenew } =
-    useSubscriptionStore();
+  // Subscriptions from blockchain - query subscription PDAs
+  // TODO: Implement getMyActiveSubscriptions to query user's subscription PDAs
+  const getTierById = (_id: string): any => null; // TODO: Fetch subscription_tier PDA
+  const cancelSubscription = (_id: string) => {}; // Use blockchain hook instead
+  const toggleAutoRenew = (_id: string) => {}; // Not supported yet
 
   const [activeTab, setActiveTab] = useState<'active' | 'expired'>('active');
-
-  const mySubscriptions = useMemo(() => {
-    if (!publicKey) return [];
-    return getMyActiveSubscriptions();
-  }, [publicKey, getMyActiveSubscriptions]);
 
   const handleCancelSubscription = (subscriptionId: string) => {
     if (window.confirm('Are you sure you want to cancel this subscription?')) {
@@ -55,7 +53,7 @@ export function Subscriptions() {
       <div className="bg-black min-h-screen text-white">
         <Navbar />
         <div className="max-w-4xl mx-auto px-6 py-24 text-center">
-          <Crown className="w-16 h-16 text-[#D4AF37] mx-auto mb-6" />
+          <Crown className="w-16 h-16 text-[var(--color-solana-green)] mx-auto mb-6" />
           <h1 className="text-4xl font-bold mb-4">My Subscriptions</h1>
           <p className="text-gray-400 mb-8">
             Connect your wallet to view your subscriptions
@@ -66,8 +64,9 @@ export function Subscriptions() {
     );
   }
 
-  const activeSubscriptions = mySubscriptions.filter((sub) => sub.status === 'active');
-  const expiredSubscriptions = mySubscriptions.filter((sub) => sub.status !== 'active');
+  // TODO: Replace with blockchain query for user's subscription PDAs
+  const activeSubscriptions: any[] = [];
+  const expiredSubscriptions: any[] = [];
 
   return (
     <div className="bg-black min-h-screen text-white">
@@ -81,8 +80,8 @@ export function Subscriptions() {
           className="mb-12"
         >
           <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-gradient-to-br from-[#D4AF37]/20 to-[#ABFE2C]/20 rounded-xl">
-              <Crown className="w-8 h-8 text-[#D4AF37]" />
+            <div className="p-3 bg-gradient-to-br from-[var(--color-solana-green)]/20 to-[#ABFE2C]/20 rounded-xl">
+              <Crown className="w-8 h-8 text-[var(--color-solana-green)]" />
             </div>
             <div>
               <h1 className="text-4xl font-bold">My Subscriptions</h1>
@@ -94,7 +93,7 @@ export function Subscriptions() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700"
+              className="glass-card rounded-xl p-6 border border-white/10"
             >
               <div className="flex items-center gap-3 mb-2">
                 <Users className="w-5 h-5 text-[#ABFE2C]" />
@@ -105,39 +104,27 @@ export function Subscriptions() {
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700"
+              className="glass-card rounded-xl p-6 border border-white/10"
             >
               <div className="flex items-center gap-3 mb-2">
-                <DollarSign className="w-5 h-5 text-[#D4AF37]" />
+                <DollarSign className="w-5 h-5 text-[var(--color-solana-green)]" />
                 <span className="text-gray-400 text-sm">Monthly Spending</span>
               </div>
               <p className="text-3xl font-bold">
-                {activeSubscriptions
-                  .reduce((total, sub) => {
-                    const tier = getTierById(sub.tierId);
-                    return total + (tier?.price || 0);
-                  }, 0)
-                  .toFixed(2)}{' '}
-                SOL
+                0.00 SOL
               </p>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700"
+              className="glass-card rounded-xl p-6 border border-white/10"
             >
               <div className="flex items-center gap-3 mb-2">
                 <TrendingUp className="w-5 h-5 text-[#9945FF]" />
                 <span className="text-gray-400 text-sm">Total Spent</span>
               </div>
               <p className="text-3xl font-bold">
-                {mySubscriptions
-                  .reduce((total, sub) => {
-                    const tier = getTierById(sub.tierId);
-                    return total + (tier?.price || 0);
-                  }, 0)
-                  .toFixed(2)}{' '}
-                SOL
+                0.00 SOL
               </p>
             </motion.div>
           </div>
@@ -200,8 +187,9 @@ export function Subscriptions() {
           )}
 
           {activeTab === 'active' &&
-            activeSubscriptions.map((subscription) => {
-              const tier = getTierById(subscription.tierId);
+            activeSubscriptions.length > 0 &&
+            activeSubscriptions.map((subscription: any) => {
+              const tier: any = getTierById(subscription.tierId);
               if (!tier) return null;
 
               const daysRemaining = getDaysRemaining(subscription.endDate);
@@ -212,7 +200,7 @@ export function Subscriptions() {
                   key={subscription.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700 hover:border-[#ABFE2C]/50 transition-colors"
+                  className="glass-card rounded-xl p-6 border border-white/10 hover:border-[var(--color-solana-green)]/50 transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex gap-4">
@@ -224,7 +212,7 @@ export function Subscriptions() {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-xl font-bold">{tier.name}</h3>
-                          <Crown className="w-5 h-5 text-[#D4AF37]" />
+                          <Crown className="w-5 h-5 text-[var(--color-solana-green)]" />
                         </div>
                         <p className="text-gray-400 text-sm mb-2">
                           Creator: {subscription.creatorAddress.slice(0, 8)}...
@@ -278,7 +266,7 @@ export function Subscriptions() {
                         Benefits
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {tier.benefits.slice(0, 4).map((benefit, idx) => (
+                        {tier.benefits.slice(0, 4).map((benefit: any, idx: number) => (
                           <span
                             key={idx}
                             className="px-3 py-1 bg-gray-800 text-gray-300 text-xs rounded-full"
@@ -313,8 +301,9 @@ export function Subscriptions() {
           )}
 
           {activeTab === 'expired' &&
-            expiredSubscriptions.map((subscription) => {
-              const tier = getTierById(subscription.tierId);
+            expiredSubscriptions.length > 0 &&
+            expiredSubscriptions.map((subscription: any) => {
+              const tier: any = getTierById(subscription.tierId);
               if (!tier) return null;
 
               return (

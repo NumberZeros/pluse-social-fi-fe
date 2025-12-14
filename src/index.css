@@ -11,6 +11,18 @@
   /* Solana Accents */
   --color-solana-purple: #9945ff;
   --color-solana-green: #14f195;
+  
+  /* Social-First Color Palette */
+  --color-primary-green: #ABFE2C; /* Main actions, CTAs */
+  --color-primary-green-hover: #9FE51C;
+  --color-social-cyan: #00D4FF; /* Social interactions */
+  --color-social-cyan-hover: #00BFEA;
+  --color-premium-purple: #9333EA; /* Premium, communities */
+  --color-premium-purple-hover: #7C3AED;
+  --color-premium-pink: #EC4899; /* Premium gradient end */
+  --color-value-amber: #FBBF24; /* Trading, value */
+  --color-value-amber-hover: #F59E0B;
+  --color-gradient-green: #14C58E; /* Green gradient end */
 
   /* Typography */
   --font-sans: 'Inter', sans-serif;

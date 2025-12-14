@@ -21,35 +21,8 @@ const EXPLORE_CATEGORIES = [
   { id: 'tech', label: 'Tech', icon: <IconBolt className="w-4 h-4" /> },
 ];
 
-const TRENDING_POSTS = [
-  {
-    id: '1',
-    title: 'The Future of ZK Compression on Solana',
-    excerpt: 'Exploring how ZK Compression will enable billions of users on Solana...',
-    author: 'vitalik',
-    likes: 2340,
-    image:
-      'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=400&fit=crop',
-  },
-  {
-    id: '2',
-    title: 'Building Decentralized Social Networks',
-    excerpt: 'Why Web3 social is the next frontier for blockchain technology...',
-    author: 'anatoly',
-    likes: 1890,
-    image:
-      'https://images.unsplash.com/photo-1639322537228-f710d846310a?w=800&h=400&fit=crop',
-  },
-  {
-    id: '3',
-    title: 'Phantom Wallet: The Complete Guide',
-    excerpt: 'Everything you need to know about the best Solana wallet...',
-    author: 'phantom',
-    likes: 1567,
-    image:
-      'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=800&h=400&fit=crop',
-  },
-];
+// Trending content requires on-chain indexing or off-chain aggregator
+const TRENDING_POSTS: any[] = [];
 
 export function Explore() {
   const [activeCategory, setActiveCategory] = useState('trending');
@@ -90,7 +63,7 @@ export function Explore() {
       <div className="max-w-[1400px] mx-auto px-4 pt-24 pb-12">
         <div className="mb-12">
           <h1 className="text-5xl md:text-6xl font-display font-bold mb-4">
-            Explore <span className="text-[#D4AF37]">Pulse</span>
+            Explore <span className="text-[var(--color-solana-green)]">Pulse</span>
           </h1>
           <p className="text-xl text-gray-400">
             Discover the best content on the Solana social layer
@@ -105,7 +78,7 @@ export function Explore() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search posts, topics, or users..."
-              className="w-full px-6 py-4 pl-14 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 outline-none focus:border-[#D4AF37] transition-colors"
+              className="w-full px-6 py-4 pl-14 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 outline-none focus:border-[var(--color-solana-green)] transition-colors"
             />
             {isSearching ? (
               <div className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-[#ABFE2C] border-t-transparent rounded-full animate-spin"></div>
@@ -157,7 +130,7 @@ export function Explore() {
               onClick={() => setActiveCategory(category.id)}
               className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold whitespace-nowrap transition-colors ${
                 activeCategory === category.id
-                  ? 'bg-[#D4AF37] text-black'
+                  ? 'bg-[var(--color-solana-green)] text-black'
                   : 'bg-white/5 hover:bg-white/10 text-white'
               }`}
             >
@@ -202,7 +175,7 @@ export function Explore() {
                 </div>
 
                 <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-[#D4AF37] transition-colors">
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-[var(--color-solana-green)] transition-colors">
                     {post.title}
                   </h3>
                   <p className="text-gray-400 mb-4 line-clamp-2">{post.excerpt}</p>

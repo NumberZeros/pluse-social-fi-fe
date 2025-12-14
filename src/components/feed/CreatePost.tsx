@@ -229,7 +229,7 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
                       onClick={() => setIsSubscriberOnly(!isSubscriberOnly)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
                         isSubscriberOnly
-                          ? 'bg-gradient-to-r from-[#D4AF37] to-[#ABFE2C] text-black'
+                          ? 'bg-gradient-to-r from-[var(--color-solana-green)] to-[#ABFE2C] text-black'
                           : 'bg-white/10 text-gray-400 hover:bg-white/20'
                       }`}
                       aria-label={`Toggle subscriber-only post (currently ${isSubscriberOnly ? 'ON' : 'OFF'})`}

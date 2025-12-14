@@ -66,7 +66,7 @@ export function CreatorDashboard() {
       <div className="bg-black min-h-screen text-white">
         <Navbar />
         <div className="max-w-4xl mx-auto px-6 py-24 text-center">
-          <Crown className="w-16 h-16 text-[#D4AF37] mx-auto mb-6" />
+          <Crown className="w-16 h-16 text-[var(--color-solana-green)] mx-auto mb-6" />
           <h1 className="text-4xl font-bold mb-4">Creator Dashboard</h1>
           <p className="text-gray-400 mb-8">
             Connect your wallet to access your creator dashboard
@@ -90,8 +90,8 @@ export function CreatorDashboard() {
         >
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-[#D4AF37]/20 to-[#ABFE2C]/20 rounded-xl">
-                <Crown className="w-8 h-8 text-[#D4AF37]" />
+              <div className="p-3 bg-gradient-to-br from-[var(--color-solana-green)]/20 to-[#14C58E]/20 rounded-xl">
+                <Crown className="w-8 h-8 text-[var(--color-solana-green)]" />
               </div>
               <div>
                 <h1 className="text-4xl font-bold">Creator Dashboard</h1>
@@ -130,10 +130,10 @@ export function CreatorDashboard() {
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="p-6 bg-gradient-to-br from-[#D4AF37]/10 to-[#ABFE2C]/10 rounded-xl border border-[#D4AF37]/30"
+              className="p-6 bg-gradient-to-br from-[var(--color-solana-green)]/10 to-[#14C58E]/10 rounded-xl border border-[var(--color-solana-green)]/30"
             >
               <div className="flex items-center gap-3 mb-2">
-                <DollarSign className="w-5 h-5 text-[#D4AF37]" />
+                <DollarSign className="w-5 h-5 text-[var(--color-solana-green)]" />
                 <span className="text-gray-400 text-sm">Monthly Revenue</span>
               </div>
               <p className="text-3xl font-bold">{monthlyRevenue.toFixed(2)} SOL</p>
@@ -160,7 +160,7 @@ export function CreatorDashboard() {
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700"
+              className="glass-card rounded-xl p-6 border border-white/10"
             >
               <div className="flex items-center gap-3 mb-2">
                 <Crown className="w-5 h-5 text-[#ABFE2C]" />
@@ -180,7 +180,7 @@ export function CreatorDashboard() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-16 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700"
+              className="text-center py-16 glass-card rounded-xl border border-white/10"
             >
               <Sparkles className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-400 mb-2">
@@ -205,7 +205,7 @@ export function CreatorDashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   whileHover={{ y: -4 }}
-                  className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700 hover:border-[#ABFE2C]/50 transition-all"
+                  className="glass-card rounded-xl p-6 border border-white/10 hover:border-[var(--color-solana-green)]/50 transition-all"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
@@ -238,7 +238,7 @@ export function CreatorDashboard() {
                         key={idx}
                         className="flex items-center gap-2 text-sm text-gray-300"
                       >
-                        <Crown className="w-3 h-3 text-[#D4AF37]" />
+                        <Crown className="w-3 h-3 text-[var(--color-solana-green)]" />
                         {benefit}
                       </div>
                     ))}
@@ -277,7 +277,7 @@ export function CreatorDashboard() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-12 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700"
+              className="text-center py-12 glass-card rounded-xl border border-white/10"
             >
               <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
               <p className="text-gray-500">No subscribers yet</p>
@@ -291,7 +291,7 @@ export function CreatorDashboard() {
                     key={subscription.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center justify-between p-4 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-700 hover:border-[#ABFE2C]/30 transition-colors"
+                    className="flex items-center justify-between p-4 glass-card rounded-xl border border-white/10 hover:border-[var(--color-solana-green)]/30 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <img
@@ -336,7 +336,7 @@ export function CreatorDashboard() {
             </p>
             <button
               onClick={() => setShowCreateTierModal(false)}
-              className="w-full px-4 py-2 bg-gradient-to-r from-[#50C878] to-[#3BA565] rounded-lg hover:opacity-90 transition-opacity"
+              className="w-full px-4 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg transition-all font-bold"
             >
               Close
             </button>

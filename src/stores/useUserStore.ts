@@ -89,9 +89,15 @@ export const useUserStore = create<UserStore>()((set, get) => ({
     })),
 
   setWalletAddress: (address) =>
-    set((state) => ({
-      profile: { ...state.profile, walletAddress: address },
-    })),
+    set((state) => {
+      // Prevent unnecessary updates if address hasn't changed
+      if (state.profile.walletAddress === address) {
+        return state;
+      }
+      return {
+        profile: { ...state.profile, walletAddress: address },
+      };
+    }),
 
   incrementTipsSent: (amount) =>
     set((state) => ({

@@ -3,73 +3,22 @@ import { useState, useEffect, useRef } from 'react';
 import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { CreatePost } from '../components/feed/CreatePost';
-import PostCard from '../components/feed/PostCard';
 import TrendingSidebar from '../components/feed/TrendingSidebar';
 import { useUserStore } from '../stores/useUserStore';
 import { SEO } from '../components/SEO';
 
-// Mock data for now - timestamps created outside component
-const timestamp1 = new Date();
-timestamp1.setHours(timestamp1.getHours() - 1);
-
-const timestamp2 = new Date();
-timestamp2.setHours(timestamp2.getHours() - 2);
-
-const MOCK_POSTS = [
-  {
-    id: '1',
-    author: {
-      username: 'vitalik',
-      address: '5eykt...j7Pn',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=vitalik',
-      verified: true,
-    },
-    content:
-      'Building the future of social media on Solana. ZK Compression is a game changer! 🚀',
-    timestamp: timestamp1,
-    likes: 234,
-    reposts: 45,
-    tips: 12.5,
-    comments: 12,
-    images: [] as string[],
-    isLiked: false,
-    isReposted: false,
-  },
-  {
-    id: '2',
-    author: {
-      username: 'anatoly',
-      address: '8eykt...k9Qm',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=anatoly',
-      verified: true,
-    },
-    content:
-      'Just minted my @username.pulse handle. The future is on-chain and compressed! 💜',
-    timestamp: timestamp2,
-    likes: 567,
-    reposts: 123,
-    tips: 45.2,
-    comments: 34,
-    images: [] as string[],
-    isLiked: true,
-    isReposted: false,
-  },
-];
+// Posts will be stored on-chain (Shadow Drive, Arweave, or IPFS)
+// For now, feed is empty until on-chain post storage is implemented
+const POSTS: any[] = [];
 
 export function Feed() {
-  const [posts, setPosts] = useState(MOCK_POSTS);
+  const [posts, setPosts] = useState(POSTS);
   const [isLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const profile = useUserStore((state) => state.profile);
-  const likePost = useUserStore((state) => state.likePost);
-  const unlikePost = useUserStore((state) => state.unlikePost);
-  const isPostLiked = useUserStore((state) => state.isPostLiked);
-  const repostPost = useUserStore((state) => state.repostPost);
-  const unrepostPost = useUserStore((state) => state.unrepostPost);
-  const isPostReposted = useUserStore((state) => state.isPostReposted);
 
   // Intersection Observer for infinite scroll
   useEffect(() => {
@@ -95,36 +44,10 @@ export function Feed() {
 
     setIsLoadingMore(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Generate mock posts
-    const newPosts = Array.from({ length: 5 }, (_, i) => ({
-      id: `generated-${Date.now()}-${i}`,
-      author: {
-        username: `user${Math.floor(Math.random() * 100)}`,
-        address: '5eykt...j7Pn',
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=user${Math.floor(Math.random() * 100)}`,
-        verified: Math.random() > 0.7,
-      },
-      content: `This is a generated post #${posts.length + i + 1}. Building on Solana! 🚀`,
-      timestamp: new Date(),
-      likes: Math.floor(Math.random() * 500),
-      reposts: Math.floor(Math.random() * 100),
-      tips: Math.random() * 50,
-      comments: Math.floor(Math.random() * 50),
-      images: [] as string[],
-      isLiked: false,
-      isReposted: false,
-    }));
-
-    setPosts([...posts, ...newPosts]);
+    // TODO: Query more posts from blockchain storage
+    // For now, no posts are available until storage is implemented
     setIsLoadingMore(false);
-
-    // Simulate reaching end after 3 loads
-    if (posts.length > 20) {
-      setHasMore(false);
-    }
+    setHasMore(false);
   };
 
   const handleCreatePost = (content: string, images: string[]) => {
@@ -148,58 +71,6 @@ export function Feed() {
     };
 
     setPosts([newPost, ...posts]);
-  };
-
-  const handleLike = (postId: string) => {
-    const post = posts.find((p) => p.id === postId);
-    if (!post) return;
-
-    if (isPostLiked(postId)) {
-      unlikePost(postId);
-      setPosts(
-        posts.map((p) =>
-          p.id === postId ? { ...p, isLiked: false, likes: Math.max(0, p.likes - 1) } : p,
-        ),
-      );
-    } else {
-      likePost(postId);
-      setPosts(
-        posts.map((p) =>
-          p.id === postId ? { ...p, isLiked: true, likes: p.likes + 1 } : p,
-        ),
-      );
-    }
-  };
-
-  const handleRepost = (postId: string) => {
-    const post = posts.find((p) => p.id === postId);
-    if (!post) return;
-
-    if (isPostReposted(postId)) {
-      unrepostPost(postId);
-      setPosts(
-        posts.map((p) =>
-          p.id === postId
-            ? { ...p, isReposted: false, reposts: Math.max(0, p.reposts - 1) }
-            : p,
-        ),
-      );
-    } else {
-      repostPost(postId);
-      setPosts(
-        posts.map((p) =>
-          p.id === postId ? { ...p, isReposted: true, reposts: p.reposts + 1 } : p,
-        ),
-      );
-    }
-  };
-
-  const handleTip = (postId: string, amount: number) => {
-    setPosts(
-      posts.map((post) =>
-        post.id === postId ? { ...post, tips: post.tips + amount } : post,
-      ),
-    );
   };
 
   return (
@@ -249,13 +120,9 @@ export function Feed() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
+                      className="bg-white/5 rounded-lg p-4 border border-white/10"
                     >
-                      <PostCard
-                        post={post}
-                        onLike={handleLike}
-                        onRepost={handleRepost}
-                        onTip={handleTip}
-                      />
+                      <div className="text-white">{post.content}</div>
                     </motion.div>
                   ))}
                 </div>

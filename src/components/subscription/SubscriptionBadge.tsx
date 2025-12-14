@@ -32,7 +32,7 @@ const SubscriptionBadge = ({
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className={`inline-flex items-center gap-1.5 bg-gradient-to-r from-[#D4AF37] to-[#ABFE2C] text-black rounded-full font-bold ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center gap-1.5 bg-gradient-to-r from-[var(--color-solana-green)] to-[#ABFE2C] text-black rounded-full font-bold ${sizeClasses[size]} ${className}`}
     >
       <Crown className={iconSizes[size]} />
       {tierName ? tierName : 'Subscribers Only'}
@@ -48,7 +48,7 @@ export const SubscriberOnlyOverlay = ({ tierName }: { tierName?: string }) => {
         animate={{ opacity: 1, scale: 1 }}
         className="text-center px-6 py-4"
       >
-        <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#ABFE2C] text-black rounded-full font-bold mb-3">
+        <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--color-solana-green)] to-[#ABFE2C] text-black rounded-full font-bold mb-3">
           <Lock className="w-5 h-5" />
           Subscribers Only
         </div>

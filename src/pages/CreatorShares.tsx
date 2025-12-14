@@ -1,42 +1,33 @@
 import { useState, useMemo } from 'react';
-import { useSharesStore } from '../stores/useSharesStore';
-import { useSocialStore } from '../stores/useSocialStore';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey } from '@solana/web3.js';
+
+import { Navbar } from '../components/layout/Navbar';
+import { BuySharesModal } from '../components/shares/BuySharesModal';
+import { SellSharesModal } from '../components/shares/SellSharesModal';
 
 export const CreatorShares = () => {
+  const { publicKey } = useWallet();
   const [activeTab, setActiveTab] = useState<'market' | 'portfolio' | 'activity'>(
     'market',
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'price' | 'volume' | 'holders'>('volume');
-  const [buyAmount, setBuyAmount] = useState<Record<string, number>>({});
-  const [sellAmount, setSellAmount] = useState<Record<string, number>>({});
+  const [selectedCreator, setSelectedCreator] = useState<{pubkey: PublicKey, username: string} | null>(null);
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [selectedSellCreator, setSelectedSellCreator] = useState<{pubkey: PublicKey, username: string} | null>(null);
+  const [showSellModal, setShowSellModal] = useState(false);
 
-  const user = useSocialStore((state) => state.currentUser);
-  const creatorShares = useSharesStore((state) => state.creatorShares);
-  const buyShares = useSharesStore((state) => state.buyShares);
-  const sellShares = useSharesStore((state) => state.sellShares);
-  const getBuyPrice = useSharesStore((state) => state.getBuyPrice);
-  const getSellPrice = useSharesStore((state) => state.getSellPrice);
-  const getMyHoldings = useSharesStore((state) => state.getMyHoldings);
-  const getPortfolioValue = useSharesStore((state) => state.getPortfolioValue);
-  const transactions = useSharesStore((state) => state.transactions);
 
-  const myHoldings = user ? getMyHoldings(user.address) : [];
-  const portfolioValue = user ? getPortfolioValue(user.address) : 0;
-
-  const creators = Array.from(creatorShares.values());
+  
+  // Holdings and portfolio from blockchain
+  const myHoldings: any[] = []; // TODO: Query all share_holding PDAs for user
+  const portfolioValue = 0; // TODO: Calculate from holdings
+  const creators: any[] = []; // TODO: Query all creator_pool PDAs
+  const transactions: any[] = []; // TODO: Query transaction history from blockchain events
 
   const filteredCreators = useMemo(() => {
-    const filtered = creators.filter((creator) =>
-      creator.creatorUsername.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-
-    return filtered.sort((a, b) => {
-      if (sortBy === 'price') return b.price - a.price;
-      if (sortBy === 'volume') return b.volume24h - a.volume24h;
-      if (sortBy === 'holders') return b.holders - a.holders;
-      return 0;
-    });
+    return creators; // Empty array for now
   }, [creators, searchQuery, sortBy]);
 
   const recentTransactions = useMemo(() => {
@@ -44,17 +35,25 @@ export const CreatorShares = () => {
   }, [transactions]);
 
   const handleBuy = (creatorAddress: string, creatorUsername: string) => {
-    if (!user) return;
-    const amount = buyAmount[creatorAddress] || 1;
-    buyShares(user.address, creatorAddress, creatorUsername, amount);
-    setBuyAmount({ ...buyAmount, [creatorAddress]: 1 });
+    if (!publicKey) return;
+    try {
+      const creatorPubkey = new PublicKey(creatorAddress);
+      setSelectedCreator({ pubkey: creatorPubkey, username: creatorUsername });
+      setShowBuyModal(true);
+    } catch (error) {
+      console.error('Invalid creator address:', error);
+    }
   };
 
-  const handleSell = (creatorAddress: string) => {
-    if (!user) return;
-    const amount = sellAmount[creatorAddress] || 1;
-    sellShares(user.address, creatorAddress, amount);
-    setSellAmount({ ...sellAmount, [creatorAddress]: 1 });
+  const handleSell = (creatorAddress: string, creatorUsername: string) => {
+    if (!publicKey) return;
+    try {
+      const creatorPubkey = new PublicKey(creatorAddress);
+      setSelectedSellCreator({ pubkey: creatorPubkey, username: creatorUsername });
+      setShowSellModal(true);
+    } catch (error) {
+      console.error('Invalid creator address:', error);
+    }
   };
 
   const formatSOL = (amount: number) => {
@@ -67,8 +66,9 @@ export const CreatorShares = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-[#000000] text-white">
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-24">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Creator Shares</h1>
@@ -76,23 +76,23 @@ export const CreatorShares = () => {
         </div>
 
         {/* Stats */}
-        {user && (
+        {publicKey && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
+            <div className="glass-card rounded-xl p-6 border border-white/10">
               <div className="text-gray-400 text-sm mb-1">Portfolio Value</div>
               <div className="text-3xl font-bold text-white">
                 {formatSOL(portfolioValue)} SOL
               </div>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
+            <div className="glass-card rounded-xl p-6 border border-white/10">
               <div className="text-gray-400 text-sm mb-1">Holdings</div>
               <div className="text-3xl font-bold text-white">{myHoldings.length}</div>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
+            <div className="glass-card rounded-xl p-6 border border-white/10">
               <div className="text-gray-400 text-sm mb-1">Total Creators</div>
               <div className="text-3xl font-bold text-white">{creators.length}</div>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
+            <div className="glass-card rounded-xl p-6 border border-white/10">
               <div className="text-gray-400 text-sm mb-1">24h Volume</div>
               <div className="text-3xl font-bold text-white">
                 {formatSOL(creators.reduce((sum, c) => sum + c.volume24h, 0))} SOL
@@ -107,7 +107,7 @@ export const CreatorShares = () => {
             onClick={() => setActiveTab('market')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'market'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                ? 'bg-[var(--color-solana-green)] text-black'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
@@ -117,7 +117,7 @@ export const CreatorShares = () => {
             onClick={() => setActiveTab('portfolio')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'portfolio'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                ? 'bg-[var(--color-solana-green)] text-black'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
@@ -127,7 +127,7 @@ export const CreatorShares = () => {
             onClick={() => setActiveTab('activity')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'activity'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                ? 'bg-[var(--color-solana-green)] text-black'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
@@ -145,12 +145,12 @@ export const CreatorShares = () => {
                 placeholder="Search creators..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-white/5 border border-purple-500/20 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-solana-green)]"
               />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-white/5 border border-purple-500/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500"
+                className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[var(--color-solana-green)]"
               >
                 <option value="volume">Sort by Volume</option>
                 <option value="price">Sort by Price</option>
@@ -161,7 +161,7 @@ export const CreatorShares = () => {
             {/* Creator Cards */}
             <div className="space-y-4">
               {filteredCreators.length === 0 ? (
-                <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-12 text-center">
+                <div className="glass-card rounded-xl p-12 text-center border border-white/10">
                   <div className="text-gray-400 mb-2">No creators found</div>
                   <p className="text-gray-500 text-sm">
                     Buy shares in your favorite creators to get started
@@ -171,7 +171,7 @@ export const CreatorShares = () => {
                 filteredCreators.map((creator) => (
                   <div
                     key={creator.creatorAddress}
-                    className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:border-purple-500/40 transition-all"
+                    className="glass-card rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div>
@@ -216,37 +216,16 @@ export const CreatorShares = () => {
                       </div>
                     </div>
 
-                    {user && (
+                    {publicKey && (
                       <div className="flex gap-4">
-                        <div className="flex-1 flex gap-2">
-                          <input
-                            type="number"
-                            min="1"
-                            value={buyAmount[creator.creatorAddress] || 1}
-                            onChange={(e) =>
-                              setBuyAmount({
-                                ...buyAmount,
-                                [creator.creatorAddress]: parseInt(e.target.value) || 1,
-                              })
-                            }
-                            className="w-24 bg-white/5 border border-purple-500/20 rounded-lg px-3 py-2 text-white text-center focus:outline-none focus:border-purple-500"
-                          />
-                          <button
-                            onClick={() =>
-                              handleBuy(creator.creatorAddress, creator.creatorUsername)
-                            }
-                            className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition-all"
-                          >
-                            Buy for{' '}
-                            {formatSOL(
-                              getBuyPrice(
-                                creator.creatorAddress,
-                                buyAmount[creator.creatorAddress] || 1,
-                              ),
-                            )}{' '}
-                            SOL
-                          </button>
-                        </div>
+                        <button
+                          onClick={() =>
+                            handleBuy(creator.creatorAddress, creator.creatorUsername)
+                          }
+                          className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition-all"
+                        >
+                          Buy Shares
+                        </button>
                       </div>
                     )}
                   </div>
@@ -259,26 +238,28 @@ export const CreatorShares = () => {
         {/* Portfolio Tab */}
         {activeTab === 'portfolio' && (
           <div className="space-y-4">
-            {!user ? (
-              <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-12 text-center">
+            {!publicKey ? (
+              <div className="glass-card rounded-xl p-12 text-center border border-white/10">
                 <div className="text-gray-400 mb-2">Connect your wallet</div>
                 <p className="text-gray-500 text-sm">
                   Connect your wallet to view your portfolio
                 </p>
               </div>
             ) : myHoldings.length === 0 ? (
-              <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-12 text-center">
+              <div className="glass-card rounded-xl p-12 text-center border border-white/10">
                 <div className="text-gray-400 mb-2">No holdings yet</div>
                 <p className="text-gray-500 text-sm">
                   Buy shares in creators to build your portfolio
                 </p>
               </div>
             ) : (
-              myHoldings.map((holding) => {
-                const creator = creatorShares.get(holding.creatorAddress);
+              myHoldings.map((holding: any) => {
+                // Query creator data from blockchain
+                const creator = null; // TODO: Fetch creator_pool PDA
                 if (!creator) return null;
 
-                const currentValue = holding.amount * creator.price;
+                // Temporary: Use placeholder values until PDA query is implemented
+                const currentValue = 0;
                 const profit = currentValue - holding.amount * holding.purchasePrice;
                 const profitPercent =
                   (profit / (holding.amount * holding.purchasePrice)) * 100;
@@ -286,7 +267,7 @@ export const CreatorShares = () => {
                 return (
                   <div
                     key={holding.id}
-                    className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6"
+                    className="glass-card rounded-xl p-6 border border-white/10"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div>
@@ -322,7 +303,7 @@ export const CreatorShares = () => {
                       <div>
                         <div className="text-gray-400 text-xs mb-1">Current Price</div>
                         <div className="text-white font-semibold">
-                          {formatSOL(creator.price)} SOL
+                          N/A
                         </div>
                       </div>
                       <div>
@@ -334,34 +315,11 @@ export const CreatorShares = () => {
                     </div>
 
                     <div className="flex gap-2">
-                      <input
-                        type="number"
-                        min="1"
-                        max={holding.amount}
-                        value={sellAmount[holding.creatorAddress] || 1}
-                        onChange={(e) =>
-                          setSellAmount({
-                            ...sellAmount,
-                            [holding.creatorAddress]: Math.min(
-                              parseInt(e.target.value) || 1,
-                              holding.amount,
-                            ),
-                          })
-                        }
-                        className="w-24 bg-white/5 border border-purple-500/20 rounded-lg px-3 py-2 text-white text-center focus:outline-none focus:border-purple-500"
-                      />
                       <button
-                        onClick={() => handleSell(holding.creatorAddress)}
+                        onClick={() => handleSell(holding.creatorAddress, holding.creatorAddress)}
                         className="flex-1 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold py-2 px-4 rounded-lg transition-all"
                       >
-                        Sell for{' '}
-                        {formatSOL(
-                          getSellPrice(
-                            holding.creatorAddress,
-                            sellAmount[holding.creatorAddress] || 1,
-                          ),
-                        )}{' '}
-                        SOL
+                        Sell Shares
                       </button>
                     </div>
                   </div>
@@ -373,7 +331,7 @@ export const CreatorShares = () => {
 
         {/* Activity Tab */}
         {activeTab === 'activity' && (
-          <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl overflow-hidden">
+          <div className="glass-card rounded-xl overflow-hidden border border-white/10">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-white/5">
@@ -423,8 +381,7 @@ export const CreatorShares = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-white">
-                          {creatorShares.get(tx.creatorAddress)?.creatorUsername ||
-                            'Unknown'}
+                          {(tx.creatorAddress || '').slice(0, 8)}...
                         </td>
                         <td className="px-6 py-4 text-white">{tx.amount}</td>
                         <td className="px-6 py-4 text-white">
@@ -445,6 +402,23 @@ export const CreatorShares = () => {
           </div>
         )}
       </div>
+
+      {showBuyModal && selectedCreator && (
+        <BuySharesModal
+          isOpen={true}
+          creatorPubkey={selectedCreator.pubkey}
+          creatorUsername={selectedCreator.username}
+          onClose={() => setShowBuyModal(false)}
+        />
+      )}
+
+      {showSellModal && selectedSellCreator && (
+        <SellSharesModal
+          creatorPubkey={selectedSellCreator.pubkey}
+          creatorUsername={selectedSellCreator.username}
+          onClose={() => setShowSellModal(false)}
+        />
+      )}
     </div>
   );
 };

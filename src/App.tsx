@@ -1,11 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { lazy, Suspense, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { lazy, Suspense } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryProvider } from './providers/QueryProvider';
 import { SolanaProvider } from './providers/SolanaProvider';
 import { Toaster } from 'react-hot-toast';
-import { useUserStore } from './stores/useUserStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -80,33 +78,15 @@ function RouterContent() {
   );
 }
 
-// Wrapper to sync wallet with store
-function AppContent() {
-  const { publicKey, connected } = useWallet();
-  const setWalletAddress = useUserStore((state) => state.setWalletAddress);
-
-  useEffect(() => {
-    if (connected && publicKey) {
-      setWalletAddress(publicKey.toBase58());
-    } else {
-      // Don't reset on disconnect to preserve airdrop progress
-    }
-  }, [connected, publicKey, setWalletAddress]);
-
-  return (
-    <BrowserRouter>
-      <RouterContent />
-    </BrowserRouter>
-  );
-}
-
 function App() {
   return (
     <HelmetProvider>
       <ErrorBoundary>
         <QueryProvider>
           <SolanaProvider>
-            <AppContent />
+            <BrowserRouter>
+              <RouterContent />
+            </BrowserRouter>
             <Toaster
               position="top-right"
               toastOptions={{

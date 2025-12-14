@@ -4,6 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { useGovernanceStore } from '../stores/useGovernanceStore';
+import { useGovernance } from '../hooks/useGovernance';
 import {
   Lock,
   TrendingUp,
@@ -22,22 +23,28 @@ export function Governance() {
   const [stakeAmount, setStakeAmount] = useState('');
   const [lockPeriod, setLockPeriod] = useState(0);
 
-  const stakes = useGovernanceStore((state) => state.stakes);
-  const proposals = useGovernanceStore((state) => state.proposals);
-  const totalStaked = useGovernanceStore((state) => state.totalStaked);
-  const stakeAction = useGovernanceStore((state) => state.stake);
+  // Use blockchain hooks
+  const { stakePosition, stake: stakeTokens, isStaking } = useGovernance(publicKey || undefined);
+
+  // Governance data from blockchain
+  const stakes: any[] = []; // TODO: Query all stake_position PDAs
+  const proposals: any[] = []; // TODO: Query all proposal PDAs from blockchain  
+  const totalStaked = 0; // TODO: Calculate from platform_config
   const unstake = useGovernanceStore((state) => state.unstake);
   const claimRewards = useGovernanceStore((state) => state.claimRewards);
-  const getVotingPower = useGovernanceStore((state) => state.getVotingPower);
   const vote = useGovernanceStore((state) => state.vote);
-
   const canVote = useGovernanceStore((state) => state.canVote);
   const hasVoted = useGovernanceStore((state) => state.hasVoted);
 
   const myStakes = publicKey
     ? stakes.filter((s) => s.walletAddress === publicKey.toBase58())
     : [];
-  const myVotingPower = publicKey ? getVotingPower(publicKey.toBase58()) : 0;
+  
+  // Calculate voting power from blockchain stake position
+  const myVotingPower = stakePosition 
+    ? Number(stakePosition.amount) / 1e9 // Convert lamports to SOL
+    : 0;
+  
   const activeProposals = proposals.filter((p) => p.status === 'active');
 
   const lockOptions = [
@@ -48,7 +55,7 @@ export function Governance() {
     { days: 365, label: '1 Year', apy: 30, multiplier: '3x' },
   ];
 
-  const handleStake = () => {
+  const handleStake = async () => {
     if (!connected) {
       toast.error('Please connect your wallet');
       return;
@@ -58,9 +65,12 @@ export function Governance() {
       return;
     }
 
-    stakeAction(publicKey!.toBase58(), parseFloat(stakeAmount), lockPeriod);
-    setStakeAmount('');
-    toast.success(`Staked ${stakeAmount} PULSE!`);
+    try {
+      await stakeTokens({ amount: parseFloat(stakeAmount), lockPeriod });
+      setStakeAmount('');
+    } catch (error) {
+      console.error('Stake failed:', error);
+    }
   };
 
   const handleUnstake = (stakeId: string) => {
@@ -108,7 +118,7 @@ export function Governance() {
       return { label: 'Rejected', color: 'text-red-400', icon: XCircle };
     }
     if (proposal.status === 'executed') {
-      return { label: 'Executed', color: 'text-purple-400', icon: CheckCircle };
+      return { label: 'Executed', color: 'text-[var(--color-solana-green)]', icon: CheckCircle };
     }
     return { label: 'Cancelled', color: 'text-gray-400', icon: AlertCircle };
   };
@@ -124,7 +134,7 @@ export function Governance() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[var(--color-primary-green)] to-[var(--color-value-amber)] bg-clip-text text-transparent">
             Governance
           </h1>
           <p className="text-gray-400 text-lg">
@@ -159,7 +169,7 @@ export function Governance() {
               className="glass-card rounded-2xl p-6 border border-white/10"
             >
               <div className="flex items-center gap-3 mb-2">
-                <stat.icon className="w-5 h-5 text-[#D4AF37]" />
+                <stat.icon className="w-5 h-5 text-[var(--color-value-amber)]" />
                 <div className="text-2xl font-bold">{stat.value}</div>
               </div>
               <div className="text-sm text-gray-400">{stat.label}</div>
@@ -186,7 +196,7 @@ export function Governance() {
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="govTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D4AF37]"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-solana-green)]"
                     transition={{ type: 'spring', duration: 0.5 }}
                   />
                 )}
@@ -227,7 +237,7 @@ export function Governance() {
                         onClick={() => setLockPeriod(option.days)}
                         className={`p-4 rounded-lg border transition-all ${
                           lockPeriod === option.days
-                            ? 'bg-[#D4AF37] text-black border-[#D4AF37]'
+                            ? 'bg-[var(--color-solana-green)] text-black border-[var(--color-solana-green)]'
                             : 'bg-white/5 border-white/10 hover:border-white/20'
                         }`}
                       >
@@ -243,9 +253,10 @@ export function Governance() {
 
                 <button
                   onClick={handleStake}
-                  className="w-full px-6 py-3 bg-[#D4AF37] text-black rounded-lg font-bold text-lg hover:bg-[#C9A62F] transition-colors"
+                  disabled={isStaking || !stakeAmount || parseFloat(stakeAmount) <= 0}
+                  className="w-full px-6 py-3 bg-[var(--color-solana-green)] text-black rounded-lg font-bold text-lg hover:bg-[#9FE51C] disabled:bg-gray-700 disabled:text-gray-500 transition-colors"
                 >
-                  Stake PULSE
+                  {isStaking ? 'Staking...' : 'Stake PULSE'}
                 </button>
               </div>
             </motion.div>
@@ -338,7 +349,7 @@ export function Governance() {
                 disabled={myVotingPower < 1000}
                 className={`px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
                   myVotingPower >= 1000
-                    ? 'bg-[#D4AF37] text-black hover:bg-[#C9A62F]'
+                    ? 'bg-[var(--color-solana-green)] text-black hover:bg-[#9FE51C]'
                     : 'bg-white/5 text-gray-500 cursor-not-allowed'
                 }`}
               >
@@ -452,7 +463,7 @@ export function Governance() {
                   )}
 
                   {voted && (
-                    <div className="px-4 py-2 bg-blue-500/10 text-blue-400 rounded-lg text-center font-medium">
+                    <div className="px-4 py-2 bg-[var(--color-solana-green)]/10 text-[var(--color-solana-green)] rounded-lg text-center font-medium">
                       You voted on this proposal
                     </div>
                   )}

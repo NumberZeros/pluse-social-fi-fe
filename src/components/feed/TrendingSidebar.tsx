@@ -2,37 +2,17 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useUserStore } from '../../stores/useUserStore';
 
-const TRENDING_TOPICS = [
-  { tag: 'SolanaBreakpoint', posts: 12500 },
-  { tag: 'ZKCompression', posts: 8900 },
-  { tag: 'Web3Social', posts: 6700 },
-  { tag: 'DeFi', posts: 15300 },
-  { tag: 'NFTs', posts: 9200 },
-];
+// TODO: Query trending topics from blockchain
+const TRENDING_TOPICS: { tag: string; posts: number }[] = [];
 
-const SUGGESTED_USERS = [
-  {
-    username: 'solana',
-    address: '5eykt...j7Pn',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=solana',
-    verified: true,
-    bio: 'Official Solana account',
-  },
-  {
-    username: 'helius',
-    address: '8eykt...k9Qm',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=helius',
-    verified: true,
-    bio: 'Best RPC on Solana',
-  },
-  {
-    username: 'metaplex',
-    address: '3eykt...m2Kl',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=metaplex',
-    verified: true,
-    bio: 'NFT standard for Solana',
-  },
-];
+// TODO: Query suggested users from blockchain
+const SUGGESTED_USERS: {
+  username: string;
+  address: string;
+  avatar: string;
+  verified: boolean;
+  bio: string;
+}[] = [];
 
 export function TrendingSidebar() {
   const follow = useUserStore((state) => state.follow);
@@ -56,32 +36,41 @@ export function TrendingSidebar() {
         className="glass-card rounded-2xl p-6 border border-white/10"
       >
         <h2 className="text-xl font-bold mb-4">Trending on Pulse</h2>
-        <div className="space-y-4">
-          {TRENDING_TOPICS.map((topic, index) => (
-            <motion.div
-              key={topic.tag}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="group cursor-pointer"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">#{index + 1} Trending</p>
-                  <p className="font-bold group-hover:text-[#ABFE2C] transition-colors">
-                    #{topic.tag}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {topic.posts.toLocaleString()} posts
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-        <button className="w-full mt-4 py-2 text-[#ABFE2C] hover:bg-white/5 rounded-lg transition-colors font-medium">
-          Show more
-        </button>
+        {TRENDING_TOPICS.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p className="text-sm">No trending topics yet</p>
+            <p className="text-xs mt-2">Be the first to start trending!</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              {TRENDING_TOPICS.map((topic, index) => (
+                <motion.div
+                  key={topic.tag}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-500">#{index + 1} Trending</p>
+                      <p className="font-bold group-hover:text-[#ABFE2C] transition-colors">
+                        #{topic.tag}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {topic.posts.toLocaleString()} posts
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            <button className="w-full mt-4 py-2 text-[#ABFE2C] hover:bg-white/5 rounded-lg transition-colors font-medium">
+              Show more
+            </button>
+          </>
+        )}
       </motion.div>
 
       {/* Suggested Users */}
@@ -92,8 +81,14 @@ export function TrendingSidebar() {
         className="glass-card rounded-2xl p-6 border border-white/10"
       >
         <h2 className="text-xl font-bold mb-4">Who to follow</h2>
-        <div className="space-y-4">
-          {SUGGESTED_USERS.map((user, index) => (
+        {SUGGESTED_USERS.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p className="text-sm">No suggestions yet</p>
+            <p className="text-xs mt-2">Connect your wallet to see recommendations</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {SUGGESTED_USERS.map((user, index) => (
             <motion.div
               key={user.username}
               initial={{ opacity: 0, x: 20 }}
@@ -146,7 +141,8 @@ export function TrendingSidebar() {
               </div>
             </motion.div>
           ))}
-        </div>
+          </div>
+        )}
       </motion.div>
 
       {/* Creator Subscription Card */}
@@ -154,13 +150,13 @@ export function TrendingSidebar() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
-        className="glass-card rounded-2xl p-6 border border-[#D4AF37]/30 bg-gradient-to-br from-[#D4AF37]/5 to-transparent overflow-hidden relative"
+        className="glass-card rounded-2xl p-6 border border-[var(--color-solana-green)]/30 bg-gradient-to-br from-[var(--color-solana-green)]/5 to-transparent overflow-hidden relative"
       >
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-solana-green)]/10 rounded-full blur-3xl" />
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-3">
             <svg
-              className="w-5 h-5 text-[#D4AF37]"
+              className="w-5 h-5 text-[var(--color-solana-green)]"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -222,7 +218,7 @@ export function TrendingSidebar() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="w-full py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#C9A62F] text-black rounded-xl font-bold hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all"
+            className="w-full py-2.5 bg-gradient-to-r from-[var(--color-solana-green)] to-[var(--color-solana-green)] text-black rounded-xl font-bold hover:shadow-lg hover:shadow-[var(--color-solana-green)]/30 transition-all"
           >
             Start Earning
           </motion.button>
@@ -252,7 +248,7 @@ export function TrendingSidebar() {
           </div>
           <div className="flex justify-between items-center pt-2 border-t border-white/10">
             <span className="text-gray-400">Your Earnings</span>
-            <span className="font-bold text-[#D4AF37]">$0.00</span>
+            <span className="font-bold text-[var(--color-solana-green)]">$0.00</span>
           </div>
         </div>
       </motion.div>

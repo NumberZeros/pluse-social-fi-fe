@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import {
   useModerationStore,
   type ReportStatus,
   type ModAction,
 } from '../stores/useModerationStore';
-import { useSocialStore } from '../stores/useSocialStore';
 
 export const ModerationDashboard = () => {
   const [activeTab, setActiveTab] = useState<'queue' | 'users' | 'content' | 'stats'>(
@@ -14,7 +14,7 @@ export const ModerationDashboard = () => {
 
   const [actionNotes, setActionNotes] = useState('');
 
-  const user = useSocialStore((state) => state.currentUser);
+  const { publicKey } = useWallet();
   const reports = useModerationStore((state) => state.reports);
   const warnings = useModerationStore((state) => state.warnings);
   const bans = useModerationStore((state) => state.bans);
@@ -28,7 +28,7 @@ export const ModerationDashboard = () => {
   const stats = getStats();
 
   // Check if user is moderator
-  const isUserModerator = user ? isModerator(user.address) : false;
+  const isUserModerator = publicKey ? isModerator(publicKey.toBase58()) : false;
 
   const filteredReports = useMemo(() => {
     if (filterStatus === 'all') return reports;
@@ -36,14 +36,14 @@ export const ModerationDashboard = () => {
   }, [reports, filterStatus]);
 
   const handleReview = (reportId: string) => {
-    if (!user) return;
-    reviewReport(reportId, user.address);
+    if (!publicKey) return;
+    reviewReport(reportId, publicKey.toBase58());
     // setSelectedReport(reports.find(r => r.id === reportId) || null);
   };
 
   const handleResolve = (reportId: string, action: ModAction) => {
-    if (!user) return;
-    resolveReport(reportId, user.address, action, actionNotes);
+    if (!publicKey) return;
+    resolveReport(reportId, publicKey.toBase58(), action, actionNotes);
     // setSelectedReport(null);
     setActionNotes('');
   };
@@ -83,7 +83,7 @@ export const ModerationDashboard = () => {
       case 'pending':
         return 'bg-yellow-500/20 text-yellow-400';
       case 'reviewing':
-        return 'bg-blue-500/20 text-blue-400';
+        return 'bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)]';
       case 'resolved':
         return 'bg-green-500/20 text-green-400';
       case 'dismissed':
@@ -93,8 +93,8 @@ export const ModerationDashboard = () => {
 
   if (!isUserModerator) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
-        <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-12 text-center max-w-md">
+      <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center">
+        <div className="glass-card rounded-xl p-12 text-center max-w-md border border-white/10">
           <div className="text-4xl mb-4">🚫</div>
           <h2 className="text-2xl font-bold text-white mb-2">Access Denied</h2>
           <p className="text-gray-400">
@@ -106,7 +106,7 @@ export const ModerationDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <div className="min-h-screen bg-[#000000] text-white">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -116,7 +116,7 @@ export const ModerationDashboard = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-          <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4">
+          <div className="glass-card rounded-xl p-4 border border-white/10">
             <div className="text-gray-400 text-xs mb-1">Total Reports</div>
             <div className="text-2xl font-bold text-white">{stats.totalReports}</div>
           </div>
@@ -126,7 +126,7 @@ export const ModerationDashboard = () => {
               {stats.pendingReports}
             </div>
           </div>
-          <div className="bg-white/5 backdrop-blur-sm border border-green-500/20 rounded-xl p-4">
+          <div className="glass-card rounded-xl p-4 border border-white/10">
             <div className="text-gray-400 text-xs mb-1">Resolved Today</div>
             <div className="text-2xl font-bold text-green-400">{stats.resolvedToday}</div>
           </div>
@@ -140,9 +140,9 @@ export const ModerationDashboard = () => {
             <div className="text-gray-400 text-xs mb-1">Bans</div>
             <div className="text-2xl font-bold text-red-400">{stats.activeBans}</div>
           </div>
-          <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4">
+          <div className="glass-card rounded-xl p-4 border border-white/10">
             <div className="text-gray-400 text-xs mb-1">Hidden Content</div>
-            <div className="text-2xl font-bold text-purple-400">
+            <div className="text-2xl font-bold text-[var(--color-solana-green)]">
               {stats.hiddenContent}
             </div>
           </div>
@@ -154,7 +154,7 @@ export const ModerationDashboard = () => {
             onClick={() => setActiveTab('queue')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'queue'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                ? 'bg-[var(--color-solana-green)] text-black'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
@@ -164,7 +164,7 @@ export const ModerationDashboard = () => {
             onClick={() => setActiveTab('users')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'users'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                ? 'bg-[var(--color-solana-green)] text-black'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
@@ -174,7 +174,7 @@ export const ModerationDashboard = () => {
             onClick={() => setActiveTab('content')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'content'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                ? 'bg-[var(--color-solana-green)] text-black'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
@@ -190,7 +190,7 @@ export const ModerationDashboard = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as any)}
-                className="bg-white/5 border border-purple-500/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500"
+                className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[var(--color-solana-green)]"
               >
                 <option value="all">All Reports</option>
                 <option value="pending">Pending</option>
@@ -203,7 +203,7 @@ export const ModerationDashboard = () => {
             {/* Reports List */}
             <div className="space-y-4">
               {filteredReports.length === 0 ? (
-                <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-12 text-center">
+                <div className="glass-card rounded-xl p-12 text-center border border-white/10">
                   <div className="text-gray-400 mb-2">No reports found</div>
                   <p className="text-gray-500 text-sm">All reports have been processed</p>
                 </div>
@@ -211,7 +211,7 @@ export const ModerationDashboard = () => {
                 filteredReports.map((report) => (
                   <div
                     key={report.id}
-                    className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6"
+                    className="glass-card rounded-xl p-6 border border-white/10">
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
@@ -221,7 +221,7 @@ export const ModerationDashboard = () => {
                           >
                             {report.status.toUpperCase()}
                           </span>
-                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400">
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)]">
                             {report.contentType.toUpperCase()}
                           </span>
                           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">
@@ -249,7 +249,7 @@ export const ModerationDashboard = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleReview(report.id)}
-                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all"
+                          className="flex-1 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black font-semibold py-2 px-4 rounded-lg transition-all"
                         >
                           Review
                         </button>
@@ -262,7 +262,7 @@ export const ModerationDashboard = () => {
                           value={actionNotes}
                           onChange={(e) => setActionNotes(e.target.value)}
                           placeholder="Add notes about your decision..."
-                          className="w-full bg-white/5 border border-purple-500/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-solana-green)]"
                           rows={2}
                         />
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
@@ -330,7 +330,7 @@ export const ModerationDashboard = () => {
                 <h3 className="text-xl font-bold text-white mb-4">Active Warnings</h3>
                 <div className="space-y-3">
                   {warnings.length === 0 ? (
-                    <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-8 text-center text-gray-400">
+                    <div className="glass-card rounded-xl p-8 text-center text-gray-400 border border-white/10">
                       No active warnings
                     </div>
                   ) : (
@@ -363,7 +363,7 @@ export const ModerationDashboard = () => {
                 <h3 className="text-xl font-bold text-white mb-4">Active Bans</h3>
                 <div className="space-y-3">
                   {bans.length === 0 ? (
-                    <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-8 text-center text-gray-400">
+                    <div className="glass-card rounded-xl p-8 text-center text-gray-400 border border-white/10">
                       No active bans
                     </div>
                   ) : (
@@ -410,7 +410,7 @@ export const ModerationDashboard = () => {
         {activeTab === 'content' && (
           <div className="space-y-3">
             {contentActions.length === 0 ? (
-              <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-12 text-center">
+              <div className="glass-card rounded-xl p-12 text-center border border-white/10">
                 <div className="text-gray-400 mb-2">No content actions</div>
                 <p className="text-gray-500 text-sm">
                   No content has been hidden or removed
@@ -420,7 +420,7 @@ export const ModerationDashboard = () => {
               contentActions.map((action) => (
                 <div
                   key={action.id}
-                  className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4"
+                  className="glass-card rounded-xl p-4 border border-white/10">
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -434,7 +434,7 @@ export const ModerationDashboard = () => {
                         >
                           {action.action.toUpperCase()}
                         </span>
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400">
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)]">
                           {action.contentType.toUpperCase()}
                         </span>
                       </div>

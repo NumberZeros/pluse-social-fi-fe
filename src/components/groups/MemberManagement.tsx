@@ -91,21 +91,21 @@ export function MemberManagement({ groupId, currentUserRole }: MemberManagementP
     switch (role) {
       case 'owner':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)] text-xs font-medium">
             <Crown className="w-3 h-3" />
             Owner
           </span>
         );
       case 'admin':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)] text-xs font-medium">
             <Shield className="w-3 h-3" />
             Admin
           </span>
         );
       case 'moderator':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)] text-xs font-medium">
             <Shield className="w-3 h-3" />
             Mod
           </span>
@@ -144,7 +144,7 @@ export function MemberManagement({ groupId, currentUserRole }: MemberManagementP
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={copyInviteLink}
-              className="px-4 py-2 bg-[#D4AF37] text-black rounded-lg font-medium flex items-center gap-2"
+              className="px-4 py-2 bg-[var(--color-solana-green)] text-black rounded-lg font-medium flex items-center gap-2"
             >
               {copiedInvite ? (
                 <>
@@ -193,7 +193,7 @@ export function MemberManagement({ groupId, currentUserRole }: MemberManagementP
                   <div className="flex items-center gap-2 mb-1">
                     <Link
                       to={`/${member.username}`}
-                      className="font-bold hover:text-[#D4AF37] transition-colors truncate"
+                      className="font-bold hover:text-[var(--color-solana-green)] transition-colors truncate"
                     >
                       @{member.username}
                     </Link>
@@ -220,7 +220,7 @@ export function MemberManagement({ groupId, currentUserRole }: MemberManagementP
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handlePromote(member, 'moderator')}
-                            className="px-3 py-1.5 text-sm rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                            className="px-3 py-1.5 text-sm rounded-lg bg-[var(--color-solana-green)]/10 text-[var(--color-solana-green)] hover:bg-[var(--color-solana-green)]/20 transition-colors"
                             title="Promote to Moderator"
                           >
                             Make Mod
@@ -229,7 +229,7 @@ export function MemberManagement({ groupId, currentUserRole }: MemberManagementP
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handlePromote(member, 'admin')}
-                            className="px-3 py-1.5 text-sm rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors"
+                            className="px-3 py-1.5 text-sm rounded-lg bg-gray-500/10 text-gray-400 hover:bg-gray-500/20 transition-colors"
                             title="Promote to Admin"
                           >
                             Make Admin
@@ -289,13 +289,13 @@ export function MemberManagement({ groupId, currentUserRole }: MemberManagementP
         <h3 className="text-lg font-bold mb-4">Member Statistics</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <div className="text-2xl font-bold text-[#D4AF37]">
+            <div className="text-2xl font-bold text-[var(--color-solana-green)]">
               {groupMembers.filter((m: GroupMember) => m.role === 'owner').length}
             </div>
             <div className="text-sm text-gray-400">Owners</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-purple-400">
+            <div className="text-2xl font-bold text-[var(--color-solana-green)]">
               {groupMembers.filter((m: GroupMember) => m.role === 'admin').length}
             </div>
             <div className="text-sm text-gray-400">Admins</div>

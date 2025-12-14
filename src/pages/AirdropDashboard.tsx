@@ -172,7 +172,7 @@ export function AirdropDashboard() {
               <span>🎁</span>
               Bonus Multipliers
               {activeBonuses.length > 0 && (
-                <span className="px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-sm rounded-full">
+                <span className="px-3 py-1 bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)] text-sm rounded-full">
                   {activeBonuses.length} Active
                 </span>
               )}
@@ -186,14 +186,14 @@ export function AirdropDashboard() {
                   transition={{ delay: 0.2 + index * 0.05 }}
                   className={`glass-card rounded-xl p-4 border transition-all ${
                     bonus.active
-                      ? 'border-[#D4AF37] bg-gradient-to-br from-[#D4AF37]/20 to-transparent shadow-lg shadow-[#D4AF37]/20'
+                      ? 'border-[var(--color-solana-green)] bg-gradient-to-br from-[var(--color-solana-green)]/20 to-transparent shadow-lg shadow-[var(--color-solana-green)]/20'
                       : 'border-white/10 opacity-60'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-bold text-sm">{bonus.name}</h3>
                     {bonus.active ? (
-                      <div className="px-2 py-1 bg-[#D4AF37] text-black text-xs font-bold rounded">
+                      <div className="px-2 py-1 bg-[var(--color-solana-green)] text-black text-xs font-bold rounded">
                         ✓ {bonus.multiplier}x
                       </div>
                     ) : (
@@ -212,7 +212,7 @@ export function AirdropDashboard() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mt-4 p-4 bg-gradient-to-r from-[#D4AF37]/10 to-[#ABFE2C]/10 rounded-xl border border-[#D4AF37]/30"
+                className="mt-4 p-4 bg-gradient-to-r from-[var(--color-solana-green)]/10 to-[#ABFE2C]/10 rounded-xl border border-[var(--color-solana-green)]/30"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -221,7 +221,7 @@ export function AirdropDashboard() {
                       Base Points: {totalPoints} → Final Points: {finalPoints}
                     </p>
                   </div>
-                  <div className="text-3xl font-bold text-[#D4AF37]">
+                  <div className="text-3xl font-bold text-[var(--color-solana-green)]">
                     {bonusMultiplier.toFixed(2)}x
                   </div>
                 </div>
@@ -257,7 +257,7 @@ export function AirdropDashboard() {
                     />
                     <button
                       onClick={handleCopyReferralLink}
-                      className="px-4 py-2 bg-gradient-to-r from-[#50C878] to-[#3BA565] rounded-lg hover:opacity-90 transition-opacity"
+                      className="px-4 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg transition-all font-bold"
                     >
                       {copied ? (
                         <Check className="w-4 h-4" />
@@ -290,7 +290,7 @@ export function AirdropDashboard() {
                 {/* Progress Bar */}
                 <div className="w-full bg-white/5 rounded-full h-2 mb-2">
                   <div
-                    className="bg-gradient-to-r from-[#50C878] to-[#3BA565] h-2 rounded-full transition-all"
+                    className="bg-gradient-to-r from-[var(--color-solana-green)] to-[#14C58E] h-2 rounded-full transition-all"
                     style={{
                       width: `${Math.min((profile.referralsCount / 5) * 100, 100)}%`,
                     }}
@@ -414,7 +414,7 @@ export function AirdropDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="mt-12 glass-card rounded-2xl p-8 border border-[#D4AF37]/30 bg-gradient-to-br from-[#D4AF37]/5 to-transparent text-center"
+          className="mt-12 glass-card rounded-2xl p-8 border border-[var(--color-solana-green)]/30 bg-gradient-to-br from-[var(--color-solana-green)]/5 to-transparent text-center"
         >
           <h3 className="text-2xl font-bold mb-4">Snapshot Date: Q1 2025</h3>
           <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
@@ -425,7 +425,7 @@ export function AirdropDashboard() {
           <div className="flex flex-wrap justify-center gap-4">
             <div className="px-6 py-3 bg-white/5 rounded-xl">
               <div className="text-sm text-gray-400">Estimated Allocation</div>
-              <div className="text-2xl font-bold text-[#D4AF37]">
+              <div className="text-2xl font-bold text-[var(--color-solana-green)]">
                 {getEstimatedAllocation()} PULSE
               </div>
             </div>

@@ -3,7 +3,6 @@ import { useState, useMemo } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
-import PostCard from '../components/feed/PostCard';
 import { CreatePost } from '../components/feed/CreatePost';
 import { MemberManagement } from '../components/groups/MemberManagement';
 import useGroupStore from '../stores/useGroupStore';
@@ -47,27 +46,8 @@ export function GroupDetail() {
   const isModerator = currentMember?.role === 'moderator' || isAdmin;
   const isMember = !!currentMember;
 
-  // Mock posts for the group
-  const mockPosts = [
-    {
-      id: '1',
-      author: {
-        username: 'vitalik',
-        address: '5eykt...j7Pn',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=vitalik',
-        verified: true,
-      },
-      content: "Welcome to the group! Let's build together 🚀",
-      timestamp: new Date(),
-      likes: 12,
-      reposts: 3,
-      tips: 5.5,
-      comments: 8,
-      images: [] as string[],
-      isLiked: false,
-      isReposted: false,
-    },
-  ];
+  // Posts will come from blockchain storage (Shadow Drive/Arweave/IPFS)
+  const posts: any[] = [];
 
   if (!groupId || !group) {
     return <Navigate to="/groups" replace />;
@@ -114,21 +94,21 @@ export function GroupDetail() {
     switch (role) {
       case 'owner':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)] text-xs font-medium">
             <Crown className="w-3 h-3" />
             Owner
           </span>
         );
       case 'admin':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)] text-xs font-medium">
             <Shield className="w-3 h-3" />
             Admin
           </span>
         );
       case 'moderator':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)] text-xs font-medium">
             <Shield className="w-3 h-3" />
             Mod
           </span>
@@ -145,7 +125,7 @@ export function GroupDetail() {
 
       <div className="max-w-[1000px] mx-auto pt-16">
         {/* Group Banner */}
-        <div className="relative h-64 bg-gradient-to-br from-purple-500/20 to-pink-500/20 overflow-hidden">
+        <div className="relative h-64 bg-gradient-to-br from-[var(--color-solana-green)]/10 to-transparent overflow-hidden">
           {group.banner && (
             <img
               src={group.banner}
@@ -166,7 +146,7 @@ export function GroupDetail() {
                   animate={{ scale: 1, opacity: 1 }}
                   className="relative flex-shrink-0"
                 >
-                  <div className="w-24 h-24 rounded-2xl border-4 border-black bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-4xl font-bold">
+                  <div className="w-24 h-24 rounded-2xl border-4 border-black bg-gradient-to-br from-[var(--color-solana-green)] to-[#14C58E] flex items-center justify-center text-4xl font-bold text-black">
                     {group.name.charAt(0).toUpperCase()}
                   </div>
                 </motion.div>
@@ -229,7 +209,7 @@ export function GroupDetail() {
               )}
 
               {isModerator && (
-                <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#D4AF37] text-black hover:bg-[#C9A62F] transition-colors">
+                <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[var(--color-premium-purple)] to-[var(--color-premium-pink)] hover:opacity-90 text-white font-bold transition-all shadow-lg shadow-[var(--color-premium-purple)]/30">
                   <UserPlus className="w-4 h-4" />
                   <span className="hidden sm:inline">Invite</span>
                 </button>
@@ -256,7 +236,7 @@ export function GroupDetail() {
                     {isActive && (
                       <motion.div
                         layoutId="groupTab"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D4AF37]"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-solana-green)]"
                         transition={{ type: 'spring', duration: 0.5 }}
                       />
                     )}
@@ -285,21 +265,20 @@ export function GroupDetail() {
                   <p className="text-gray-400 mb-4">
                     Join this group to view and create posts
                   </p>
-                  <button className="px-6 py-2 bg-[#D4AF37] text-black rounded-full font-bold hover:bg-[#C9A62F] transition-colors">
+                  <button className="px-6 py-2 bg-gradient-to-r from-[var(--color-premium-purple)] to-[var(--color-premium-pink)] hover:opacity-90 text-white rounded-full font-bold transition-all shadow-lg shadow-[var(--color-premium-purple)]/30">
                     Join Group
                   </button>
                 </div>
               )}
 
-              {isMember &&
-                mockPosts.map((post) => (
-                  <PostCard
+              {isMember && posts.length > 0 &&
+                posts.map((post: any) => (
+                  <div
                     key={post.id}
-                    post={post}
-                    onLike={() => {}}
-                    onRepost={() => {}}
-                    onTip={() => {}}
-                  />
+                    className="bg-white/5 rounded-lg p-4 border border-white/10"
+                  >
+                    <div className="text-white">{post.content}</div>
+                  </div>
                 ))}
             </div>
           )}

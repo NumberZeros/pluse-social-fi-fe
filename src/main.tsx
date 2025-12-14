@@ -9,7 +9,7 @@ import App from './App.tsx';
 (globalThis as unknown as { Buffer?: typeof Buffer }).Buffer ??= Buffer;
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+  // Temporarily disable StrictMode to prevent wallet adapter double-mounting issues
+  // StrictMode causes wallet to disconnect/reconnect in development
+  <App />,
 );

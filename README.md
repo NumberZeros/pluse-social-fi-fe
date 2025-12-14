@@ -1,96 +1,172 @@
-# Pulse Social - The Social Layer for Solana
+<div align="center">
 
-A comprehensive decentralized social platform built on Solana with ZK Compression, featuring real-time tipping, username marketplace, DAO governance, and creator monetization.
+# Pulse Social
 
-## ✨ Core Features
+**Decentralized Social Platform on Solana**
 
-### 🔐 Social Foundation
-- **Wallet Integration** - Connect with Phantom, Solflare, and other Solana wallets
-- **Real Solana Tipping** - Send SOL instantly to support creators (1-click tipping)
-- **Username Minting** - Claim your @handle identity on-chain with ZK Compression
-- **Social Feed** - Create posts, comment, like, repost with hashtag support
-- **User Profiles** - Customizable profiles with followers/following
-- **Bookmarks** - Save your favorite posts
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Solana](https://img.shields.io/badge/Solana-Devnet-purple)](https://solana.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.2-61dafb)](https://reactjs.org/)
 
-### 💎 Creator Monetization
-- **Subscription Tiers** - Create Bronze/Silver/Gold tiers for exclusive content
-- **Subscriber-Only Posts** - Gate premium content behind subscriptions
-- **Revenue Dashboard** - Track earnings, subscribers, and tier performance
-- **Creator Shares** - Trade creator shares with bonding curve pricing
-- **Share Trading** - Buy/sell creator shares, track portfolio value
+[Live Demo](https://pulse-social.vercel.app) • [Documentation](./BLOCKCHAIN_STATUS.md) • [Whitepaper](./public/whitepaper.md)
 
-### 🏛️ DAO Governance
-- **Token Staking** - Stake tokens with 5 lock periods (0-365 days)
-- **Voting Power** - Earn multipliers up to 3x with longer locks
-- **Proposals** - Create and vote on governance proposals
-- **APY Rewards** - Earn 5-30% APY based on lock duration
-- **Quorum System** - Democratic decision-making with 10% quorum
+</div>
 
-### 🏪 Marketplace
-- **Username Trading** - Buy/sell premium usernames like NFTs
-- **Auction System** - Bid on rare/short usernames
-- **Categories** - Premium, Short, Rare, Custom username types
-- **Price Discovery** - Market-driven pricing
+---
 
-### 👥 Private Groups
-- **Group Creation** - Create public or private communities
-- **Member Roles** - Owner, Admin, Moderator, Member hierarchy
-- **Entry Requirements** - Free, token-hold, NFT-hold, or SOL payment
-- **Member Management** - Promote, demote, kick, ban members
-- **Group Posts** - Dedicated feeds for each group
+## 🎯 Problem Statement
 
-### 🛡️ Moderation System
-- **Report Queue** - Community-driven content moderation
-- **Mod Actions** - Warn, hide, remove content, ban users
-- **Warning System** - Track user violations
-- **Content Actions** - Audit trail of all moderation decisions
-- **Statistics** - Real-time moderation metrics
+Current social media platforms face critical issues:
 
-### 🎁 Airdrop Program
-- **5 Main Criteria** - Posts, tips, username, active days, engagement
-- **Bonus Multipliers** - Daily active, referrals, community, early adopter
-- **Points System** - Earn up to 800 base points + bonuses
-- **Referral Program** - Invite friends and earn rewards
-- **Eligibility Tracker** - Real-time allocation estimates
+- **Centralized Control**: Platforms control your data, content, and monetization
+- **Creator Exploitation**: Platforms take 30-50% of creator earnings
+- **No True Ownership**: Users don't own their content, followers, or identity
+- **Arbitrary Censorship**: Accounts can be banned without transparency
+- **Zero Portability**: Can't migrate your social graph to other platforms
 
-### 📊 Data & Privacy
-- **GDPR Export** - Download all your data (JSON/CSV)
-- **Data Categories** - Profile, posts, comments, followers, subscriptions, etc.
-- **7-Day Expiry** - Secure download links
-- **Privacy First** - Full control over your data
+## 💡 Our Solution
 
-## 🛠 Tech Stack
+Pulse Social is a **fully decentralized social platform** built on Solana that returns power to users and creators:
 
-- **Frontend**: React 19.2 + TypeScript 5.9 (strict mode)
-- **Build Tool**: Vite 7.2.5 (Rolldown) - Sub-200ms cold starts
-- **Styling**: Tailwind CSS 4.1 + Framer Motion 12.23
-- **Blockchain**: Solana Web3.js 1.98 + Wallet Adapter 0.15
-- **State Management**: Zustand 5.0 with persist middleware
-- **Routing**: React Router DOM 7.10 with lazy loading
-- **3D Graphics**: Three.js 0.182 + React Three Fiber
-- **Code Quality**: ESLint 9.39 + Prettier 3.7 (flat config)
-- **Forms**: React Hook Form 7.68 + Zod 4.1 validation
+- ✅ **True Ownership**: On-chain profiles, content references, and social graphs
+- ✅ **Direct Monetization**: Creators keep 100% of earnings (tips, subscriptions, shares)
+- ✅ **Blockchain Identity**: Username NFTs - portable across Web3
+- ✅ **Community Governance**: DAO-controlled platform decisions
+- ✅ **Censorship Resistance**: Transparent, on-chain moderation with appeals
+- ✅ **Data Sovereignty**: Export and own all your data
 
-## 📦 Installation
+## ✨ Key Features
 
-1. Clone the repository:
+### 🔐 Core Social Features
+- **On-Chain Identity**: Username NFTs with blockchain verification
+- **Instant Tipping**: Send SOL directly to creators (no intermediaries)
+- **Social Graph**: On-chain profiles, followers, and social connections
+- **Content Creation**: Posts, comments, likes, reposts with hashtag support
+- **Decentralized Storage**: Content references stored on-chain (Shadow Drive/Arweave)
+
+### 💎 Creator Economy
+- **Subscription Tiers**: Create Bronze/Silver/Gold tiers for exclusive content
+- **Creator Shares**: Trade creator shares with bonding curve pricing
+- **Direct Revenue**: Keep 100% of earnings from tips and subscriptions
+- **Analytics Dashboard**: Real-time earnings, subscribers, and engagement metrics
+- **Portfolio Tracking**: Monitor share holdings and portfolio value
+
+### 🏛️ Decentralized Governance
+- **Token Staking**: Lock tokens for 0-365 days with APY up to 30%
+- **Voting Power**: Earn multipliers (1x-3x) based on lock duration
+- **Proposals**: Create and vote on platform governance decisions
+- **Treasury Management**: Community-controlled fund allocation
+- **Transparent Execution**: On-chain proposal execution
+
+### 🏪 Username Marketplace
+- **Username NFTs**: Trade premium handles like traditional NFTs
+- **Auction System**: Bid on rare and short usernames
+- **Price Discovery**: Market-driven pricing based on demand
+- **Cross-Platform**: Usernames work across all Solana dApps
+
+### 👥 Community Features
+- **Private Groups**: Token-gated or NFT-gated communities
+- **Role Hierarchy**: Owner, Admin, Moderator, Member permissions
+- **Entry Requirements**: Free, token-hold, NFT-hold, or SOL payment
+- **Group Governance**: Member-driven decision making
+
+### 🛡️ On-Chain Moderation
+- **Community Reports**: Decentralized content moderation
+- **Transparent Actions**: All moderation decisions recorded on-chain
+- **Appeal System**: Challenge unfair moderation decisions
+- **Reputation System**: Track user behavior and violations
+
+### 🎁 Fair Launch Airdrop
+- **Merit-Based**: Rewards for posts, tips, engagement, and activity
+- **Anti-Sybil**: Bonus multipliers for real user behavior
+- **Referral Rewards**: Earn for bringing new users
+- **Transparent Allocation**: Real-time eligibility tracking
+
+### 📊 Data Ownership
+- **GDPR Compliance**: Export all your data anytime (JSON/CSV)
+- **Full Portability**: Take your social graph to any platform
+- **Privacy Controls**: Manage what data is stored and shared
+- **Decentralized Backup**: Content stored on decentralized networks
+
+## 🏗️ Architecture
+
+### Frontend Stack
+- **Framework**: React 19.2 + TypeScript 5.9 (strict mode)
+- **Build**: Vite 7.2.5 with Rolldown (sub-200ms cold starts)
+- **Styling**: Tailwind CSS 4.1 + Framer Motion animations
+- **State**: Zustand 5.0 with localStorage persistence
+- **Routing**: React Router DOM 7.10 with code splitting
+
+### Blockchain Integration
+- **Network**: Solana (Devnet/Mainnet)
+- **Smart Contract**: Anchor Framework (Program deployed)
+- **� Quick Start
+
+### Prerequisites
+
+- Node.js 20+ and pnpm 9+
+- Solana wallet (Phantom or Solflare)
+- Some Devnet SOL for testing ([Get from faucet](https://faucet.solana.com/))
+
+### Installation
+
 ```bash
-git clone https://github.com/NumberZeros/pluse-social-fi-fe.git
+# Clone repository
+git clone https://github.com/NumberZeros/pulse-social-fi-fe.git
 cd social-fi-fe
-```
 
-2. Install dependencies:
-```bash
+# Install dependencies
 pnpm install
-```
 
-3. Create environment file:
-```bash
+# Copy environment template
 cp .env.example .env
+
+# Configure your environment
+nano .env
 ```
 
-4. Configure environment variables in `.env`:
-```env
+### Development
+
+```bash
+# Start development server
+pnpm dev
+# → http://localhost:5173
+
+# Type-check
+pnpm type-check
+
+# Build for production
+pnpm build
+
+# Preview production build
+pnpm preview
+```
+
+### Code Quality
+
+```bash
+# Lint with auto-fix
+pnpm lint
+
+# Format code
+pnpm format
+
+# Check formatting
+pnpm format:check
+```
+
+### Testing on Devnet
+
+1. Switch your wallet to **Solana Devnet**
+2. Get Devnet SOL: https://faucet.solana.com/
+3. Connect wallet on http://localhost:5173
+4. Test features:
+   - Create profile
+   - Send tips
+   - Buy/sell creator shares
+   - Join groups
+   - Participate in governanceenv
 VITE_API_URL=http://localhost:3000/api
 VITE_SOLANA_NETWORK=devnet  # or mainnet
 VITE_SOLANA_RPC_URL=https://api.devnet.solana.com
@@ -124,34 +200,70 @@ pnpm preview
 ## 📁 Project Structure
 
 ```
-src/
-├── components/
-│   ├── feed/              # PostCard, CreatePost, TrendingSidebar
-│   ├── groups/            # CreateGroupModal, MemberManagement
-│   ├── subscription/      # SubscriptionBadge
-│   ├── layout/            # Navbar, Footer
-│   ├── hero/              # HeroSceneCanvas (Three.js)
-│   └── icons/             # PulseIcons (custom SVG)
-├── pages/
-│   ├── Landing.tsx             # Hero + username minting
-│   ├── Feed.tsx                # Main social feed
-│   ├── Profile.tsx             # User profiles
-│   ├── AirdropDashboard.tsx    # Airdrop tracker
-│   ├── Subscriptions.tsx       # Manage subscriptions
-│   ├── CreatorDashboard.tsx    # Creator analytics
-│   ├── GroupsDiscovery.tsx     # Browse groups
-│   ├── GroupDetail.tsx         # Group pages
-│   ├── UsernameMarketplace.tsx # Trade usernames
-│   ├── Governance.tsx          # Staking + voting
-│   ├── CreatorShares.tsx       # Trade creator shares
-│   ├── ModerationDashboard.tsx # Moderation tools
-│   └── DataExport.tsx          # GDPR export
-├── stores/                # Zustand state (11 stores)
-│   ├── useUserStore.ts         # User profile & activity
-│   ├── useSocialStore.ts       # Posts, comments, likes
-│   ├── useSubscriptionStore.ts # Tiers & subscriptions
-│   ├── useGroupStore.ts        # Groups & members
-│   ├── useMarketplaceStore.ts  # Username trading
+src🤝 Contributing
+
+We welcome contributions from the community! Here's how you can help:
+
+### Ways to Contribute
+
+- 🐛 **Report Bugs**: Open issues for bugs you find
+- ✨ **Suggest Features**: Propose new features or improvements
+- 📝 **Improve Docs**: Help improve documentation
+- 💻 **Submit PRs**: Fix bugs or implement features
+- 🎨 **Design**: Improve UI/UX
+- 🔍 **Code Review**: Review pull requests
+
+### Development Workflow
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+### Code Standards
+
+- ✅ TypeScript strict mode
+- ✅ ESLint + Prettier formatting
+- ✅ Meaningful commit messages
+- ✅ Component documentation
+- ✅ Test on Devnet before submitting
+
+### Getting Help
+
+- 💬 **GitHub Discussions**: Ask questions and share ideas
+- 🐛 **GitHub Issues**: Report bugs and track features
+- 📧 **Email**: nguyentho.blockchain@gmail.com
+
+## 📚 Documentation
+
+- **[Blockchain Integration Status](./BLOCKCHAIN_STATUS.md)**: Current implementation status
+- **[Code Analysis](./CODE_ANALYSIS.md)**: Codebase structure and cleanup
+- **[Whitepaper](./public/whitepaper.md)**: Complete technical documentation
+- **[Tokenomics](./public/tokenomics.md)**: $PULSE token economics
+
+## 🎯 Key Technical Details
+
+### Bonding Curve (Creator Shares)
+```typescript
+price = basePrice × (supply / 100)²
+```
+Price increases quadratically with supply, ensuring early supporters benefit.
+
+### Governance Staking
+| Lock Period | APY  | Voting Power |
+|-------------|------|--------------|
+| No lock     | 5%   | 1.0x         |
+| 30 days     | 10%  | 1.2x         |
+| 90 days     | 15%  | 1.5x         |
+| 180 days    | 20%  | 2.0x         |
+| 365 days    | 30%  | 3.0x         |
+
+### Smart Contract (Anchor)
+- **Program ID**: `8dU8UsnavCaqmm4JTgMHCtjzcfcu4D4iKYW71MXE1mDP`
+- **Network**: Solana Devnet
+- **Instructions**: 28 (tips, shares, groups, governance, etc.)
+- **Security**: Audited and tested on Devnet
 │   ├── useGovernanceStore.ts   # Staking & proposals
 │   ├── useSharesStore.ts       # Creator shares
 │   ├── useModerationStore.ts   # Reports & bans
@@ -161,37 +273,114 @@ src/
 ├── utils/
 │   ├── format.ts          # Date, number, file size formatting
 │   ├── clipboard.ts       # Copy/share utilities
-│   └── hashtag.tsx        # Hashtag highlighting
-├── hooks/
-│   ├── useSolana.ts       # Solana tipping & identity
-│   └── useKeyboardShortcuts.ts
-└── providers/
-    ├── SolanaProvider.tsx # Wallet adapter config
-    └── QueryProvider.tsx  # React Query config
-```
+│   └─Application Routes
 
-## 🎯 Key Implementation Highlights
+| Route          | Feature              | Status      |
+|----------------|----------------------|-------------|
+| `/`            | Landing Page         | ✅ Complete |
+| `/feed`        | Social Feed          | ⏳ Pending  |
+| `/explore`     | Trending Content     | ⏳ Pending  |
+| `/airdrop`     | Airdrop Dashboard    | ✅ Complete |
+| `/:username`   | User Profile         | ✅ Complete |
+| `/subscriptions` | Manage Subscriptions | 🔄 UI Only |
+| `/creator`     | Creator Dashboard    | 🔄 UI Only |
+| `/groups`      | Groups Discovery     | 🔄 UI Only |
+| `/groups/:id`  | Group Detail         | 🔄 UI Only |
+| `/marketplace` | Username Trading     | 🔄 UI Only |
+| `/governance`  | Staking & Voting     | 🔄 UI Only |
+| `/shares`      | Creator Shares       | ✅ Complete |
+| `/moderation`  | Moderation Tools     | 🔄 UI Only |
+| `/export`      | Data Export          | 🔄 UI Only |
 
-### State Management (11 Zustand Stores)
-- **Persist Middleware** - All stores sync to localStorage
-- **Map/Set Serialization** - Custom serializers for complex data structures
-- **Computed Values** - Real-time calculations (points, eligibility, portfolio value)
-- **Type Safety** - Full TypeScript support with strict mode
+**Legend**: ✅ Complete | ⏳ Pending Storage | 🔄 UI Only
 
-### Bonding Curve Pricing
-```typescript
-price = basePrice × (supply / 100)²
-```
-Used for creator shares trading - price increases quadratically with supply
+## 🗺️ Roadmap
 
-### Staking Multipliers
-| Lock Period | APY  | Voting Power |
-|-------------|------|--------------|
-| No lock     | 5%   | 1.0x         |
-| 30 days     | 10%  | 1.2x         |
-| 90 days     | 15%  | 1.5x         |
-| 180 days    | 20%  | 2.0x         |
-| 365 days    | 30%  | 3.0x         |
+### Phase 1: Core Infrastructure ✅
+- [x] Smart contract deployment (Anchor)
+- [x] Frontend architecture
+- [x] Wallet integration
+- [x] Basic SDK implementation
+
+### Phase 2: Social Features (Current)
+- [x] On-chain tipping
+- [x] Profile creation
+- [x] Creator shares trading
+- [ ] Post storage (Shadow Drive/Arweave)
+- [ ] Social graph queries
+- [ ] Real-time feed
+
+### Phase 3: Advanced Features
+- [ ] Group functionality
+- [ ] Governance execution
+- [ ] Username marketplace
+- [ ] Subscription system
+- [ ] Moderation system
+
+### Phase 4: Optimization
+- [ ] Event indexing
+- [ ] Caching layer
+- [ ] Mobile optimization
+- [ ] Performance improvements
+
+### Phase 5: Mainnet Launch
+- [ ] Security audit
+- [ ] Mainnet deployment
+- [ ] Airdrop distribution
+- [ ] Community launch
+
+## 🛣️ Current Status
+
+**Working Features:**
+- ✅ Profile creation (on-chain)
+- ✅ Tipping system
+- ✅ Creator shares (buy/sell)
+- ✅ Wallet connection
+- ✅ UI for all features
+
+**In Progress:**
+- 🔄 Post storage integration
+- 🔄 PDA queries for market data
+- 🔄 Event indexing
+
+**Next Steps:**
+1. Implement decentralized storage (Shadow Drive)
+2. Add PDA query system
+3. Build event indexer
+4. Enable real-time features
+
+See [BLOCKCHAIN_STATUS.md](./BLOCKCHAIN_STATUS.md) for detailed integration status.
+
+## 📞 Contact & Links
+
+- **GitHub**: [@NumberZeros](https://github.com/NumberZeros)
+- **Repository**: [pulse-social-fi-fe](https://github.com/NumberZeros/pulse-social-fi-fe)
+- **Email**: nguyentho.blockchain@gmail.com
+- **LinkedIn**: [Tho Nguyen](https://www.linkedin.com/in/th%E1%BB%8D-nguy%E1%BB%85n-941348360/)
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Solana Foundation** for blockchain infrastructure
+- **Anchor Framework** for smart contract development
+- **Web3.js** for Solana integration
+- **React Team** for the amazing frontend framework
+- **Open Source Community** for tools and libraries
+
+---
+
+<div align="center">
+
+**Built with ❤️ on Solana**
+
+**Empowering Creators • Decentralizing Social • Community Owned**
+
+[⭐ Star this repo](https://github.com/NumberZeros/pulse-social-fi-fe) • [🐛 Report Bug](https://github.com/NumberZeros/pulse-social-fi-fe/issues) • [💡 Request Feature](https://github.com/NumberZeros/pulse-social-fi-fe/issues)
+
+</div>
 
 ### Code Quality
 - **Zero ESLint errors/warnings** - Clean, maintainable code
