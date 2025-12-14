@@ -319,7 +319,7 @@ export function Landing() {
               Early stage. Building sustainable Web3 social infrastructure. Looking for strategic partners.
             </p>
             <a
-              href="mailto:nguyentho.blockchain@gmail.com?subject=Investment Inquiry - Pulse Social"
+              href="mailto:tho.nguyen.soft@gmail.com?subject=Investment Inquiry - Pulse Social"
               className="text-sm text-[var(--color-solana-green)] hover:underline inline-flex items-center gap-1"
             >
               Get in touch <span>→</span>
@@ -351,7 +351,7 @@ export function Landing() {
         {/* Contact Info */}
         <div className="mt-12 text-center">
           <div className="inline-flex flex-wrap gap-4 text-sm text-white/60 justify-center">
-            <span>📧 nguyentho.blockchain@gmail.com</span>
+            <span>📧 tho.nguyen.soft@gmail.com</span>
             <span className="hidden md:inline">|</span>
             <a
               href="https://github.com/NumberZeros"

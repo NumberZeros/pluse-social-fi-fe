@@ -233,7 +233,7 @@ We welcome contributions from the community! Here's how you can help:
 
 - 💬 **GitHub Discussions**: Ask questions and share ideas
 - 🐛 **GitHub Issues**: Report bugs and track features
-- 📧 **Email**: nguyentho.blockchain@gmail.com
+- 📧 **Email**: tho.nguyen.soft@gmail.com
 
 ## 📚 Documentation
 
@@ -355,7 +355,7 @@ See [BLOCKCHAIN_STATUS.md](./BLOCKCHAIN_STATUS.md) for detailed integration stat
 
 - **GitHub**: [@NumberZeros](https://github.com/NumberZeros)
 - **Repository**: [pulse-social-fi-fe](https://github.com/NumberZeros/pulse-social-fi-fe)
-- **Email**: nguyentho.blockchain@gmail.com
+- **Email**: tho.nguyen.soft@gmail.com
 - **LinkedIn**: [Tho Nguyen](https://www.linkedin.com/in/th%E1%BB%8D-nguy%E1%BB%85n-941348360/)
 
 ## 📄 License
