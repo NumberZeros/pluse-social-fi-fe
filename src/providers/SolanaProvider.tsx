@@ -1,7 +1,7 @@
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { useMemo } from 'react';
-import { NETWORK, RPC_ENDPOINTS, DEFAULT_COMMITMENT } from '../utils/constants';
+import { NETWORK, RPC_ENDPOINTS } from '../utils/constants';
 
 // Import wallet adapter styles
 import '@solana/wallet-adapter-react-ui/styles.css';
