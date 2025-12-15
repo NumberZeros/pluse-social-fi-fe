@@ -214,7 +214,7 @@ export function Feed() {
                       {/* Post Actions */}
                       <div className="flex items-center gap-6 text-gray-400">
                         <button
-                          onClick={() => handleLikePost(post.id, post.isLiked)}
+                          onClick={() => handleLikePost(post.id, post.isLiked ?? false)}
                           className={`flex items-center gap-2 hover:text-pink-500 transition-colors ${
                             post.isLiked ? 'text-pink-500' : ''
                           }`}

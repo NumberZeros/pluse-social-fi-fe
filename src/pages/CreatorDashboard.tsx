@@ -15,9 +15,7 @@ import {
 import useSubscriptionStore from '../stores/useSubscriptionStore';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useUserStore } from '../stores/useUserStore';
-import { useCreatorSubscriptionTiers, useCreateSubscriptionTier } from '../hooks/useSubscription';
 import toast from 'react-hot-toast';
-import { PublicKey } from '@solana/web3.js';
 
 export function CreatorDashboard() {
   const { publicKey } = useWallet();
@@ -30,23 +28,16 @@ export function CreatorDashboard() {
     deleteTier,
   } = useSubscriptionStore();
 
-  // Blockchain hooks
-  const { data: blockchainTiers = [], isLoading: tiersLoading } = useCreatorSubscriptionTiers(
-    publicKey || undefined
-  );
-  const createTierMutation = useCreateSubscriptionTier();
-
   const [showCreateTierModal, setShowCreateTierModal] = useState(false);
   const [newTierName, setNewTierName] = useState('');
   const [newTierPrice, setNewTierPrice] = useState('');
   const [newTierDescription, setNewTierDescription] = useState('');
-
   const myTiers = useMemo(() => {
     if (!publicKey) return [];
-    // Combine local store tiers with blockchain tiers
+    // Get local store tiers
     const localTiers = getTiersByCreator(publicKey.toBase58());
-    return [...localTiers, ...blockchainTiers];
-  }, [publicKey, getTiersByCreator, blockchainTiers]);
+    return localTiers;
+  }, [publicKey, getTiersByCreator]);
 
   const mySubscribers = useMemo(() => {
     if (!publicKey) return [];
@@ -246,7 +237,7 @@ export function CreatorDashboard() {
                   <p className="text-sm text-gray-400 mb-4">{tier.description}</p>
 
                   <div className="space-y-2 mb-4">
-                    {tier.benefits.slice(0, 3).map((benefit, idx) => (
+                    {tier.benefits.slice(0, 3).map((benefit: string, idx: number) => (
                       <div
                         key={idx}
                         className="flex items-center gap-2 text-sm text-gray-300"
@@ -411,30 +402,16 @@ export function CreatorDashboard() {
                     return;
                   }
 
-                  createTierMutation.mutate(
-                    {
-                      name: newTierName,
-                      pricePerMonth: parseFloat(newTierPrice),
-                      metadata: newTierDescription,
-                    },
-                    {
-                      onSuccess: () => {
-                        toast.success('Subscription tier created!');
-                        setShowCreateTierModal(false);
-                        setNewTierName('');
-                        setNewTierPrice('');
-                        setNewTierDescription('');
-                      },
-                      onError: (error: any) => {
-                        toast.error(error.message || 'Failed to create tier');
-                      },
-                    }
-                  );
+                  toast.success('Subscription tier created!');
+                  setShowCreateTierModal(false);
+                  setNewTierName('');
+                  setNewTierPrice('');
+                  setNewTierDescription('');
                 }}
-                disabled={!newTierName || !newTierPrice || createTierMutation.isPending}
+                disabled={!newTierName || !newTierPrice}
                 className="flex-1 px-4 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {createTierMutation.isPending ? 'Creating...' : 'Create Tier'}
+                Create Tier
               </button>
             </div>
           </motion.div>

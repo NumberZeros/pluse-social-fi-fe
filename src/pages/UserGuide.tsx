@@ -303,7 +303,7 @@ export default function UserGuide() {
           className="text-2xl font-display font-bold tracking-tighter flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
           <PulseMark className="w-7 h-7" />
-          Pulse
+          Pulse Social
         </Link>
         <div className="hidden md:flex gap-8 text-sm font-medium text-gray-300">
           <Link
@@ -316,22 +316,22 @@ export default function UserGuide() {
             to="/what"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
-            What
+            What is Pulse?
           </Link>
           <Link
             to="/why"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
-            Why
+            Why Join?
           </Link>
           <Link to="/guide" className="text-[var(--color-solana-green)]">
-            Guide
+            User Guide
           </Link>
           <Link
-            to="/airdrop"
+            to="/feed"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
-            Airdrop
+            Enter App
           </Link>
         </div>
         <WalletMultiButton className="!px-6 !py-3 !bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[var(--color-solana-green)] !transition-colors" />
@@ -353,12 +353,11 @@ export default function UserGuide() {
             </span>
           </div>
           <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tight mb-8">
-            How to Use <br />
+            Welcome to <br />
             <span className="text-gradient-lens">Pulse Social</span>
           </h1>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-8">
-            Your complete guide to navigating Pulse. Learn how to use every feature, from
-            minting your username to voting on governance proposals.
+            Learn how to mint usernames, trade creator shares, govern the platform, and build your community.
           </p>
 
           {/* Search Box */}

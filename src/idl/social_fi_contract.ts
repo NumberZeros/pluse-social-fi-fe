@@ -107,14 +107,119 @@ export type SocialFiContract = {
           }
         },
         {
+          "name": "mint",
+          "docs": [
+            "SPL Token mint account for the NFT"
+          ]
+        },
+        {
+          "name": "sellerTokenAccount",
+          "docs": [
+            "Seller's token account holding the NFT"
+          ],
+          "writable": true
+        },
+        {
+          "name": "buyerTokenAccount",
+          "docs": [
+            "Buyer's token account to receive the NFT"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "buyer"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
           "name": "seller",
           "writable": true,
           "signer": true
         },
         {
           "name": "buyer",
-          "writable": true,
-          "signer": true
+          "writable": true
         },
         {
           "name": "platformConfig",
@@ -146,6 +251,14 @@ export type SocialFiContract = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         }
       ],
       "args": []
@@ -218,6 +331,112 @@ export type SocialFiContract = {
           }
         },
         {
+          "name": "mint",
+          "docs": [
+            "SPL Token mint account for the NFT"
+          ]
+        },
+        {
+          "name": "sellerTokenAccount",
+          "docs": [
+            "Seller's token account holding the NFT"
+          ],
+          "writable": true
+        },
+        {
+          "name": "buyerTokenAccount",
+          "docs": [
+            "Buyer's token account to receive the NFT"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "buyer"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
           "name": "buyer",
           "writable": true,
           "signer": true
@@ -256,6 +475,14 @@ export type SocialFiContract = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         }
       ],
       "args": []
@@ -413,6 +640,58 @@ export type SocialFiContract = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "cancelOffer",
+      "discriminator": [
+        92,
+        203,
+        223,
+        40,
+        92,
+        89,
+        53,
+        119
+      ],
+      "accounts": [
+        {
+          "name": "offer",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "offer.listing",
+                "account": "offer"
+              },
+              {
+                "kind": "account",
+                "path": "buyer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "cancelSubscription",
@@ -1411,6 +1690,12 @@ export type SocialFiContract = {
           }
         },
         {
+          "name": "sellerTokenAccount",
+          "docs": [
+            "Seller's token account - must hold the NFT to list"
+          ]
+        },
+        {
           "name": "listing",
           "writable": true,
           "pda": {
@@ -1469,6 +1754,10 @@ export type SocialFiContract = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": [
@@ -1656,6 +1945,121 @@ export type SocialFiContract = {
           }
         },
         {
+          "name": "mint",
+          "docs": [
+            "SPL Token mint for the NFT"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenAccount",
+          "docs": [
+            "Owner's associated token account to receive the NFT"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "metadata",
+          "docs": [
+            "Metaplex metadata account"
+          ],
+          "writable": true
+        },
+        {
+          "name": "masterEdition",
+          "docs": [
+            "Metaplex master edition account"
+          ],
+          "writable": true
+        },
+        {
           "name": "owner",
           "writable": true,
           "signer": true
@@ -1690,11 +2094,31 @@ export type SocialFiContract = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "tokenMetadataProgram",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
       "args": [
         {
           "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "metadataUri",
           "type": "string"
         }
       ]
@@ -2846,6 +3270,19 @@ export type SocialFiContract = {
       ]
     },
     {
+      "name": "offerCancelled",
+      "discriminator": [
+        45,
+        42,
+        175,
+        214,
+        51,
+        192,
+        154,
+        9
+      ]
+    },
+    {
       "name": "offerMade",
       "discriminator": [
         11,
@@ -3232,81 +3669,86 @@ export type SocialFiContract = {
     },
     {
       "code": 6035,
+      "name": "metadataUriTooLong",
+      "msg": "Metadata URI too long (max 200 characters)"
+    },
+    {
+      "code": 6036,
       "name": "listingNotFound",
       "msg": "Username listing not found"
     },
     {
-      "code": 6036,
+      "code": 6037,
       "name": "invalidListingPrice",
       "msg": "Listing price must be greater than zero"
     },
     {
-      "code": 6037,
+      "code": 6038,
       "name": "invalidOfferAmount",
       "msg": "Offer amount must be greater than zero"
     },
     {
-      "code": 6038,
+      "code": 6039,
       "name": "offerNotFound",
       "msg": "Offer not found or expired"
     },
     {
-      "code": 6039,
+      "code": 6040,
       "name": "notListingSeller",
       "msg": "Not the listing seller"
     },
     {
-      "code": 6040,
+      "code": 6041,
       "name": "arithmeticOverflow",
       "msg": "Arithmetic overflow"
     },
     {
-      "code": 6041,
+      "code": 6042,
       "name": "arithmeticUnderflow",
       "msg": "Arithmetic underflow"
     },
     {
-      "code": 6042,
+      "code": 6043,
       "name": "invalidTimestamp",
       "msg": "Invalid timestamp"
     },
     {
-      "code": 6043,
+      "code": 6044,
       "name": "supplyTooHigh",
       "msg": "Supply exceeds maximum limit"
     },
     {
-      "code": 6044,
+      "code": 6045,
       "name": "priceTooHigh",
       "msg": "Price exceeds maximum limit"
     },
     {
-      "code": 6045,
+      "code": 6046,
       "name": "slippageExceeded",
       "msg": "Slippage tolerance exceeded"
     },
     {
-      "code": 6046,
+      "code": 6047,
       "name": "contractPaused",
       "msg": "Contract is paused"
     },
     {
-      "code": 6047,
+      "code": 6048,
       "name": "unauthorized",
       "msg": "Unauthorized: admin only"
     },
     {
-      "code": 6048,
+      "code": 6049,
       "name": "reentrancy",
       "msg": "Reentrancy detected"
     },
     {
-      "code": 6049,
+      "code": 6050,
       "name": "minimumLiquidityRequired",
       "msg": "Minimum liquidity requirement not met"
     },
     {
-      "code": 6050,
+      "code": 6051,
       "name": "insufficientLiquidity",
       "msg": "Insufficient liquidity in pool"
     }
@@ -3633,6 +4075,30 @@ export type SocialFiContract = {
             "name": "seller",
             "type": "pubkey"
           },
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "listing",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "offerCancelled",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
             "name": "buyer",
             "type": "pubkey"
@@ -4354,8 +4820,16 @@ export type SocialFiContract = {
             "type": "string"
           },
           {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
             "name": "nft",
             "type": "pubkey"
+          },
+          {
+            "name": "metadataUri",
+            "type": "string"
           },
           {
             "name": "timestamp",
@@ -4375,6 +4849,14 @@ export type SocialFiContract = {
           },
           {
             "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "metadataUri",
             "type": "string"
           },
           {

@@ -80,7 +80,7 @@ export function Landing() {
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-6 flex justify-between items-center max-w-[1400px] mx-auto w-full mix-blend-difference">
         <div className="text-2xl font-display font-bold tracking-tighter flex items-center gap-2">
           <PulseMark className="w-7 h-7" />
-          Pulse
+          Pulse Social
         </div>
         <div className="hidden md:flex gap-8 text-sm font-medium text-gray-300">
           <Link
@@ -93,13 +93,19 @@ export function Landing() {
             to="/what"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
-            What
+            What is Pulse?
           </Link>
           <Link
             to="/why"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
-            Why
+            Why Join?
+          </Link>
+          <Link
+            to="/guide"
+            className="hover:text-[var(--color-solana-green)] transition-colors"
+          >
+            User Guide
           </Link>
           <Link
             to="/airdrop"
@@ -126,18 +132,18 @@ export function Landing() {
           >
             <span className="w-2 h-2 bg-[var(--color-solana-green)] rounded-full shadow-[0_0_10px_var(--color-solana-green)]" />
             <span className="text-sm font-medium text-[var(--color-solana-green)]">
-              Early Development - Devnet
+              🚀 Live on Devnet • Creator Economy 2.0
             </span>
           </motion.div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-display font-bold tracking-tighter leading-[1.1] mb-6">
-            Social Media<br />
-            <span className="text-white/50">Without</span>{' '}
-            <span className="text-gradient-lens">Middlemen</span>
+            The Social Network<br />
+            <span className="text-white/50">Built for</span>{' '}
+            <span className="text-gradient-lens">Creators</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-white/70 mb-10 max-w-2xl">
-            Creators keep 100%. Users own their data. Built on Solana.
+            Own your identity. Trade creator shares. Stake & vote on content. Powered by Solana.
           </p>
 
           <div className="flex flex-wrap gap-4 items-center mb-12">

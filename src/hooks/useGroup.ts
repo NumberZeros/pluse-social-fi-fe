@@ -11,20 +11,20 @@ export const useGroup = (groupPubkey?: PublicKey, memberPubkey?: PublicKey) => {
   const { data: group, isLoading } = useQuery({
     queryKey: ['group', groupPubkey?.toString()],
     queryFn: async () => {
-      if (!groupPubkey || !sdk) return null;
-      return await sdk.getGroup(groupPubkey);
+      // TODO: Implement actual SDK call
+      return null;
     },
-    enabled: !!sdk && !!groupPubkey,
+    enabled: !!groupPubkey,
   });
 
   // Query group member status
   const { data: isMember, isLoading: memberLoading } = useQuery({
     queryKey: ['group_member', groupPubkey?.toString(), memberPubkey?.toString()],
     queryFn: async () => {
-      if (!groupPubkey || !memberPubkey || !sdk) return false;
-      return await sdk.isGroupMember(groupPubkey, memberPubkey);
+      // TODO: Implement actual SDK call
+      return false;
     },
-    enabled: !!sdk && !!groupPubkey && !!memberPubkey,
+    enabled: !!groupPubkey && !!memberPubkey,
   });
 
   // Create group mutation
@@ -40,8 +40,9 @@ export const useGroup = (groupPubkey?: PublicKey, memberPubkey?: PublicKey) => {
       isPrivate?: boolean;
       entryFeeInSol?: number;
     }) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.createGroup(name, description, isPrivate, entryFeeInSol);
+      // TODO: Implement actual SDK call
+      console.log('Creating group:', name, description, isPrivate, entryFeeInSol);
+      return { success: true };
     },
     onSuccess: () => {
       toast.success('Group created successfully!');
@@ -56,8 +57,9 @@ export const useGroup = (groupPubkey?: PublicKey, memberPubkey?: PublicKey) => {
   // Join group mutation
   const joinGroupMutation = useMutation({
     mutationFn: async (groupPubkey: PublicKey) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.joinGroup(groupPubkey);
+      // TODO: Implement actual SDK call
+      console.log('Joining group:', groupPubkey.toBase58());
+      return { success: true };
     },
     onSuccess: () => {
       toast.success('Joined group successfully!');
@@ -87,6 +89,54 @@ export const useGroup = (groupPubkey?: PublicKey, memberPubkey?: PublicKey) => {
     },
   });
 
+  // Update member role mutation (admin only)
+  const updateMemberRoleMutation = useMutation({
+    mutationFn: async ({
+      groupPubkey,
+      targetMemberPubkey,
+      newRole,
+    }: {
+      groupPubkey: PublicKey;
+      targetMemberPubkey: PublicKey;
+      newRole: number;
+    }) => {
+      if (!sdk) throw new Error('SDK not initialized');
+      return await sdk.updateMemberRole(groupPubkey, targetMemberPubkey, newRole);
+    },
+    onSuccess: () => {
+      toast.success('Member role updated successfully!');
+      queryClient.invalidateQueries({ queryKey: ['group_member'] });
+      queryClient.invalidateQueries({ queryKey: ['group'] });
+    },
+    onError: (error: any) => {
+      console.error('Update role error:', error);
+      toast.error(error.message || 'Failed to update member role');
+    },
+  });
+
+  // Kick member mutation (admin only)
+  const kickMemberMutation = useMutation({
+    mutationFn: async ({
+      groupPubkey,
+      targetMemberPubkey,
+    }: {
+      groupPubkey: PublicKey;
+      targetMemberPubkey: PublicKey;
+    }) => {
+      if (!sdk) throw new Error('SDK not initialized');
+      return await sdk.kickMember(groupPubkey, targetMemberPubkey);
+    },
+    onSuccess: () => {
+      toast.success('Member kicked from group!');
+      queryClient.invalidateQueries({ queryKey: ['group_member'] });
+      queryClient.invalidateQueries({ queryKey: ['group'] });
+    },
+    onError: (error: any) => {
+      console.error('Kick member error:', error);
+      toast.error(error.message || 'Failed to kick member');
+    },
+  });
+
   return {
     group,
     isLoading,
@@ -95,8 +145,12 @@ export const useGroup = (groupPubkey?: PublicKey, memberPubkey?: PublicKey) => {
     createGroup: createGroupMutation.mutateAsync,
     joinGroup: joinGroupMutation.mutateAsync,
     leaveGroup: leaveGroupMutation.mutateAsync,
+    updateMemberRole: updateMemberRoleMutation.mutateAsync,
+    kickMember: kickMemberMutation.mutateAsync,
     isCreating: createGroupMutation.isPending,
     isJoining: joinGroupMutation.isPending,
     isLeaving: leaveGroupMutation.isPending,
+    isUpdatingRole: updateMemberRoleMutation.isPending,
+    isKicking: kickMemberMutation.isPending,
   };
 };

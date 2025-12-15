@@ -1,6 +1,7 @@
 import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import type { Idl } from '@coral-xyz/anchor';
-import { Connection, PublicKey, SystemProgram } from '@solana/web3.js';
+import { Connection, PublicKey, SystemProgram, Keypair, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token';
 import { Buffer } from 'buffer';
 import type { AnchorWallet } from '@solana/wallet-adapter-react';
 import idlJson from '../idl/social_fi_contract.json';
@@ -30,6 +31,113 @@ export class SocialFiSDK {
       idlJson as Idl,
       this.provider
     ) as Program<SocialFiContract>;
+  }
+
+  // ==================== PLATFORM ====================
+
+  /**
+   * Initialize platform config (admin only - run once)
+   * @param feeCollector - Public key to receive platform fees
+   */
+  async initializePlatform(feeCollector: PublicKey) {
+    const [platformConfig] = PDAs.getPlatformConfig();
+
+    const tx = await this.program.methods
+      .initializePlatform(feeCollector)
+      .accountsPartial({
+        platformConfig,
+        admin: this.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    return { signature: tx, platformConfig };
+  }
+
+  /**
+   * Pause platform (admin only)
+   */
+  async pausePlatform() {
+    const [platformConfig] = PDAs.getPlatformConfig();
+
+    const tx = await this.program.methods
+      .pausePlatform()
+      .accountsPartial({
+        platformConfig,
+        admin: this.wallet.publicKey,
+      })
+      .rpc();
+
+    return tx;
+  }
+
+  /**
+   * Unpause platform (admin only)
+   */
+  async unpausePlatform() {
+    const [platformConfig] = PDAs.getPlatformConfig();
+
+    const tx = await this.program.methods
+      .unpausePlatform()
+      .accountsPartial({
+        platformConfig,
+        admin: this.wallet.publicKey,
+      })
+      .rpc();
+
+    return tx;
+  }
+
+  /**
+   * Update platform admin (current admin only)
+   */
+  async updateAdmin(newAdmin: PublicKey) {
+    const [platformConfig] = PDAs.getPlatformConfig();
+
+    const tx = await this.program.methods
+      .updateAdmin(newAdmin)
+      .accountsPartial({
+        platformConfig,
+        admin: this.wallet.publicKey,
+      })
+      .rpc();
+
+    return tx;
+  }
+
+  /**
+   * Update fee collector (admin only)
+   */
+  async updateFeeCollector(newFeeCollector: PublicKey) {
+    const [platformConfig] = PDAs.getPlatformConfig();
+
+    const tx = await this.program.methods
+      .updateFeeCollector(newFeeCollector)
+      .accountsPartial({
+        platformConfig,
+        admin: this.wallet.publicKey,
+      })
+      .rpc();
+
+    return tx;
+  }
+
+  /**
+   * Update minimum liquidity requirement (admin only)
+   * @param newMinLiquidityBps - New minimum liquidity in basis points (max 5000 = 50%)
+   */
+  async updateMinLiquidity(newMinLiquidityBps: number) {
+    const [platformConfig] = PDAs.getPlatformConfig();
+
+    const tx = await this.program.methods
+      .updateMinLiquidity(new BN(newMinLiquidityBps))
+      .accountsPartial({
+        platformConfig,
+        admin: this.wallet.publicKey,
+      })
+      .rpc();
+
+    return tx;
   }
 
   // ==================== USER PROFILE ====================
@@ -94,26 +202,43 @@ export class SocialFiSDK {
   // ==================== CREATOR SHARES ====================
 
   /**
+   * Initialize creator pool (must be called before buying/selling shares)
+   * @param creatorPubkey - Creator's public key (optional, defaults to current wallet)
+   */
+  async initializeCreatorPool(creatorPubkey?: PublicKey) {
+    const creator = creatorPubkey || this.wallet.publicKey;
+    const [creatorPool] = PDAs.getCreatorPool(creator);
+
+    const tx = await this.program.methods
+      .initializeCreatorPool()
+      .accountsPartial({
+        creatorPool,
+        creator: creator,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    return { signature: tx, creatorPool };
+  }
+
+  /**
    * Buy creator shares
    */
   async buyShares(creatorPubkey: PublicKey, amount: number, maxPricePerShare: number) {
-    const [creatorPool] = PDAs.getCreatorShares(creatorPubkey);
-    const [shareHolding] = await PublicKey.findProgramAddress(
-      [Buffer.from('share_holding'), this.wallet.publicKey.toBuffer(), creatorPubkey.toBuffer()],
-      this.program.programId
-    );
+    const [creatorPool] = PDAs.getCreatorPool(creatorPubkey);
+    const [shareHolding] = PDAs.getShareHolding(this.wallet.publicKey, creatorPubkey);
     const [poolVault] = PDAs.getPoolVault(creatorPubkey);
     const [platformConfig] = PDAs.getPlatformConfig();
 
     const tx = await this.program.methods
       .buyShares(new BN(amount), new BN(maxPricePerShare))
       .accounts({
-        creatorPool: creatorPool,
-        shareHolding: shareHolding,
-        poolVault: poolVault,
+        creatorPool,
+        shareHolding,
+        poolVault,
         buyer: this.wallet.publicKey,
         creator: creatorPubkey,
-        platformConfig: platformConfig,
+        platformConfig,
         systemProgram: SystemProgram.programId,
       } as any)
       .rpc();
@@ -125,23 +250,20 @@ export class SocialFiSDK {
    * Sell creator shares
    */
   async sellShares(creatorPubkey: PublicKey, amount: number, minPricePerShare: number) {
-    const [creatorPool] = PDAs.getCreatorShares(creatorPubkey);
-    const [shareHolding] = await PublicKey.findProgramAddress(
-      [Buffer.from('share_holding'), this.wallet.publicKey.toBuffer(), creatorPubkey.toBuffer()],
-      this.program.programId
-    );
+    const [creatorPool] = PDAs.getCreatorPool(creatorPubkey);
+    const [shareHolding] = PDAs.getShareHolding(this.wallet.publicKey, creatorPubkey);
     const [poolVault] = PDAs.getPoolVault(creatorPubkey);
     const [platformConfig] = PDAs.getPlatformConfig();
 
     const tx = await this.program.methods
       .sellShares(new BN(amount), new BN(minPricePerShare))
       .accounts({
-        creatorPool: creatorPool,
-        shareHolding: shareHolding,
-        poolVault: poolVault,
+        creatorPool,
+        shareHolding,
+        poolVault,
         seller: this.wallet.publicKey,
         creator: creatorPubkey,
-        platformConfig: platformConfig,
+        platformConfig,
         systemProgram: SystemProgram.programId,
       } as any)
       .rpc();
@@ -153,7 +275,7 @@ export class SocialFiSDK {
    * Get creator pool data
    */
   async getCreatorShares(creatorPubkey: PublicKey) {
-    const [creatorPool] = PDAs.getCreatorShares(creatorPubkey);
+    const [creatorPool] = PDAs.getCreatorPool(creatorPubkey);
 
     try {
       const account = await this.program.account.creatorPool.fetch(creatorPool);
@@ -166,6 +288,8 @@ export class SocialFiSDK {
 
   /**
    * Calculate current price for amount of shares
+   * Matches contract logic: price = base_price * (supply_scaled^2)
+   * where supply_scaled = supply / PRICE_SCALE (100)
    */
   async calculateSharePrice(creatorPubkey: PublicKey, amount: number): Promise<number> {
     const shares = await this.getCreatorShares(creatorPubkey);
@@ -173,16 +297,20 @@ export class SocialFiSDK {
 
     const supply = shares.supply.toNumber();
     const basePrice = shares.basePrice.toNumber();
+    const PRICE_SCALE = 100; // Must match contract constant
 
-    // Simplified bonding curve: price = basePrice * (supply + amount)^2
+    // Calculate price using contract's bonding curve formula
     let totalCost = 0;
     for (let i = 0; i < amount; i++) {
       const currentSupply = supply + i;
-      const price = (basePrice * currentSupply * currentSupply) / 1e9; // Normalize
-      totalCost += price;
+      const supplyScaled = Math.floor(currentSupply / PRICE_SCALE);
+      const priceMultiplier = supplyScaled * supplyScaled;
+      const price = basePrice * priceMultiplier;
+      // Ensure minimum price is basePrice
+      totalCost += Math.max(price, basePrice);
     }
 
-    return totalCost;
+    return totalCost / 1e9; // Convert lamports to SOL
   }
 
   // ==================== ADVANCED FEATURES ====================
@@ -225,24 +353,23 @@ export class SocialFiSDK {
 
   /**
    * Create subscription tier for creator
+   * @param tierId - Tier ID (u64) - must match contract's get_next_tier_id() or be sequential
+   * @param name - Tier name
+   * @param description - Tier description
+   * @param priceInSol - Price in SOL
+   * @param durationDays - Duration in days
    */
   async createSubscriptionTier(
+    tierId: number,
     name: string,
     description: string,
     priceInSol: number,
     durationDays: number
   ) {
     const priceInLamports = Math.floor(priceInSol * 1e9);
-    const tierId = Date.now();
     
-    const [subscriptionTier] = await PublicKey.findProgramAddress(
-      [
-        Buffer.from('subscription_tier'),
-        this.wallet.publicKey.toBuffer(),
-        Buffer.from(tierId.toString()),
-      ],
-      this.program.programId
-    );
+    // Use PDAs helper with proper u64 encoding
+    const [subscriptionTier] = PDAs.getSubscriptionTier(this.wallet.publicKey, tierId);
 
     const tx = await this.program.methods
       .createSubscriptionTier(name, description, new BN(priceInLamports), new BN(durationDays))
@@ -253,26 +380,18 @@ export class SocialFiSDK {
       })
       .rpc();
 
-    return { signature: tx, subscriptionTier };
+    return { signature: tx, subscriptionTier, tierId };
   }
 
   /**
    * Subscribe to creator's tier
+   * @param creatorPubkey - Creator's public key
+   * @param tierId - Tier ID to subscribe to (required)
    */
-  async subscribe(creatorPubkey: PublicKey, tierId?: number) {
-    const [subscription] = PDAs.getSubscription(this.wallet.publicKey, creatorPubkey);
-    
-    // If no tier specified, attempt to fetch creator's subscription tiers
-    // For now, construct a reasonable tier ID - in production, list and select
-    const tierIdToUse = tierId || 1;
-    const [subscriptionTier] = await PublicKey.findProgramAddress(
-      [
-        Buffer.from('subscription_tier'),
-        creatorPubkey.toBuffer(),
-        Buffer.from(tierIdToUse.toString()),
-      ],
-      this.program.programId
-    );
+  async subscribe(creatorPubkey: PublicKey, tierId: number) {
+    // Subscription PDA now includes tier_id
+    const [subscription] = PDAs.getSubscription(this.wallet.publicKey, creatorPubkey, tierId);
+    const [subscriptionTier] = PDAs.getSubscriptionTier(creatorPubkey, tierId);
 
     const tx = await this.program.methods
       .subscribe()
@@ -290,9 +409,11 @@ export class SocialFiSDK {
 
   /**
    * Cancel subscription
+   * @param creatorPubkey - Creator's public key
+   * @param tierId - Tier ID of the subscription to cancel
    */
-  async cancelSubscription(creatorPubkey: PublicKey) {
-    const [subscription] = PDAs.getSubscription(this.wallet.publicKey, creatorPubkey);
+  async cancelSubscription(creatorPubkey: PublicKey, tierId: number) {
+    const [subscription] = PDAs.getSubscription(this.wallet.publicKey, creatorPubkey, tierId);
 
     const tx = await this.program.methods
       .cancelSubscription()
@@ -307,9 +428,12 @@ export class SocialFiSDK {
 
   /**
    * Get subscription info
+   * @param subscriberPubkey - Subscriber's public key
+   * @param creatorPubkey - Creator's public key
+   * @param tierId - Tier ID
    */
-  async getSubscription(subscriberPubkey: PublicKey, creatorPubkey: PublicKey) {
-    const [subscription] = PDAs.getSubscription(subscriberPubkey, creatorPubkey);
+  async getSubscription(subscriberPubkey: PublicKey, creatorPubkey: PublicKey, tierId: number) {
+    const [subscription] = PDAs.getSubscription(subscriberPubkey, creatorPubkey, tierId);
 
     try {
       const account = await this.program.account.subscription.fetch(subscription);
@@ -323,14 +447,7 @@ export class SocialFiSDK {
    * Get subscription tier info
    */
   async getSubscriptionTier(creatorPubkey: PublicKey, tierId: number) {
-    const [subscriptionTier] = await PublicKey.findProgramAddress(
-      [
-        Buffer.from('subscription_tier'),
-        creatorPubkey.toBuffer(),
-        Buffer.from(tierId.toString()),
-      ],
-      this.program.programId
-    );
+    const [subscriptionTier] = PDAs.getSubscriptionTier(creatorPubkey, tierId);
 
     try {
       const account = await this.program.account.subscriptionTier.fetch(subscriptionTier);
@@ -362,6 +479,10 @@ export class SocialFiSDK {
 
   /**
    * Create group
+   * @param name - Group name (used as PDA seed - must be unique per creator)
+   * @param description - Group description
+   * @param isPrivate - Whether group is private (0=public, 1=private)
+   * @param entryFeeInSol - Optional entry fee in SOL
    */
   async createGroup(
     name: string,
@@ -369,15 +490,11 @@ export class SocialFiSDK {
     isPrivate: boolean = false,
     entryFeeInSol?: number
   ) {
-    const groupId = Date.now();
-    const [group] = await PublicKey.findProgramAddress(
-      [
-        Buffer.from('group'),
-        this.wallet.publicKey.toBuffer(),
-        Buffer.from(groupId.toString()),
-      ],
-      this.program.programId
-    );
+    // Use name for PDA (not timestamp)
+    const [group] = PDAs.getGroup(this.wallet.publicKey, name);
+    
+    // Creator is automatically first member
+    const [groupMember] = PDAs.getGroupMember(group, this.wallet.publicKey);
 
     const entryPrice = entryFeeInSol ? Math.floor(entryFeeInSol * 1e9) : 0;
     const privacy = isPrivate ? 1 : 0;
@@ -393,7 +510,8 @@ export class SocialFiSDK {
       )
       .accounts({
         group,
-        owner: this.wallet.publicKey,
+        groupMember,
+        creator: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       } as any)
       .rpc();
@@ -403,8 +521,10 @@ export class SocialFiSDK {
 
   /**
    * Join group
+   * @param groupPubkey - Group PDA
+   * @param groupCreatorPubkey - Group creator's public key (needed for entry fee payment)
    */
-  async joinGroup(groupPubkey: PublicKey) {
+  async joinGroup(groupPubkey: PublicKey, groupCreatorPubkey: PublicKey) {
     const [groupMember] = PDAs.getGroupMember(groupPubkey, this.wallet.publicKey);
 
     const tx = await this.program.methods
@@ -413,6 +533,7 @@ export class SocialFiSDK {
         group: groupPubkey,
         groupMember,
         member: this.wallet.publicKey,
+        groupCreator: groupCreatorPubkey,
         systemProgram: SystemProgram.programId,
       } as any)
       .rpc();
@@ -464,6 +585,47 @@ export class SocialFiSDK {
     return member !== null;
   }
 
+  /**
+   * Update member role in group (admin only)
+   * Role: 0 = Member, 1 = Moderator, 2 = Admin
+   */
+  async updateMemberRole(groupPubkey: PublicKey, targetMemberPubkey: PublicKey, newRole: number) {
+    const [adminMember] = PDAs.getGroupMember(groupPubkey, this.wallet.publicKey);
+    const [targetMember] = PDAs.getGroupMember(groupPubkey, targetMemberPubkey);
+
+    const tx = await this.program.methods
+      .updateMemberRole(newRole)
+      .accounts({
+        group: groupPubkey,
+        adminMember,
+        targetMember,
+        admin: this.wallet.publicKey,
+      } as any)
+      .rpc();
+
+    return tx;
+  }
+
+  /**
+   * Kick member from group (admin only)
+   */
+  async kickMember(groupPubkey: PublicKey, targetMemberPubkey: PublicKey) {
+    const [adminMember] = PDAs.getGroupMember(groupPubkey, this.wallet.publicKey);
+    const [targetMember] = PDAs.getGroupMember(groupPubkey, targetMemberPubkey);
+
+    const tx = await this.program.methods
+      .kickMember()
+      .accounts({
+        group: groupPubkey,
+        adminMember,
+        targetMember,
+        admin: this.wallet.publicKey,
+      } as any)
+      .rpc();
+
+    return tx;
+  }
+
   // ==================== GOVERNANCE ====================
 
   /**
@@ -494,12 +656,14 @@ export class SocialFiSDK {
    */
   async unstakeTokens() {
     const [stakePosition] = PDAs.getStakePosition(this.wallet.publicKey);
+    const [platformConfig] = PDAs.getPlatformConfig();
 
     const tx = await this.program.methods
       .unstakeTokens()
       .accountsPartial({
         stakePosition,
         staker: this.wallet.publicKey,
+        platformConfig,
       })
       .rpc();
 
@@ -508,6 +672,10 @@ export class SocialFiSDK {
 
   /**
    * Create governance proposal
+   * @param title - Proposal title (used as PDA seed - must be unique per proposer)
+   * @param description - Proposal description
+   * @param category - Proposal category (u8)
+   * @param executionDelay - Execution delay in seconds
    */
   async createProposal(
     title: string,
@@ -515,16 +683,8 @@ export class SocialFiSDK {
     category: number = 0,
     executionDelay: number = 0
   ) {
-    const timestamp = Date.now();
-    const [proposal] = await PublicKey.findProgramAddress(
-      [
-        Buffer.from('proposal'),
-        this.wallet.publicKey.toBuffer(),
-        Buffer.from(timestamp.toString()),
-      ],
-      this.program.programId
-    );
-
+    // Use title for PDA (not timestamp)
+    const [proposal] = PDAs.getProposal(this.wallet.publicKey, title);
     const [stakePosition] = PDAs.getStakePosition(this.wallet.publicKey);
 
     const tx = await this.program.methods
@@ -624,51 +784,99 @@ export class SocialFiSDK {
 
   /**
    * Mint a username as NFT
+   * @param username - Username to mint (must be unique)
+   * @param metadataUri - URI to NFT metadata (JSON on Arweave/IPFS)
    */
-  async mintUsername(username: string) {
-    const usernameHash = Buffer.from(username).toString('hex');
-    const [nft] = await PublicKey.findProgramAddress(
-      [
-        Buffer.from('username_nft'),
-        this.wallet.publicKey.toBuffer(),
-        Buffer.from(usernameHash),
-      ],
-      this.program.programId
+  async mintUsername(username: string, metadataUri: string) {
+    // Correct PDA derivation - just username, no owner or hash
+    const [usernameNft] = PDAs.getUsernameNFT(username);
+    
+    // Generate new mint keypair
+    const mint = Keypair.generate();
+    
+    // Get associated token account for owner
+    const tokenAccount = await getAssociatedTokenAddress(
+      mint.publicKey,
+      this.wallet.publicKey
     );
+    
+    // Metaplex metadata PDA
+    const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+    const [metadata] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('metadata'),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mint.publicKey.toBuffer(),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    );
+    
+    // Master edition PDA
+    const [masterEdition] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('metadata'),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mint.publicKey.toBuffer(),
+        Buffer.from('edition'),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    );
+    
+    const [platformConfig] = PDAs.getPlatformConfig();
 
     const tx = await this.program.methods
-      .mintUsername(username)
+      .mintUsername(username, metadataUri)
       .accounts({
-        nft,
+        usernameNft,
+        mint: mint.publicKey,
+        tokenAccount,
+        metadata,
+        masterEdition,
         owner: this.wallet.publicKey,
+        platformConfig,
         systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+        rent: SYSVAR_RENT_PUBKEY,
       } as any)
+      .signers([mint])
       .rpc();
 
-    return { signature: tx, nft };
+    return { signature: tx, nft: usernameNft, mint: mint.publicKey };
   }
 
   /**
    * List username for sale
+   * @param nftPubkey - Username NFT PDA
+   * @param mintPubkey - The mint address of the NFT
+   * @param priceInSol - Listing price in SOL
    */
-  async listUsername(nftPubkey: PublicKey, priceInSol: number) {
-    const [listing] = await PublicKey.findProgramAddress(
-      [
-        Buffer.from('marketplace_listing'),
-        nftPubkey.toBuffer(),
-      ],
+  async listUsername(nftPubkey: PublicKey, mintPubkey: PublicKey, priceInSol: number) {
+    const [listing] = PublicKey.findProgramAddressSync(
+      [Buffer.from('listing'), nftPubkey.toBuffer()],
       this.program.programId
     );
 
+    // Get seller's token account for the NFT
+    const sellerTokenAccount = await getAssociatedTokenAddress(
+      mintPubkey,
+      this.wallet.publicKey
+    );
+
     const priceInLamports = new BN(Math.floor(priceInSol * 1e9));
+    const [platformConfig] = PDAs.getPlatformConfig();
 
     const tx = await this.program.methods
       .listUsername(priceInLamports)
       .accounts({
+        usernameNft: nftPubkey,
+        sellerTokenAccount,
         listing,
-        nft: nftPubkey,
         seller: this.wallet.publicKey,
+        platformConfig,
         systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
       } as any)
       .rpc();
 
@@ -677,24 +885,45 @@ export class SocialFiSDK {
 
   /**
    * Buy username from marketplace (buyListing instruction)
+   * @param listingPubkey - Listing PDA
+   * @param nftPubkey - Username NFT PDA
+   * @param mintPubkey - The mint address of the NFT
+   * @param sellerPubkey - Seller's public key
    */
-  async buyUsername(listingPubkey: PublicKey, nftPubkey: PublicKey, sellerPubkey: PublicKey) {
+  async buyUsername(
+    listingPubkey: PublicKey,
+    nftPubkey: PublicKey,
+    mintPubkey: PublicKey,
+    sellerPubkey: PublicKey
+  ) {
     const [platformConfig] = PDAs.getPlatformConfig();
-    const [feeCollector] = await PublicKey.findProgramAddress(
-      [Buffer.from('fee_collector')],
-      this.program.programId
+
+    // Get seller's token account
+    const sellerTokenAccount = await getAssociatedTokenAddress(
+      mintPubkey,
+      sellerPubkey
+    );
+
+    // Get buyer's token account (will be created if doesn't exist)
+    const buyerTokenAccount = await getAssociatedTokenAddress(
+      mintPubkey,
+      this.wallet.publicKey
     );
 
     const tx = await this.program.methods
       .buyListing()
       .accounts({
-        listing: listingPubkey,
         usernameNft: nftPubkey,
+        listing: listingPubkey,
+        mint: mintPubkey,
+        sellerTokenAccount,
+        buyerTokenAccount,
         buyer: this.wallet.publicKey,
         seller: sellerPubkey,
         platformConfig,
-        feeCollector,
         systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       } as any)
       .rpc();
 
@@ -711,11 +940,122 @@ export class SocialFiSDK {
   }
 
   /**
-   * Make offer on username (for marketplace negotiations)
+   * Make offer on username listing
+   * ⚠️ ESCROW: Funds are immediately locked in the offer PDA until accepted or cancelled
+   * @param usernameNftPubkey - Username NFT PDA
+   * @param listingPubkey - Listing PDA
+   * @param offerAmountInSol - Amount in SOL (will be escrowed)
    */
-  async makeOffer(_listingPubkey: PublicKey, _offerAmountInSol: number) {
-    // Note: This may not exist, add if contract supports it
-    throw new Error('Make offer not yet implemented in contract');
+  async makeOffer(usernameNftPubkey: PublicKey, listingPubkey: PublicKey, offerAmountInSol: number) {
+    const [offer] = await PublicKey.findProgramAddress(
+      [
+        Buffer.from('offer'),
+        listingPubkey.toBuffer(),
+        this.wallet.publicKey.toBuffer(),
+      ],
+      this.program.programId
+    );
+
+    const [platformConfig] = PDAs.getPlatformConfig();
+    const amountInLamports = new BN(Math.floor(offerAmountInSol * 1e9));
+
+    const tx = await this.program.methods
+      .makeOffer(amountInLamports)
+      .accounts({
+        usernameNft: usernameNftPubkey,
+        listing: listingPubkey,
+        offer,
+        buyer: this.wallet.publicKey,
+        platformConfig,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    return { signature: tx, offer };
+  }
+
+  /**
+   * Accept offer on username listing (seller only)
+   * ✅ Funds automatically transferred from escrow PDA to seller
+   * @param usernameNftPubkey - Username NFT PDA
+   * @param listingPubkey - Listing PDA
+   * @param mintPubkey - The mint address of the NFT
+   * @param buyerPubkey - Buyer's public key (NOT a signer)
+   */
+  async acceptOffer(
+    usernameNftPubkey: PublicKey,
+    listingPubkey: PublicKey,
+    mintPubkey: PublicKey,
+    buyerPubkey: PublicKey
+  ) {
+    const [offer] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('offer'),
+        listingPubkey.toBuffer(),
+        buyerPubkey.toBuffer(),
+      ],
+      this.program.programId
+    );
+
+    const [platformConfig] = PDAs.getPlatformConfig();
+
+    // Get token accounts
+    const sellerTokenAccount = await getAssociatedTokenAddress(
+      mintPubkey,
+      this.wallet.publicKey
+    );
+
+    const buyerTokenAccount = await getAssociatedTokenAddress(
+      mintPubkey,
+      buyerPubkey
+    );
+
+    // Note: Contract requires buyer signature - may need multi-sig flow
+    const tx = await this.program.methods
+      .acceptOffer()
+      .accounts({
+        usernameNft: usernameNftPubkey,
+        listing: listingPubkey,
+        offer,
+        mint: mintPubkey,
+        sellerTokenAccount,
+        buyerTokenAccount,
+        seller: this.wallet.publicKey,
+        buyer: buyerPubkey,  // Needs to be signer
+        platformConfig,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      } as any)
+      .rpc();
+
+    return tx;
+  }
+
+  /**
+   * Cancel offer and get escrowed funds back (buyer only)
+   * @param listingPubkey - Listing PDA
+   */
+  async cancelOffer(listingPubkey: PublicKey) {
+    const [offer] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('offer'),
+        listingPubkey.toBuffer(),
+        this.wallet.publicKey.toBuffer(),
+      ],
+      this.program.programId
+    );
+
+    const tx = await this.program.methods
+      .cancelOffer()
+      .accounts({
+        offer,
+        buyer: this.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    return tx;
   }
 
   // ==================== MODERATION ====================

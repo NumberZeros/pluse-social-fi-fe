@@ -12,7 +12,7 @@ import { toast } from 'react-hot-toast';
 
 export function UsernameMarketplace() {
   const { publicKey, connected } = useWallet();
-  const { sdk } = useSocialFi();
+  useSocialFi();
   
   const [activeTab, setActiveTab] = useState<'buy' | 'sell' | 'my-listings'>(
     'buy',
@@ -66,13 +66,15 @@ export function UsernameMarketplace() {
       return;
     }
 
-    mintUsernameMutation.mutate(newListingUsername, {
-      onSuccess: () => {
-        toast.success('Username minted successfully!');
-        setNewListingUsername('');
-        setShowMintModal(false);
-      },
-      onError: (error: any) => {
+    mintUsernameMutation.mutate(
+      { username: newListingUsername, metadataUri: '' },
+      {
+        onSuccess: () => {
+          toast.success('Username minted successfully!');
+          setNewListingUsername('');
+          setShowMintModal(false);
+        },
+        onError: (error: any) => {
         toast.error(error.message || 'Failed to mint username');
       },
     });
@@ -98,7 +100,7 @@ export function UsernameMarketplace() {
     try {
       const usernameNft = new PublicKey(newListingUsername); // Placeholder
       listUsernameMutation.mutate(
-        { nftPubkey: usernameNft, priceInSol: parseFloat(newListingPrice) },
+        { nftPubkey: usernameNft, mintPubkey: usernameNft, priceInSol: parseFloat(newListingPrice) },
         {
           onSuccess: () => {
             toast.success('Username listed for sale!');
@@ -130,10 +132,11 @@ export function UsernameMarketplace() {
       // Get listing details from blockchain
       const listingPubkey = new PublicKey(listing.listingAddress || listing.id);
       const nftPubkey = new PublicKey(listing.nftMint || listing.id);
+      const mintPubkey = nftPubkey; // Same for now
       const sellerPubkey = new PublicKey(listing.seller);
 
       buyUsernameMutation.mutate(
-        { listingPubkey, nftPubkey, sellerPubkey },
+        { listingPubkey, nftPubkey, mintPubkey, sellerPubkey },
         {
           onSuccess: () => {
             toast.success(`Username purchased for ${listing.price} SOL!`);
@@ -148,7 +151,7 @@ export function UsernameMarketplace() {
     }
   };
 
-  const handleMakeOffer = () => {
+  const handleMakeOffer = (_listingId: string, _username: string) => {
     toast.error('Offers are not yet implemented in the contract');
   };
 
@@ -302,7 +305,7 @@ export function UsernameMarketplace() {
 
             {/* Listings Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredListings.map((listing) => (
+              {(filteredListings as any[]).map((listing: any) => (
                 <motion.div
                   key={listing.id}
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -368,82 +371,11 @@ export function UsernameMarketplace() {
         )}
 
         {/* Auctions Tab */}
-        {activeTab === 'auctions' && (
+        {false && (
           <div className="space-y-4">
-            {activeAuctions.map((auction) => {
-              const timeLeft = Math.max(0, auction.endTime - Date.now());
-              const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
-              const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-
-              return (
-                <motion.div
-                  key={auction.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="glass-card rounded-2xl p-6 border border-white/10"
-                >
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div className="flex-1">
-                      <div className="text-3xl font-bold mb-2">@{auction.username}</div>
-                      <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {hoursLeft}h {minutesLeft}m left
-                        </span>
-                        <span>{auction.bidCount} bids</span>
-                      </div>
-
-                      <div className="mb-4">
-                        <div className="text-sm text-gray-400 mb-1">Current Bid</div>
-                        <div className="text-2xl font-bold text-[var(--color-value-amber)]">
-                          {auction.currentBid} SOL
-                        </div>
-                      </div>
-
-                      {auction.highestBidder && (
-                        <div className="text-sm text-gray-400">
-                          Highest bidder: {auction.highestBidder.slice(0, 4)}...
-                          {auction.highestBidder.slice(-4)}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-2 min-w-[200px]">
-                      <input
-                        type="number"
-                        placeholder={`Min ${auction.currentBid + 1} SOL`}
-                        className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white outline-none focus:border-white/20 transition-colors"
-                      />
-                      <button
-                        onClick={() => {
-                          const input = document.querySelector(
-                            `input[placeholder*="${auction.currentBid}"]`,
-                          ) as HTMLInputElement;
-                          const amount = parseFloat(input?.value || '0');
-                          if (amount > auction.currentBid) {
-                            placeBid(auction.id, publicKey?.toBase58() || '', amount);
-                            toast.success('Bid placed!');
-                            input.value = '';
-                          } else {
-                            toast.error('Bid must be higher than current bid');
-                          }
-                        }}
-                        className="px-4 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold transition-all"
-                      >
-                        Place Bid
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-
-            {activeAuctions.length === 0 && (
-              <div className="glass-card rounded-2xl p-12 text-center border border-white/10">
-                <Gavel className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-400">No active auctions</p>
-              </div>
-            )}
+            <div className="glass-card rounded-2xl p-12 text-center border border-white/10">
+              <p className="text-gray-400">Auctions feature coming soon</p>
+            </div>
           </div>
         )}
 
@@ -513,7 +445,7 @@ export function UsernameMarketplace() {
         {/* My Listings Tab */}
         {activeTab === 'my-listings' && (
           <div className="space-y-4">
-            {myListings.map((listing) => (
+            {(myListings as any[]).map((listing: any) => (
               <motion.div
                 key={listing.id}
                 initial={{ opacity: 0, y: 20 }}

@@ -6,14 +6,16 @@ export function Footer() {
     product: [
       { label: 'Feed', href: '/feed' },
       { label: 'Explore', href: '/explore' },
-      { label: 'Airdrop', href: '/airdrop' },
-      { label: 'Mint Handle', href: '/' },
+      { label: 'Marketplace', href: '/marketplace' },
+      { label: 'Shares', href: '/shares' },
+      { label: 'Groups', href: '/groups' },
+      { label: 'Governance', href: '/governance' },
     ],
     learn: [
       { label: 'What is Pulse?', href: '/what' },
       { label: 'Why Pulse?', href: '/why' },
       { label: 'User Guide', href: '/guide' },
-      { label: 'How it Works', href: '/what' },
+      { label: 'Airdrop', href: '/airdrop' },
     ],
     community: [
       { label: 'Discord', href: 'https://discord.gg/pulse' },

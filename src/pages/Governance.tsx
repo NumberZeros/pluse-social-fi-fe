@@ -6,12 +6,7 @@ import Footer from '../components/layout/Footer';
 import { useGovernance } from '../hooks/useGovernance';
 import {
   Lock,
-  TrendingUp,
   Vote,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
   Plus,
   X,
 } from 'lucide-react';
@@ -33,11 +28,9 @@ export function Governance() {
     stake,
     unstake,
     createProposal,
-    vote,
     isStaking,
     isUnstaking,
     isCreatingProposal,
-    isVoting,
   } = useGovernance(publicKey || undefined);
 
   const myVotingPower = stakePosition ? Number(stakePosition.amount) / 1e9 : 0;
@@ -49,8 +42,6 @@ export function Governance() {
     { days: 180, label: '180 Days', apy: 20, multiplier: '2x' },
     { days: 365, label: '1 Year', apy: 30, multiplier: '3x' },
   ];
-
-  const selectedLockOption = lockOptions.find((opt) => opt.days === lockPeriodDays);
 
   const handleStake = async () => {
     if (!connected) {
@@ -119,25 +110,7 @@ export function Governance() {
     }
   }
 
-  const getProposalStatus = (proposal: any) => {
-    if (proposal.status === 'active') {
-      return {
-        label: 'Voting',
-        color: 'text-blue-400',
-        icon: Clock,
-      };
-    }
-    if (proposal.status === 'passed' || proposal.status === 'succeeded') {
-      return { label: 'Passed', color: 'text-green-400', icon: CheckCircle };
-    }
-    if (proposal.status === 'rejected' || proposal.status === 'defeated') {
-      return { label: 'Rejected', color: 'text-red-400', icon: XCircle };
-    }
-    if (proposal.status === 'executed') {
-      return { label: 'Executed', color: 'text-[var(--color-solana-green)]', icon: CheckCircle };
-    }
-    return { label: 'Closed', color: 'text-gray-400', icon: AlertCircle };
-  };
+
 
   return (
     <div className="bg-black min-h-screen text-white">

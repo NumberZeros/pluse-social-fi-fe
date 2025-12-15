@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useState } from 'react';
-import { BookOpen } from 'lucide-react';
 import { IconExplore, IconFeed, IconHome, PulseMark } from '../icons/PulseIcons';
 
 export function Navbar() {
@@ -59,9 +58,18 @@ export function Navbar() {
       ),
     },
     {
-      path: '/guide',
-      label: 'Guide',
-      icon: <BookOpen className="w-4 h-4" />,
+      path: '/governance',
+      label: 'Govern',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          />
+        </svg>
+      ),
     },
   ];
 
@@ -131,23 +139,70 @@ export function Navbar() {
                     <span>+</span>
                     <span>Create</span>
                   </motion.button>
-                  <Link to={`/${publicKey.toBase58()}`}>
-                    <motion.div
-                      key="profile-avatar"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-solana-green)] to-[var(--color-social-cyan)] p-0.5 cursor-pointer shadow-lg"
-                    >
-                      <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
-                        <span className="text-xs font-bold text-white">
-                          {publicKey.toBase58().slice(0, 2).toUpperCase()}
-                        </span>
+                  
+                  {/* Profile Dropdown */}
+                  <div className="relative group">
+                    <Link to={`/${publicKey.toBase58()}`}>
+                      <motion.div
+                        key="profile-avatar"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-solana-green)] to-[var(--color-social-cyan)] p-0.5 cursor-pointer shadow-lg"
+                      >
+                        <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                          <span className="text-xs font-bold text-white">
+                            {publicKey.toBase58().slice(0, 2).toUpperCase()}
+                          </span>
+                        </div>
+                      </motion.div>
+                    </Link>
+                    
+                    {/* Dropdown Menu */}
+                    <div className="absolute right-0 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                      <div className="bg-gray-900 border border-white/10 rounded-xl shadow-2xl py-2">
+                        <Link
+                          to={`/${publicKey.toBase58()}`}
+                          className="flex items-center gap-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span>My Profile</span>
+                        </Link>
+                        <Link
+                          to="/creator"
+                          className="flex items-center gap-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                          </svg>
+                          <span>Creator Dashboard</span>
+                        </Link>
+                        <Link
+                          to="/subscriptions"
+                          className="flex items-center gap-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                          </svg>
+                          <span>Subscriptions</span>
+                        </Link>
+                        <div className="border-t border-white/10 my-2"></div>
+                        <Link
+                          to="/export"
+                          className="flex items-center gap-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          <span>Export Data</span>
+                        </Link>
                       </div>
-                    </motion.div>
-                  </Link>
+                    </div>
+                  </div>
                 </>
               ) : null}
             </AnimatePresence>
@@ -209,22 +264,55 @@ export function Navbar() {
               </Link>
             ))}
             
-            {/* Profile Link for Mobile */}
+            {/* Profile Links for Mobile */}
             {connected && publicKey && (
-              <Link
-                to={`/${publicKey.toBase58()}`}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg mt-2 border-t border-white/10 pt-4 text-gray-400 hover:text-white hover:bg-white/5"
-              >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--color-solana-green)] to-[var(--color-social-cyan)] p-0.5">
-                  <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">
-                      {publicKey.toBase58().slice(0, 2).toUpperCase()}
-                    </span>
+              <>
+                <div className="border-t border-white/10 mt-2 pt-4"></div>
+                <Link
+                  to={`/${publicKey.toBase58()}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--color-solana-green)] to-[var(--color-social-cyan)] p-0.5">
+                    <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                      <span className="text-xs font-bold text-white">
+                        {publicKey.toBase58().slice(0, 2).toUpperCase()}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <span className="font-medium">My Profile</span>
-              </Link>
+                  <span className="font-medium">My Profile</span>
+                </Link>
+                <Link
+                  to="/creator"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                  </svg>
+                  <span className="font-medium">Creator Dashboard</span>
+                </Link>
+                <Link
+                  to="/subscriptions"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                  <span className="font-medium">Subscriptions</span>
+                </Link>
+                <Link
+                  to="/export"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  <span className="font-medium">Export Data</span>
+                </Link>
+              </>
             )}
           </motion.div>
         )}

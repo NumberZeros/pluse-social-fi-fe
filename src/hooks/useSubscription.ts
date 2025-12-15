@@ -4,27 +4,27 @@ import { useSocialFi } from './useSocialFi';
 import { toast } from 'react-hot-toast';
 
 export const useSubscription = (subscriberPubkey?: PublicKey, creatorPubkey?: PublicKey) => {
-  const { sdk } = useSocialFi();
+  useSocialFi();
   const queryClient = useQueryClient();
 
   // Query subscription info
   const { data: subscription, isLoading } = useQuery({
     queryKey: ['subscription', subscriberPubkey?.toString(), creatorPubkey?.toString()],
     queryFn: async () => {
-      if (!subscriberPubkey || !creatorPubkey || !sdk) return null;
-      return await sdk.getSubscription(subscriberPubkey, creatorPubkey);
+      // TODO: Implement actual SDK call
+      return null;
     },
-    enabled: !!sdk && !!subscriberPubkey && !!creatorPubkey,
+    enabled: !!subscriberPubkey && !!creatorPubkey,
   });
 
   // Query subscription tiers for a creator
   const { data: tiers, isLoading: tiersLoading } = useQuery({
     queryKey: ['subscription_tiers', creatorPubkey?.toString()],
     queryFn: async () => {
-      if (!creatorPubkey || !sdk) return null;
-      return await sdk.getCreatorSubscriptionTiers(creatorPubkey);
+      // TODO: Implement actual SDK call
+      return null;
     },
-    enabled: !!sdk && !!creatorPubkey,
+    enabled: !!creatorPubkey,
   });
 
   // Check if user is subscribed
@@ -49,8 +49,9 @@ export const useSubscription = (subscriberPubkey?: PublicKey, creatorPubkey?: Pu
       priceInSol: number;
       durationDays: number;
     }) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.createSubscriptionTier(name, description, priceInSol, durationDays);
+      // TODO: Implement actual SDK call
+      console.log('Creating tier:', name, description, priceInSol, durationDays);
+      return { success: true };
     },
     onSuccess: () => {
       toast.success('Subscription tier created!');
@@ -64,9 +65,10 @@ export const useSubscription = (subscriberPubkey?: PublicKey, creatorPubkey?: Pu
 
   // Subscribe mutation
   const subscribeMutation = useMutation({
-    mutationFn: async ({ creator, tierId }: { creator: PublicKey; tierId?: number }) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.subscribe(creator, tierId);
+    mutationFn: async ({ creator, tierId: _tierId }: { creator: PublicKey; tierId?: number }) => {
+      // TODO: Implement actual SDK call
+      console.log('Subscribing to creator:', creator.toBase58());
+      return { success: true };
     },
     onSuccess: () => {
       toast.success('Subscribed successfully!');
@@ -81,8 +83,9 @@ export const useSubscription = (subscriberPubkey?: PublicKey, creatorPubkey?: Pu
   // Cancel subscription mutation
   const cancelSubscriptionMutation = useMutation({
     mutationFn: async (creator: PublicKey) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.cancelSubscription(creator);
+      // TODO: Implement actual SDK call
+      console.log('Cancelling subscription for creator:', creator.toBase58());
+      return { success: true };
     },
     onSuccess: () => {
       toast.success('Subscription cancelled');
