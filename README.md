@@ -9,7 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.2-61dafb)](https://reactjs.org/)
 
-[Live Demo](https://pulse-social.vercel.app) • [Documentation](./BLOCKCHAIN_STATUS.md) • [Whitepaper](./public/whitepaper.md)
+[Live Demo](https://pulse.thosoft.xyz) • [Documentation](./BLOCKCHAIN_STATUS.md) • [Whitepaper](./public/whitepaper.md)
 
 </div>
 
@@ -113,7 +113,7 @@ Pulse Social is a **fully decentralized social platform** built on Solana that r
 
 ```bash
 # Clone repository
-git clone https://github.com/NumberZeros/pulse-social-fi-fe.git
+git clone https://github.com/NumberZeros/social-fi-fe.git
 cd social-fi-fe
 
 # Install dependencies
@@ -160,7 +160,7 @@ pnpm format:check
 
 1. Switch your wallet to **Solana Devnet**
 2. Get Devnet SOL: https://faucet.solana.com/
-3. Connect wallet on http://localhost:5173
+3. Connect wallet on https://pulse.thosoft.xyz
 4. Test features:
    - Create profile
    - Send tips
@@ -353,8 +353,9 @@ See [BLOCKCHAIN_STATUS.md](./BLOCKCHAIN_STATUS.md) for detailed integration stat
 
 ## 📞 Contact & Links
 
+- **Live Demo**: [pulse.thosoft.xyz](https://pulse.thosoft.xyz)
 - **GitHub**: [@NumberZeros](https://github.com/NumberZeros)
-- **Repository**: [pulse-social-fi-fe](https://github.com/NumberZeros/pulse-social-fi-fe)
+- **Repository**: [social-fi-fe](https://github.com/NumberZeros/social-fi-fe)
 - **Email**: tho.nguyen.soft@gmail.com
 - **LinkedIn**: [Tho Nguyen](https://www.linkedin.com/in/th%E1%BB%8D-nguy%E1%BB%85n-941348360/)
 
@@ -378,7 +379,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Empowering Creators • Decentralizing Social • Community Owned**
 
-[⭐ Star this repo](https://github.com/NumberZeros/pulse-social-fi-fe) • [🐛 Report Bug](https://github.com/NumberZeros/pulse-social-fi-fe/issues) • [💡 Request Feature](https://github.com/NumberZeros/pulse-social-fi-fe/issues)
+[⭐ Star this repo](https://github.com/NumberZeros/social-fi-fe) • [🐛 Report Bug](https://github.com/NumberZeros/social-fi-fe/issues) • [💡 Request Feature](https://github.com/NumberZeros/social-fi-fe/issues)
 
 </div>
 
@@ -453,7 +454,8 @@ The `dist/` folder contains the production build. Deploy it to any static hostin
 
 ## 🔗 Links
 
-- **GitHub**: [github.com/NumberZeros/pluse-social-fi-fe](https://github.com/NumberZeros/pluse-social-fi-fe)
+- **Live App**: [pulse.thosoft.xyz](https://pulse.thosoft.xyz)
+- **GitHub**: [github.com/NumberZeros/social-fi-fe](https://github.com/NumberZeros/social-fi-fe)
 - **Developer**: [Tho Nguyen on LinkedIn](https://www.linkedin.com/in/th%E1%BB%8D-nguy%E1%BB%85n-941348360/)
 
 ## 📄 License
