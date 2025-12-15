@@ -3,7 +3,7 @@ import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
 import { toast } from 'react-hot-toast';
 
-export const useGroup = (groupPubkey?: PublicKey) => {
+export const useGroup = (groupPubkey?: PublicKey, memberPubkey?: PublicKey) => {
   const { sdk } = useSocialFi();
   const queryClient = useQueryClient();
 
@@ -11,21 +11,40 @@ export const useGroup = (groupPubkey?: PublicKey) => {
   const { data: group, isLoading } = useQuery({
     queryKey: ['group', groupPubkey?.toString()],
     queryFn: async () => {
-      if (!groupPubkey) return null;
-      return await sdk?.getGroup(groupPubkey);
+      if (!groupPubkey || !sdk) return null;
+      return await sdk.getGroup(groupPubkey);
     },
     enabled: !!sdk && !!groupPubkey,
   });
 
+  // Query group member status
+  const { data: isMember, isLoading: memberLoading } = useQuery({
+    queryKey: ['group_member', groupPubkey?.toString(), memberPubkey?.toString()],
+    queryFn: async () => {
+      if (!groupPubkey || !memberPubkey || !sdk) return false;
+      return await sdk.isGroupMember(groupPubkey, memberPubkey);
+    },
+    enabled: !!sdk && !!groupPubkey && !!memberPubkey,
+  });
+
   // Create group mutation
   const createGroupMutation = useMutation({
-    mutationFn: async ({ name, description, entryFee }: { name: string; description: string; entryFee: number }) => {
+    mutationFn: async ({
+      name,
+      description,
+      isPrivate = false,
+      entryFeeInSol,
+    }: {
+      name: string;
+      description: string;
+      isPrivate?: boolean;
+      entryFeeInSol?: number;
+    }) => {
       if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.createGroup(name, description, entryFee);
+      return await sdk.createGroup(name, description, isPrivate, entryFeeInSol);
     },
-    onSuccess: (tx) => {
+    onSuccess: () => {
       toast.success('Group created successfully!');
-      console.log('Create group tx:', tx);
       queryClient.invalidateQueries({ queryKey: ['group'] });
     },
     onError: (error: any) => {
@@ -40,9 +59,9 @@ export const useGroup = (groupPubkey?: PublicKey) => {
       if (!sdk) throw new Error('SDK not initialized');
       return await sdk.joinGroup(groupPubkey);
     },
-    onSuccess: (tx) => {
+    onSuccess: () => {
       toast.success('Joined group successfully!');
-      console.log('Join group tx:', tx);
+      queryClient.invalidateQueries({ queryKey: ['group_member'] });
       queryClient.invalidateQueries({ queryKey: ['group'] });
     },
     onError: (error: any) => {
@@ -51,12 +70,33 @@ export const useGroup = (groupPubkey?: PublicKey) => {
     },
   });
 
+  // Leave group mutation
+  const leaveGroupMutation = useMutation({
+    mutationFn: async (groupPubkey: PublicKey) => {
+      if (!sdk) throw new Error('SDK not initialized');
+      return await sdk.leaveGroup(groupPubkey);
+    },
+    onSuccess: () => {
+      toast.success('Left group successfully!');
+      queryClient.invalidateQueries({ queryKey: ['group_member'] });
+      queryClient.invalidateQueries({ queryKey: ['group'] });
+    },
+    onError: (error: any) => {
+      console.error('Leave group error:', error);
+      toast.error(error.message || 'Failed to leave group');
+    },
+  });
+
   return {
     group,
     isLoading,
+    isMember,
+    memberLoading,
     createGroup: createGroupMutation.mutateAsync,
     joinGroup: joinGroupMutation.mutateAsync,
+    leaveGroup: leaveGroupMutation.mutateAsync,
     isCreating: createGroupMutation.isPending,
     isJoining: joinGroupMutation.isPending,
+    isLeaving: leaveGroupMutation.isPending,
   };
 };

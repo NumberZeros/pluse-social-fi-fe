@@ -11,22 +11,68 @@ export const useSubscription = (subscriberPubkey?: PublicKey, creatorPubkey?: Pu
   const { data: subscription, isLoading } = useQuery({
     queryKey: ['subscription', subscriberPubkey?.toString(), creatorPubkey?.toString()],
     queryFn: async () => {
-      if (!subscriberPubkey || !creatorPubkey) return null;
-      return await sdk?.getSubscription(subscriberPubkey, creatorPubkey);
+      if (!subscriberPubkey || !creatorPubkey || !sdk) return null;
+      return await sdk.getSubscription(subscriberPubkey, creatorPubkey);
     },
     enabled: !!sdk && !!subscriberPubkey && !!creatorPubkey,
   });
 
+  // Query subscription tiers for a creator
+  const { data: tiers, isLoading: tiersLoading } = useQuery({
+    queryKey: ['subscription_tiers', creatorPubkey?.toString()],
+    queryFn: async () => {
+      if (!creatorPubkey || !sdk) return null;
+      return await sdk.getCreatorSubscriptionTiers(creatorPubkey);
+    },
+    enabled: !!sdk && !!creatorPubkey,
+  });
+
+  // Check if user is subscribed
+  const { data: isSubscribed } = useQuery({
+    queryKey: ['is_subscribed', subscriberPubkey?.toString(), creatorPubkey?.toString()],
+    queryFn: async () => {
+      return subscription !== null;
+    },
+    enabled: !!subscription,
+  });
+
+  // Create subscription tier mutation
+  const createTierMutation = useMutation({
+    mutationFn: async ({
+      name,
+      description,
+      priceInSol,
+      durationDays,
+    }: {
+      name: string;
+      description: string;
+      priceInSol: number;
+      durationDays: number;
+    }) => {
+      if (!sdk) throw new Error('SDK not initialized');
+      return await sdk.createSubscriptionTier(name, description, priceInSol, durationDays);
+    },
+    onSuccess: () => {
+      toast.success('Subscription tier created!');
+      queryClient.invalidateQueries({ queryKey: ['subscription_tiers'] });
+    },
+    onError: (error: any) => {
+      console.error('Create tier error:', error);
+      toast.error(error.message || 'Failed to create subscription tier');
+    },
+  });
+
   // Subscribe mutation
   const subscribeMutation = useMutation({
-    mutationFn: async ({ creator }: { creator: PublicKey; durationMonths?: number }) => {
+    mutationFn: async ({ creator, tierId }: { creator: PublicKey; tierId?: number }) => {
       if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.subscribe(creator);
+      return await sdk.subscribe(creator, tierId);
     },
     onSuccess: (tx) => {
       toast.success('Subscribed successfully!');
       console.log('Subscribe tx:', tx);
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['is_subscribed'] });
     },
     onError: (error: any) => {
       console.error('Subscribe error:', error);
@@ -44,6 +90,7 @@ export const useSubscription = (subscriberPubkey?: PublicKey, creatorPubkey?: Pu
       toast.success('Subscription cancelled');
       console.log('Cancel subscription tx:', tx);
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['is_subscribed'] });
     },
     onError: (error: any) => {
       console.error('Cancel subscription error:', error);
@@ -54,6 +101,11 @@ export const useSubscription = (subscriberPubkey?: PublicKey, creatorPubkey?: Pu
   return {
     subscription,
     isLoading,
+    isSubscribed,
+    tiers,
+    tiersLoading,
+    createTier: createTierMutation.mutateAsync,
+    isCreatingTier: createTierMutation.isPending,
     subscribe: subscribeMutation.mutateAsync,
     cancelSubscription: cancelSubscriptionMutation.mutateAsync,
     isSubscribing: subscribeMutation.isPending,

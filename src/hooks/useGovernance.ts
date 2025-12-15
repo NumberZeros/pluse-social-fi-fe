@@ -3,7 +3,7 @@ import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
 import { toast } from 'react-hot-toast';
 
-export const useGovernance = (stakerPubkey?: PublicKey) => {
+export const useGovernance = (stakerPubkey?: PublicKey, proposalPubkey?: PublicKey) => {
   const { sdk } = useSocialFi();
   const queryClient = useQueryClient();
 
@@ -11,21 +11,46 @@ export const useGovernance = (stakerPubkey?: PublicKey) => {
   const { data: stakePosition, isLoading: isLoadingStake } = useQuery({
     queryKey: ['stakePosition', stakerPubkey?.toString()],
     queryFn: async () => {
-      if (!stakerPubkey) return null;
-      return await sdk?.getStakePosition(stakerPubkey);
+      if (!stakerPubkey || !sdk) return null;
+      return await sdk.getStakePosition(stakerPubkey);
     },
     enabled: !!sdk && !!stakerPubkey,
   });
 
+  // Query proposal
+  const { data: proposal, isLoading: isLoadingProposal } = useQuery({
+    queryKey: ['proposal', proposalPubkey?.toString()],
+    queryFn: async () => {
+      if (!proposalPubkey || !sdk) return null;
+      return await sdk.getProposal(proposalPubkey);
+    },
+    enabled: !!sdk && !!proposalPubkey,
+  });
+
+  // Query user's vote on proposal
+  const { data: userVote } = useQuery({
+    queryKey: ['userVote', proposalPubkey?.toString(), stakerPubkey?.toString()],
+    queryFn: async () => {
+      if (!proposalPubkey || !stakerPubkey || !sdk) return null;
+      return await sdk.getVote(proposalPubkey, stakerPubkey);
+    },
+    enabled: !!sdk && !!proposalPubkey && !!stakerPubkey,
+  });
+
   // Stake tokens mutation
   const stakeMutation = useMutation({
-    mutationFn: async ({ amount, lockPeriod }: { amount: number; lockPeriod: number }) => {
+    mutationFn: async ({
+      amountInSol,
+      lockDaysUnix,
+    }: {
+      amountInSol: number;
+      lockDaysUnix?: number;
+    }) => {
       if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.stakeTokens(amount, lockPeriod);
+      return await sdk.stakeTokens(amountInSol, lockDaysUnix);
     },
-    onSuccess: (tx) => {
+    onSuccess: () => {
       toast.success('Tokens staked successfully!');
-      console.log('Stake tx:', tx);
       queryClient.invalidateQueries({ queryKey: ['stakePosition'] });
     },
     onError: (error: any) => {
@@ -34,15 +59,40 @@ export const useGovernance = (stakerPubkey?: PublicKey) => {
     },
   });
 
+  // Unstake tokens mutation
+  const unstakeMutation = useMutation({
+    mutationFn: async () => {
+      if (!sdk) throw new Error('SDK not initialized');
+      return await sdk.unstakeTokens();
+    },
+    onSuccess: () => {
+      toast.success('Tokens unstaked successfully!');
+      queryClient.invalidateQueries({ queryKey: ['stakePosition'] });
+    },
+    onError: (error: any) => {
+      console.error('Unstake error:', error);
+      toast.error(error.message || 'Failed to unstake tokens');
+    },
+  });
+
   // Create proposal mutation
   const createProposalMutation = useMutation({
-    mutationFn: async ({ title, description, proposalType }: { title: string; description: string; proposalType: number }) => {
+    mutationFn: async ({
+      title,
+      description,
+      category = 0,
+      executionDelay = 0,
+    }: {
+      title: string;
+      description: string;
+      category?: number;
+      executionDelay?: number;
+    }) => {
       if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.createProposal(title, description, proposalType);
+      return await sdk.createProposal(title, description, category, executionDelay);
     },
-    onSuccess: (tx) => {
+    onSuccess: () => {
       toast.success('Proposal created successfully!');
-      console.log('Create proposal tx:', tx);
       queryClient.invalidateQueries({ queryKey: ['proposal'] });
     },
     onError: (error: any) => {
@@ -53,13 +103,19 @@ export const useGovernance = (stakerPubkey?: PublicKey) => {
 
   // Cast vote mutation
   const voteMutation = useMutation({
-    mutationFn: async ({ proposalPubkey, support }: { proposalPubkey: PublicKey; support: boolean }) => {
+    mutationFn: async ({
+      proposalPubkey,
+      support,
+    }: {
+      proposalPubkey: PublicKey;
+      support: boolean;
+    }) => {
       if (!sdk) throw new Error('SDK not initialized');
       return await sdk.castVote(proposalPubkey, support);
     },
-    onSuccess: (tx) => {
+    onSuccess: () => {
       toast.success('Vote cast successfully!');
-      console.log('Vote tx:', tx);
+      queryClient.invalidateQueries({ queryKey: ['userVote'] });
       queryClient.invalidateQueries({ queryKey: ['proposal'] });
     },
     onError: (error: any) => {
@@ -68,27 +124,37 @@ export const useGovernance = (stakerPubkey?: PublicKey) => {
     },
   });
 
-  // Query proposal
-  const useProposal = (proposalPubkey?: PublicKey) => {
-    return useQuery({
-      queryKey: ['proposal', proposalPubkey?.toString()],
-      queryFn: async () => {
-        if (!proposalPubkey) return null;
-        return await sdk?.getProposal(proposalPubkey);
-      },
-      enabled: !!sdk && !!proposalPubkey,
-    });
-  };
+  // Execute proposal mutation
+  const executeProposalMutation = useMutation({
+    mutationFn: async (proposalPubkey: PublicKey) => {
+      if (!sdk) throw new Error('SDK not initialized');
+      return await sdk.executeProposal(proposalPubkey);
+    },
+    onSuccess: () => {
+      toast.success('Proposal executed!');
+      queryClient.invalidateQueries({ queryKey: ['proposal'] });
+    },
+    onError: (error: any) => {
+      console.error('Execute proposal error:', error);
+      toast.error(error.message || 'Failed to execute proposal');
+    },
+  });
 
   return {
     stakePosition,
     isLoadingStake,
+    proposal,
+    isLoadingProposal,
+    userVote,
     stake: stakeMutation.mutateAsync,
+    unstake: unstakeMutation.mutateAsync,
     createProposal: createProposalMutation.mutateAsync,
     vote: voteMutation.mutateAsync,
+    executeProposal: executeProposalMutation.mutateAsync,
     isStaking: stakeMutation.isPending,
+    isUnstaking: unstakeMutation.isPending,
     isCreatingProposal: createProposalMutation.isPending,
     isVoting: voteMutation.isPending,
-    useProposal,
+    isExecuting: executeProposalMutation.isPending,
   };
 };

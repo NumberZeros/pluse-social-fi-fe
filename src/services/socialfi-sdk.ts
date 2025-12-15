@@ -224,24 +224,63 @@ export class SocialFiSDK {
   // ==================== SUBSCRIPTIONS ====================
 
   /**
-   * Subscribe to creator (using subscribe instruction from contract)
-   * Note: Contract subscribe() takes no parameters, expects SubscriptionTier account
+   * Create subscription tier for creator
    */
-  async subscribe(creatorPubkey: PublicKey) {
-    const [subscription] = PDAs.getSubscription(this.wallet.publicKey, creatorPubkey);
-    const [creatorProfile] = PDAs.getUserProfile(creatorPubkey);
-    const [platformConfig] = PDAs.getPlatformConfig();
+  async createSubscriptionTier(
+    name: string,
+    description: string,
+    priceInSol: number,
+    durationDays: number
+  ) {
+    const priceInLamports = Math.floor(priceInSol * 1e9);
+    const tierId = Date.now();
+    
+    const [subscriptionTier] = await PublicKey.findProgramAddress(
+      [
+        Buffer.from('subscription_tier'),
+        this.wallet.publicKey.toBuffer(),
+        Buffer.from(tierId.toString()),
+      ],
+      this.program.programId
+    );
 
-    // If no tier specified, need to find the default tier PDA
-    // For now, we'll use the subscription instruction which expects tier to be included
+    const tx = await this.program.methods
+      .createSubscriptionTier(name, description, new BN(priceInLamports), new BN(durationDays))
+      .accountsPartial({
+        subscriptionTier,
+        creator: this.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    return { signature: tx, subscriptionTier };
+  }
+
+  /**
+   * Subscribe to creator's tier
+   */
+  async subscribe(creatorPubkey: PublicKey, tierId?: number) {
+    const [subscription] = PDAs.getSubscription(this.wallet.publicKey, creatorPubkey);
+    
+    // If no tier specified, attempt to fetch creator's subscription tiers
+    // For now, construct a reasonable tier ID - in production, list and select
+    const tierIdToUse = tierId || 1;
+    const [subscriptionTier] = await PublicKey.findProgramAddress(
+      [
+        Buffer.from('subscription_tier'),
+        creatorPubkey.toBuffer(),
+        Buffer.from(tierIdToUse.toString()),
+      ],
+      this.program.programId
+    );
+
     const tx = await this.program.methods
       .subscribe()
       .accounts({
-        subscription: subscription,
+        subscriptionTier,
+        subscription,
         subscriber: this.wallet.publicKey,
         creator: creatorPubkey,
-        creatorProfile: creatorProfile,
-        platformConfig: platformConfig,
         systemProgram: SystemProgram.programId,
       } as any)
       .rpc();
@@ -257,10 +296,10 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .cancelSubscription()
-      .accounts({
-        subscription: subscription,
+      .accountsPartial({
+        subscription,
         subscriber: this.wallet.publicKey,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -280,35 +319,86 @@ export class SocialFiSDK {
     }
   }
 
+  /**
+   * Get subscription tier info
+   */
+  async getSubscriptionTier(creatorPubkey: PublicKey, tierId: number) {
+    const [subscriptionTier] = await PublicKey.findProgramAddress(
+      [
+        Buffer.from('subscription_tier'),
+        creatorPubkey.toBuffer(),
+        Buffer.from(tierId.toString()),
+      ],
+      this.program.programId
+    );
+
+    try {
+      const account = await this.program.account.subscriptionTier.fetch(subscriptionTier);
+      return account;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Get all subscription tiers for a creator
+   * Note: This requires iterating through known tier IDs
+   * In production, maintain an index of tier IDs
+   */
+  async getCreatorSubscriptionTiers(creatorPubkey: PublicKey, maxTierCount: number = 10) {
+    const tiers = [];
+    
+    for (let i = 1; i <= maxTierCount; i++) {
+      const tier = await this.getSubscriptionTier(creatorPubkey, i);
+      if (tier) {
+        tiers.push(tier);
+      }
+    }
+    
+    return tiers;
+  }
+
   // ==================== GROUPS ====================
 
   /**
    * Create group
-   * Contract signature: create_group(name, description, privacy, entry_requirement, entry_price)
    */
-  async createGroup(name: string, description: string, entryFee: number) {
-    // Derive group PDA - needs proper seed structure
+  async createGroup(
+    name: string,
+    description: string,
+    isPrivate: boolean = false,
+    entryFeeInSol?: number
+  ) {
+    const groupId = Date.now();
     const [group] = await PublicKey.findProgramAddress(
-      [Buffer.from('group'), this.wallet.publicKey.toBuffer(), Buffer.from(name)],
+      [
+        Buffer.from('group'),
+        this.wallet.publicKey.toBuffer(),
+        Buffer.from(groupId.toString()),
+      ],
       this.program.programId
     );
 
+    const entryPrice = entryFeeInSol ? Math.floor(entryFeeInSol * 1e9) : 0;
+    const privacy = isPrivate ? 1 : 0;
+    const entryRequirement = entryPrice > 0 ? 1 : 0; // 1 = SOL payment required
+
     const tx = await this.program.methods
       .createGroup(
-        name, 
-        description, 
-        0, // privacy: 0 = public
-        0, // entry_requirement: 0 = none
-        entryFee > 0 ? new BN(entryFee * 1e9) : null
+        name,
+        description,
+        privacy,
+        entryRequirement,
+        entryPrice > 0 ? new BN(entryPrice) : null
       )
       .accounts({
-        group: group,
+        group,
         owner: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       } as any)
       .rpc();
 
-    return tx;
+    return { signature: tx, group };
   }
 
   /**
@@ -321,13 +411,22 @@ export class SocialFiSDK {
       .joinGroup()
       .accounts({
         group: groupPubkey,
-        groupMember: groupMember,
+        groupMember,
         member: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       } as any)
       .rpc();
 
     return tx;
+  }
+
+  /**
+   * Leave group
+   */
+  async leaveGroup(_groupPubkey: PublicKey) {
+    // Note: leaveGroup instruction may not be available in current contract
+    // This is a placeholder for future implementation
+    throw new Error('Leave group not yet implemented in contract');
   }
 
   /**
@@ -338,28 +437,70 @@ export class SocialFiSDK {
       const account = await this.program.account.group.fetch(groupPubkey);
       return account;
     } catch (error) {
+      console.log('Group not found:', groupPubkey.toBase58());
       return null;
     }
+  }
+
+  /**
+   * Get group member info
+   */
+  async getGroupMember(groupPubkey: PublicKey, memberPubkey: PublicKey) {
+    const [groupMember] = PDAs.getGroupMember(groupPubkey, memberPubkey);
+
+    try {
+      const account = await this.program.account.groupMember.fetch(groupMember);
+      return account;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Check if user is member of group
+   */
+  async isGroupMember(groupPubkey: PublicKey, memberPubkey: PublicKey): Promise<boolean> {
+    const member = await this.getGroupMember(groupPubkey, memberPubkey);
+    return member !== null;
   }
 
   // ==================== GOVERNANCE ====================
 
   /**
-   * Stake tokens for governance
-   * Contract signature: stake_tokens(amount, lock_period)
+   * Stake tokens for governance voting power
    */
-  async stakeTokens(amount: number, lockPeriod: number) {
+  async stakeTokens(amountInSol: number, lockDaysUnix?: number) {
+    const amountInLamports = new BN(Math.floor(amountInSol * 1e9));
+    const lockPeriod = new BN(lockDaysUnix || 7 * 24 * 60 * 60); // Default 7 days in seconds
+    
     const [stakePosition] = PDAs.getStakePosition(this.wallet.publicKey);
     const [platformConfig] = PDAs.getPlatformConfig();
 
     const tx = await this.program.methods
-      .stakeTokens(new BN(amount * 1e9), new BN(lockPeriod))
-      .accounts({
-        stakePosition: stakePosition,
+      .stakeTokens(amountInLamports, lockPeriod)
+      .accountsPartial({
+        stakePosition,
         staker: this.wallet.publicKey,
-        platformConfig: platformConfig,
+        platformConfig,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
+      .rpc();
+
+    return { signature: tx, stakePosition };
+  }
+
+  /**
+   * Unstake tokens
+   */
+  async unstakeTokens() {
+    const [stakePosition] = PDAs.getStakePosition(this.wallet.publicKey);
+
+    const tx = await this.program.methods
+      .unstakeTokens()
+      .accountsPartial({
+        stakePosition,
+        staker: this.wallet.publicKey,
+      })
       .rpc();
 
     return tx;
@@ -367,48 +508,55 @@ export class SocialFiSDK {
 
   /**
    * Create governance proposal
-   * Contract signature: create_proposal(title, description, category, execution_delay)
    */
-  async createProposal(title: string, description: string, category: number, executionDelay: number = 0) {
-    // Generate unique proposal PDA using proposer + timestamp
+  async createProposal(
+    title: string,
+    description: string,
+    category: number = 0,
+    executionDelay: number = 0
+  ) {
     const timestamp = Date.now();
     const [proposal] = await PublicKey.findProgramAddress(
-      [Buffer.from('proposal'), this.wallet.publicKey.toBuffer(), Buffer.from(timestamp.toString())],
+      [
+        Buffer.from('proposal'),
+        this.wallet.publicKey.toBuffer(),
+        Buffer.from(timestamp.toString()),
+      ],
       this.program.programId
     );
+
     const [stakePosition] = PDAs.getStakePosition(this.wallet.publicKey);
 
     const tx = await this.program.methods
       .createProposal(title, description, category, new BN(executionDelay))
       .accounts({
-        proposal: proposal,
+        proposal,
         proposer: this.wallet.publicKey,
-        stakePosition: stakePosition,
+        stakePosition,
         systemProgram: SystemProgram.programId,
       } as any)
       .rpc();
 
-    return tx;
+    return { signature: tx, proposal };
   }
 
   /**
-   * Cast vote on proposal
-   * Contract signature: cast_vote(vote_type: u8) where 0=Against, 1=For, 2=Abstain
+   * Cast vote on proposal (true = for, false = against)
    */
   async castVote(proposalPubkey: PublicKey, support: boolean) {
     const [vote] = PDAs.getVotePDA(proposalPubkey, this.wallet.publicKey);
     const [stakePosition] = PDAs.getStakePosition(this.wallet.publicKey);
 
-    // Convert boolean to vote_type: true=1 (For), false=0 (Against)
+    // Vote types: 0 = Against, 1 = For, 2 = Abstain
     const voteType = support ? 1 : 0;
 
     const tx = await this.program.methods
       .castVote(voteType)
       .accounts({
         proposal: proposalPubkey,
-        vote: vote,
+        vote,
         voter: this.wallet.publicKey,
-        stakePosition: stakePosition,
+        stakePosition,
         systemProgram: SystemProgram.programId,
       } as any)
       .rpc();
@@ -424,6 +572,7 @@ export class SocialFiSDK {
       const account = await this.program.account.proposal.fetch(proposalPubkey);
       return account;
     } catch (error) {
+      console.log('Proposal not found:', proposalPubkey.toBase58());
       return null;
     }
   }
@@ -438,13 +587,12 @@ export class SocialFiSDK {
       const account = await this.program.account.stakePosition.fetch(stakePosition);
       return account;
     } catch (error) {
-      console.error('Failed to fetch stake position:', error);
       return null;
     }
   }
 
   /**
-   * Get vote info
+   * Get vote on proposal
    */
   async getVote(proposalPubkey: PublicKey, voterPubkey: PublicKey) {
     const [vote] = PDAs.getVotePDA(proposalPubkey, voterPubkey);
@@ -455,6 +603,162 @@ export class SocialFiSDK {
     } catch (error) {
       return null;
     }
+  }
+
+  /**
+   * Execute proposal (admin only)
+   */
+  async executeProposal(proposalPubkey: PublicKey) {
+    const tx = await this.program.methods
+      .executeProposal()
+      .accounts({
+        proposal: proposalPubkey,
+        executor: this.wallet.publicKey,
+      } as any)
+      .rpc();
+
+    return tx;
+  }
+
+  // ==================== MARKETPLACE (Usernames) ====================
+
+  /**
+   * Mint a username as NFT
+   */
+  async mintUsername(username: string) {
+    const usernameHash = Buffer.from(username).toString('hex');
+    const [nft] = await PublicKey.findProgramAddress(
+      [
+        Buffer.from('username_nft'),
+        this.wallet.publicKey.toBuffer(),
+        Buffer.from(usernameHash),
+      ],
+      this.program.programId
+    );
+
+    const tx = await this.program.methods
+      .mintUsername(username)
+      .accounts({
+        nft,
+        owner: this.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    return { signature: tx, nft };
+  }
+
+  /**
+   * List username for sale
+   */
+  async listUsername(nftPubkey: PublicKey, priceInSol: number) {
+    const [listing] = await PublicKey.findProgramAddress(
+      [
+        Buffer.from('marketplace_listing'),
+        nftPubkey.toBuffer(),
+      ],
+      this.program.programId
+    );
+
+    const priceInLamports = new BN(Math.floor(priceInSol * 1e9));
+
+    const tx = await this.program.methods
+      .listUsername(priceInLamports)
+      .accounts({
+        listing,
+        nft: nftPubkey,
+        seller: this.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    return { signature: tx, listing };
+  }
+
+  /**
+   * Buy username from marketplace (buyListing instruction)
+   */
+  async buyUsername(listingPubkey: PublicKey, nftPubkey: PublicKey, sellerPubkey: PublicKey) {
+    const [platformConfig] = PDAs.getPlatformConfig();
+    const [feeCollector] = await PublicKey.findProgramAddress(
+      [Buffer.from('fee_collector')],
+      this.program.programId
+    );
+
+    const tx = await this.program.methods
+      .buyListing()
+      .accounts({
+        listing: listingPubkey,
+        usernameNft: nftPubkey,
+        buyer: this.wallet.publicKey,
+        seller: sellerPubkey,
+        platformConfig,
+        feeCollector,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    return tx;
+  }
+
+  /**
+   * Delist username from marketplace
+   */
+  async delistUsername(_listingPubkey: PublicKey) {
+    // Note: delistUsername instruction may not be available in current contract
+    // Use accept_offer rejection or similar instead
+    throw new Error('Delist username not yet implemented in contract');
+  }
+
+  /**
+   * Make offer on username (for marketplace negotiations)
+   */
+  async makeOffer(_listingPubkey: PublicKey, _offerAmountInSol: number) {
+    // Note: This may not exist, add if contract supports it
+    throw new Error('Make offer not yet implemented in contract');
+  }
+
+  // ==================== MODERATION ====================
+
+  /**
+   * Report user/content
+   * Note: reportUser instruction not yet available in current contract
+   * This is a placeholder for future implementation
+   */
+  async reportUser(_reportedUserPubkey: PublicKey, _reason: string, _severity: number = 1) {
+    throw new Error('Report user not yet implemented in contract');
+  }
+
+  /**
+   * Warn user (moderator only)
+   * Note: warnUser instruction not yet available in current contract
+   */
+  async warnUser(_userPubkey: PublicKey, _reason: string) {
+    throw new Error('Warn user not yet implemented in contract');
+  }
+
+  /**
+   * Ban user (moderator only)
+   * Note: banUser instruction not yet available in current contract
+   */
+  async banUser(_userPubkey: PublicKey, _duration: number, _reason: string) {
+    throw new Error('Ban user not yet implemented in contract');
+  }
+
+  /**
+   * Get user ban info
+   */
+  async getUserBan(_userPubkey: PublicKey) {
+    // Note: userBan account type not in current contract
+    return null;
+  }
+
+  /**
+   * Check if user is banned
+   */
+  async isUserBanned(_userPubkey: PublicKey): Promise<boolean> {
+    // Note: Ban system not yet implemented
+    return false;
   }
 }
 
