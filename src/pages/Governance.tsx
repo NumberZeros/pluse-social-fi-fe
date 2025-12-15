@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
-import { useGovernanceStore } from '../stores/useGovernanceStore';
 import { useGovernance } from '../hooks/useGovernance';
 import {
   Lock,
@@ -14,6 +13,7 @@ import {
   XCircle,
   AlertCircle,
   Plus,
+  X,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -21,31 +21,26 @@ export function Governance() {
   const { publicKey, connected } = useWallet();
   const [activeTab, setActiveTab] = useState<'stake' | 'proposals'>('stake');
   const [stakeAmount, setStakeAmount] = useState('');
-  const [lockPeriod, setLockPeriod] = useState(0);
+  const [lockPeriodDays, setLockPeriodDays] = useState(0);
+  const [showCreateProposal, setShowCreateProposal] = useState(false);
+  const [proposalTitle, setProposalTitle] = useState('');
+  const [proposalDescription, setProposalDescription] = useState('');
+  const [proposalCategory, setProposalCategory] = useState(0);
 
   // Use blockchain hooks
-  const { stakePosition, stake: stakeTokens, isStaking } = useGovernance(publicKey || undefined);
+  const {
+    stakePosition,
+    stake,
+    unstake,
+    createProposal,
+    vote,
+    isStaking,
+    isUnstaking,
+    isCreatingProposal,
+    isVoting,
+  } = useGovernance(publicKey || undefined);
 
-  // Governance data from blockchain
-  const stakes: any[] = []; // TODO: Query all stake_position PDAs
-  const proposals: any[] = []; // TODO: Query all proposal PDAs from blockchain  
-  const totalStaked = 0; // TODO: Calculate from platform_config
-  const unstake = useGovernanceStore((state) => state.unstake);
-  const claimRewards = useGovernanceStore((state) => state.claimRewards);
-  const vote = useGovernanceStore((state) => state.vote);
-  const canVote = useGovernanceStore((state) => state.canVote);
-  const hasVoted = useGovernanceStore((state) => state.hasVoted);
-
-  const myStakes = publicKey
-    ? stakes.filter((s) => s.walletAddress === publicKey.toBase58())
-    : [];
-  
-  // Calculate voting power from blockchain stake position
-  const myVotingPower = stakePosition 
-    ? Number(stakePosition.amount) / 1e9 // Convert lamports to SOL
-    : 0;
-  
-  const activeProposals = proposals.filter((p) => p.status === 'active');
+  const myVotingPower = stakePosition ? Number(stakePosition.amount) / 1e9 : 0;
 
   const lockOptions = [
     { days: 0, label: 'No Lock', apy: 5, multiplier: '1x' },
@@ -54,6 +49,8 @@ export function Governance() {
     { days: 180, label: '180 Days', apy: 20, multiplier: '2x' },
     { days: 365, label: '1 Year', apy: 30, multiplier: '3x' },
   ];
+
+  const selectedLockOption = lockOptions.find((opt) => opt.days === lockPeriodDays);
 
   const handleStake = async () => {
     if (!connected) {
@@ -66,61 +63,80 @@ export function Governance() {
     }
 
     try {
-      await stakeTokens({ amount: parseFloat(stakeAmount), lockPeriod });
+      const lockDaysUnix = lockPeriodDays * 24 * 60 * 60; // Convert days to seconds
+      await stake({
+        amountInSol: parseFloat(stakeAmount),
+        lockDaysUnix,
+      });
       setStakeAmount('');
+      setLockPeriodDays(0);
     } catch (error) {
       console.error('Stake failed:', error);
     }
   };
 
-  const handleUnstake = (stakeId: string) => {
-    const stake = stakes.find((s) => s.id === stakeId);
-    if (!stake) return;
-
-    if (Date.now() < stake.unlocksAt) {
-      toast.error('Stake is still locked');
+  const handleUnstake = async () => {
+    if (!stakePosition) {
+      toast.error('No active stake to unstake');
       return;
     }
 
-    unstake(stakeId);
-    toast.success('Stake removed!');
+    try {
+      await unstake();
+      toast.success('Unstaked successfully!');
+    } catch (error) {
+      console.error('Unstake failed:', error);
+    }
   };
 
-  const handleVote = (proposalId: string, choice: 'for' | 'against' | 'abstain') => {
+  const handleCreateProposal = async () => {
     if (!connected) {
       toast.error('Please connect your wallet');
       return;
     }
-
-    if (!canVote(proposalId, publicKey!.toBase58())) {
-      toast.error('Cannot vote on this proposal');
+    if (myVotingPower < 1000) {
+      toast.error('Need at least 1000 voting power to create proposals');
+      return;
+    }
+    if (!proposalTitle.trim() || !proposalDescription.trim()) {
+      toast.error('Please fill in all fields');
       return;
     }
 
-    vote(proposalId, publicKey!.toBase58(), choice, myVotingPower);
-    toast.success('Vote submitted!');
-  };
+    try {
+      await createProposal({
+        title: proposalTitle,
+        description: proposalDescription,
+        category: proposalCategory,
+        executionDelay: 0,
+      });
+      setShowCreateProposal(false);
+      setProposalTitle('');
+      setProposalDescription('');
+      setProposalCategory(0);
+    } catch (error) {
+      console.error('Create proposal failed:', error);
+    }
+  }
 
   const getProposalStatus = (proposal: any) => {
     if (proposal.status === 'active') {
-      const timeLeft = proposal.votingEndsAt - Date.now();
-      const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
       return {
-        label: `${hoursLeft}h left`,
+        label: 'Voting',
         color: 'text-blue-400',
         icon: Clock,
       };
     }
-    if (proposal.status === 'passed') {
+    if (proposal.status === 'passed' || proposal.status === 'succeeded') {
       return { label: 'Passed', color: 'text-green-400', icon: CheckCircle };
     }
-    if (proposal.status === 'rejected') {
+    if (proposal.status === 'rejected' || proposal.status === 'defeated') {
       return { label: 'Rejected', color: 'text-red-400', icon: XCircle };
     }
     if (proposal.status === 'executed') {
       return { label: 'Executed', color: 'text-[var(--color-solana-green)]', icon: CheckCircle };
     }
-    return { label: 'Cancelled', color: 'text-gray-400', icon: AlertCircle };
+    return { label: 'Closed', color: 'text-gray-400', icon: AlertCircle };
   };
 
   return (
@@ -138,7 +154,7 @@ export function Governance() {
             Governance
           </h1>
           <p className="text-gray-400 text-lg">
-            Stake PULSE tokens and vote on protocol decisions
+            Stake SOL tokens and vote on protocol decisions
           </p>
         </motion.div>
 
@@ -146,20 +162,15 @@ export function Governance() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
             {
-              label: 'Total Staked',
-              value: `${totalStaked.toLocaleString()} PULSE`,
+              label: 'My Stake',
+              value: stakePosition ? (Number(stakePosition.amount) / 1e9).toFixed(2) + ' SOL' : '0 SOL',
               icon: Lock,
             },
             {
               label: 'My Voting Power',
-              value: myVotingPower.toLocaleString(),
+              value: myVotingPower.toLocaleString('en-US', { maximumFractionDigits: 2 }),
               icon: Vote,
-            },
-            {
-              label: 'Active Proposals',
-              value: activeProposals.length,
-              icon: TrendingUp,
-            },
+            }
           ].map((stat, i) => (
             <motion.div
               key={i}
@@ -214,16 +225,16 @@ export function Governance() {
               animate={{ opacity: 1, x: 0 }}
               className="glass-card rounded-2xl p-8 border border-white/10"
             >
-              <h2 className="text-2xl font-bold mb-6">Stake PULSE</h2>
+              <h2 className="text-2xl font-bold mb-6">Stake SOL</h2>
 
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Amount</label>
+                  <label className="block text-sm font-medium mb-2">Amount (SOL)</label>
                   <input
                     type="number"
                     value={stakeAmount}
                     onChange={(e) => setStakeAmount(e.target.value)}
-                    placeholder="Enter amount"
+                    placeholder="Enter amount in SOL"
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 outline-none focus:border-white/20 transition-colors"
                   />
                 </div>
@@ -234,9 +245,9 @@ export function Governance() {
                     {lockOptions.map((option) => (
                       <button
                         key={option.days}
-                        onClick={() => setLockPeriod(option.days)}
+                        onClick={() => setLockPeriodDays(option.days)}
                         className={`p-4 rounded-lg border transition-all ${
-                          lockPeriod === option.days
+                          lockPeriodDays === option.days
                             ? 'bg-[var(--color-solana-green)] text-black border-[var(--color-solana-green)]'
                             : 'bg-white/5 border-white/10 hover:border-white/20'
                         }`}
@@ -256,77 +267,65 @@ export function Governance() {
                   disabled={isStaking || !stakeAmount || parseFloat(stakeAmount) <= 0}
                   className="w-full px-6 py-3 bg-[var(--color-solana-green)] text-black rounded-lg font-bold text-lg hover:bg-[#9FE51C] disabled:bg-gray-700 disabled:text-gray-500 transition-colors"
                 >
-                  {isStaking ? 'Staking...' : 'Stake PULSE'}
+                  {isStaking ? 'Staking...' : 'Stake SOL'}
                 </button>
               </div>
             </motion.div>
 
-            {/* My Stakes */}
+            {/* My Stake Info */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               className="space-y-4"
             >
-              <h2 className="text-2xl font-bold mb-4">My Stakes</h2>
+              <h2 className="text-2xl font-bold mb-4">My Stake</h2>
 
-              {myStakes.map((stake) => {
-                const isLocked = Date.now() < stake.unlocksAt;
-                const timeLeft = stake.unlocksAt - Date.now();
-                const daysLeft = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-
-                return (
-                  <div
-                    key={stake.id}
-                    className="glass-card rounded-xl p-6 border border-white/10"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <div className="text-2xl font-bold mb-1">
-                          {stake.amount} PULSE
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          Voting Power: {stake.votingPower.toFixed(0)}
-                        </div>
+              {stakePosition ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="glass-card rounded-xl p-6 border border-white/10"
+                >
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-sm text-gray-400 mb-1">Staked Amount</div>
+                      <div className="text-3xl font-bold">
+                        {(Number(stakePosition.amount) / 1e9).toFixed(2)} SOL
                       </div>
-                      {isLocked ? (
-                        <span className="px-3 py-1 rounded-lg bg-yellow-500/20 text-yellow-400 text-sm font-medium flex items-center gap-1">
-                          <Lock className="w-3 h-3" />
-                          {daysLeft}d left
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1 rounded-lg bg-green-500/20 text-green-400 text-sm font-medium">
-                          Unlocked
-                        </span>
-                      )}
                     </div>
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => claimRewards(stake.id)}
-                        className="flex-1 px-4 py-2 bg-white/5 rounded-lg font-medium hover:bg-white/10 transition-colors"
-                      >
-                        Claim Rewards
-                      </button>
-                      <button
-                        onClick={() => handleUnstake(stake.id)}
-                        disabled={isLocked}
-                        className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                          isLocked
-                            ? 'bg-white/5 text-gray-500 cursor-not-allowed'
-                            : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
-                        }`}
-                      >
-                        Unstake
-                      </button>
+                    <div>
+                      <div className="text-sm text-gray-400 mb-1">Voting Power</div>
+                      <div className="text-2xl font-bold text-[var(--color-solana-green)]">
+                        {myVotingPower.toFixed(0)}
+                      </div>
                     </div>
+
+                    <div>
+                      <div className="text-sm text-gray-400 mb-1">Lock Period</div>
+                      <div className="font-medium">
+                        {stakePosition.lockPeriod.toNumber() > 0
+                          ? `${Math.ceil(
+                              stakePosition.lockPeriod.toNumber() / (24 * 60 * 60)
+                            )} days`
+                          : 'Flexible'}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleUnstake}
+                      disabled={isUnstaking}
+                      className="w-full px-4 py-3 bg-red-500/10 text-red-400 rounded-lg font-bold hover:bg-red-500/20 disabled:bg-gray-700 disabled:text-gray-500 transition-colors"
+                    >
+                      {isUnstaking ? 'Unstaking...' : 'Unstake'}
+                    </button>
                   </div>
-                );
-              })}
-
-              {myStakes.length === 0 && (
+                </motion.div>
+              ) : (
                 <div className="glass-card rounded-xl p-12 text-center border border-white/10">
                   <Lock className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-400">No active stakes</p>
+                  <p className="text-gray-400">No active stake</p>
+                  <p className="text-sm text-gray-500 mt-2">Stake SOL to participate in governance</p>
                 </div>
               )}
             </motion.div>
@@ -343,9 +342,7 @@ export function Governance() {
                 </div>
               </div>
               <button
-                onClick={() => {
-                  /* TODO: Implement create proposal modal */
-                }}
+                onClick={() => setShowCreateProposal(true)}
                 disabled={myVotingPower < 1000}
                 className={`px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
                   myVotingPower >= 1000
@@ -358,130 +355,102 @@ export function Governance() {
               </button>
             </div>
 
-            {proposals.map((proposal) => {
-              const status = getProposalStatus(proposal);
-              const totalVotes =
-                proposal.votesFor + proposal.votesAgainst + proposal.votesAbstain;
-              const quorumProgress = (totalVotes / proposal.quorumRequired) * 100;
-              const voted = publicKey
-                ? hasVoted(proposal.id, publicKey.toBase58())
-                : false;
-              const canVoteOn = publicKey
-                ? canVote(proposal.id, publicKey.toBase58())
-                : false;
-
-              return (
-                <motion.div
-                  key={proposal.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="glass-card rounded-2xl p-6 border border-white/10"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold">{proposal.title}</h3>
-                        <span
-                          className={`px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-1 ${status.color} bg-current/10`}
-                        >
-                          <status.icon className="w-3 h-3" />
-                          {status.label}
-                        </span>
-                      </div>
-                      <p className="text-gray-400 text-sm mb-3">{proposal.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span className="px-2 py-1 bg-white/5 rounded">
-                          {proposal.category}
-                        </span>
-                        <span>
-                          Proposer: {proposal.proposer.slice(0, 4)}...
-                          {proposal.proposer.slice(-4)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Vote Distribution */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-green-400">For: {proposal.votesFor}</span>
-                      <span className="text-red-400">
-                        Against: {proposal.votesAgainst}
-                      </span>
-                      <span className="text-gray-400">
-                        Abstain: {proposal.votesAbstain}
-                      </span>
-                    </div>
-                    <div className="h-2 bg-white/5 rounded-full overflow-hidden flex">
-                      <div
-                        className="bg-green-500"
-                        style={{
-                          width: `${totalVotes > 0 ? (proposal.votesFor / totalVotes) * 100 : 0}%`,
-                        }}
-                      />
-                      <div
-                        className="bg-red-500"
-                        style={{
-                          width: `${totalVotes > 0 ? (proposal.votesAgainst / totalVotes) * 100 : 0}%`,
-                        }}
-                      />
-                      <div
-                        className="bg-gray-500"
-                        style={{
-                          width: `${totalVotes > 0 ? (proposal.votesAbstain / totalVotes) * 100 : 0}%`,
-                        }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      Quorum: {quorumProgress.toFixed(1)}% ({totalVotes} /{' '}
-                      {proposal.quorumRequired})
-                    </div>
-                  </div>
-
-                  {/* Voting Buttons */}
-                  {!voted && canVoteOn && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleVote(proposal.id, 'for')}
-                        className="flex-1 px-4 py-2 bg-green-500/10 text-green-400 rounded-lg font-medium hover:bg-green-500/20 transition-colors"
-                      >
-                        Vote For
-                      </button>
-                      <button
-                        onClick={() => handleVote(proposal.id, 'against')}
-                        className="flex-1 px-4 py-2 bg-red-500/10 text-red-400 rounded-lg font-medium hover:bg-red-500/20 transition-colors"
-                      >
-                        Vote Against
-                      </button>
-                      <button
-                        onClick={() => handleVote(proposal.id, 'abstain')}
-                        className="px-4 py-2 bg-white/5 rounded-lg font-medium hover:bg-white/10 transition-colors"
-                      >
-                        Abstain
-                      </button>
-                    </div>
-                  )}
-
-                  {voted && (
-                    <div className="px-4 py-2 bg-[var(--color-solana-green)]/10 text-[var(--color-solana-green)] rounded-lg text-center font-medium">
-                      You voted on this proposal
-                    </div>
-                  )}
-                </motion.div>
-              );
-            })}
-
-            {proposals.length === 0 && (
-              <div className="glass-card rounded-2xl p-12 text-center border border-white/10">
-                <Vote className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-400">No proposals yet</p>
-              </div>
-            )}
+            {/* Placeholder: No proposals */}
+            <div className="glass-card rounded-2xl p-12 text-center border border-white/10">
+              <Vote className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <p className="text-gray-400 text-lg">No proposals yet</p>
+              <p className="text-sm text-gray-500 mt-2">Create a proposal to get started with governance</p>
+            </div>
           </div>
         )}
       </div>
+
+      {/* Create Proposal Modal */}
+      {showCreateProposal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-card rounded-2xl p-8 border border-white/10 max-w-2xl w-full mx-4"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Create Proposal</h2>
+              <button
+                onClick={() => setShowCreateProposal(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Title</label>
+                <input
+                  type="text"
+                  value={proposalTitle}
+                  onChange={(e) => setProposalTitle(e.target.value)}
+                  placeholder="Proposal title"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 outline-none focus:border-white/20 transition-colors"
+                  maxLength={256}
+                />
+                <div className="text-xs text-gray-400 mt-1">
+                  {proposalTitle.length}/256
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Description</label>
+                <textarea
+                  value={proposalDescription}
+                  onChange={(e) => setProposalDescription(e.target.value)}
+                  placeholder="Proposal description..."
+                  rows={5}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 outline-none focus:border-white/20 transition-colors resize-none"
+                  maxLength={2000}
+                />
+                <div className="text-xs text-gray-400 mt-1">
+                  {proposalDescription.length}/2000
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Category</label>
+                <select
+                  value={proposalCategory}
+                  onChange={(e) => setProposalCategory(Number(e.target.value))}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white outline-none focus:border-white/20 transition-colors"
+                >
+                  <option value={0}>General</option>
+                  <option value={1}>Technical</option>
+                  <option value={2}>Treasury</option>
+                  <option value={3}>Fee Structure</option>
+                  <option value={4}>Other</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCreateProposal}
+                  disabled={isCreatingProposal || !proposalTitle.trim() || !proposalDescription.trim()}
+                  className="flex-1 px-6 py-3 bg-[var(--color-solana-green)] text-black rounded-lg font-bold hover:bg-[#9FE51C] disabled:bg-gray-700 disabled:text-gray-500 transition-colors"
+                >
+                  {isCreatingProposal ? 'Creating...' : 'Create Proposal'}
+                </button>
+                <button
+                  onClick={() => setShowCreateProposal(false)}
+                  className="flex-1 px-6 py-3 bg-white/5 rounded-lg font-bold hover:bg-white/10 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       <Footer />
     </div>
   );
 }
+
