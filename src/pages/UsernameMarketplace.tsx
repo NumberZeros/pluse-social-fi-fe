@@ -1,47 +1,82 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey } from '@solana/web3.js';
+import { useQuery } from '@tanstack/react-query';
 import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
-import { useMarketplaceStore } from '../stores/useMarketplaceStore';
-import { Search, TrendingUp, Clock, Gavel, Tag, Plus } from 'lucide-react';
+import { useMintUsername, useListUsername, useBuyUsername } from '../hooks/useMarketplace';
+import { useSocialFi } from '../hooks/useSocialFi';
+import { Search, TrendingUp, Tag, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export function UsernameMarketplace() {
   const { publicKey, connected } = useWallet();
-  const [activeTab, setActiveTab] = useState<'buy' | 'sell' | 'auctions' | 'my-listings'>(
+  const { sdk } = useSocialFi();
+  
+  const [activeTab, setActiveTab] = useState<'buy' | 'sell' | 'my-listings'>(
     'buy',
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [priceSort, setPriceSort] = useState<'asc' | 'desc'>('asc');
 
-  const listings = useMarketplaceStore((state) => state.listings);
-  const auctions = useMarketplaceStore((state) => state.auctions);
-  const createListing = useMarketplaceStore((state) => state.createListing);
-  const purchaseListing = useMarketplaceStore((state) => state.purchaseListing);
-  const makeOffer = useMarketplaceStore((state) => state.makeOffer);
-  const placeBid = useMarketplaceStore((state) => state.placeBid);
+  // Blockchain hooks
+  const mintUsernameMutation = useMintUsername();
+  const listUsernameMutation = useListUsername();
+  const buyUsernameMutation = useBuyUsername();
+
+  // Fetch listings from blockchain (placeholder - would query contract accounts)
+  const { data: blockchainListings = [] } = useQuery({
+    queryKey: ['marketplace_listings'],
+    queryFn: async () => {
+      // TODO: Query all username_listing PDAs from blockchain
+      // For now, return empty array
+      return [];
+    },
+  });
 
   const [newListingUsername, setNewListingUsername] = useState('');
   const [newListingPrice, setNewListingPrice] = useState('');
   const [newListingCategory, setNewListingCategory] = useState<
     'premium' | 'short' | 'rare' | 'custom'
   >('premium');
+  const [showMintModal, setShowMintModal] = useState(false);
 
-  const filteredListings = listings
-    .filter((l) => {
+  const filteredListings = blockchainListings
+    .filter((l: any) => {
       if (searchQuery && !l.username.toLowerCase().includes(searchQuery.toLowerCase()))
         return false;
       if (selectedCategory !== 'all' && l.category !== selectedCategory) return false;
       return true;
     })
-    .sort((a, b) => (priceSort === 'asc' ? a.price - b.price : b.price - a.price));
+    .sort((a: any, b: any) => (priceSort === 'asc' ? a.price - b.price : b.price - a.price));
 
   const myListings = publicKey
-    ? listings.filter((l) => l.seller === publicKey.toBase58())
+    ? blockchainListings.filter((l: any) => l.seller === publicKey.toBase58())
     : [];
-  const activeAuctions = auctions.filter((a) => a.status === 'active');
+
+  const handleMintUsername = () => {
+    if (!connected) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+    if (!newListingUsername) {
+      toast.error('Please enter a username');
+      return;
+    }
+
+    mintUsernameMutation.mutate(newListingUsername, {
+      onSuccess: () => {
+        toast.success('Username minted successfully!');
+        setNewListingUsername('');
+        setShowMintModal(false);
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to mint username');
+      },
+    });
+  };
 
   const handleCreateListing = () => {
     if (!connected) {
@@ -53,40 +88,68 @@ export function UsernameMarketplace() {
       return;
     }
 
-    createListing(
-      newListingUsername,
-      parseFloat(newListingPrice),
-      publicKey!.toBase58(),
-      newListingCategory,
-    );
+    if (!newListingUsername || !newListingPrice) {
+      toast.error('Please fill in all fields');
+      return;
+    }
 
-    // setShowListModal(false);
-    setNewListingUsername('');
-    setNewListingPrice('');
-    toast.success('Username listed for sale!');
+    // TODO: In reality, resolve username to NFT mint address
+    // For now, just update blockchain
+    try {
+      const usernameNft = new PublicKey(newListingUsername); // Placeholder
+      listUsernameMutation.mutate(
+        { nftPubkey: usernameNft, priceInSol: parseFloat(newListingPrice) },
+        {
+          onSuccess: () => {
+            toast.success('Username listed for sale!');
+            setNewListingUsername('');
+            setNewListingPrice('');
+          },
+          onError: (error: any) => {
+            toast.error(error.message || 'Failed to list username');
+          },
+        },
+      );
+    } catch {
+      toast.error('Invalid username NFT');
+    }
   };
 
-  const handlePurchase = (listingId: string, price: number) => {
+  const handlePurchase = (listing: any) => {
     if (!connected) {
       toast.error('Please connect your wallet');
       return;
     }
 
-    purchaseListing(listingId, publicKey!.toBase58());
-    toast.success(`Username purchased for ${price} SOL!`);
-  };
-
-  const handleMakeOffer = (listingId: string, username: string) => {
-    if (!connected) {
-      toast.error('Please connect your wallet');
+    if (!listing) {
+      toast.error('Listing not found');
       return;
     }
 
-    const amount = prompt('Enter your offer amount (SOL):');
-    if (!amount || isNaN(parseFloat(amount))) return;
+    try {
+      // Get listing details from blockchain
+      const listingPubkey = new PublicKey(listing.listingAddress || listing.id);
+      const nftPubkey = new PublicKey(listing.nftMint || listing.id);
+      const sellerPubkey = new PublicKey(listing.seller);
 
-    makeOffer(listingId, username, publicKey!.toBase58(), parseFloat(amount));
-    toast.success('Offer submitted!');
+      buyUsernameMutation.mutate(
+        { listingPubkey, nftPubkey, sellerPubkey },
+        {
+          onSuccess: () => {
+            toast.success(`Username purchased for ${listing.price} SOL!`);
+          },
+          onError: (error: any) => {
+            toast.error(error.message || 'Failed to purchase username');
+          },
+        },
+      );
+    } catch {
+      toast.error('Invalid listing data');
+    }
+  };
+
+  const handleMakeOffer = () => {
+    toast.error('Offers are not yet implemented in the contract');
   };
 
   const getCategoryColor = (category: string) => {
@@ -113,9 +176,18 @@ export function UsernameMarketplace() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[var(--color-value-amber)] to-[var(--color-primary-green)] bg-clip-text text-transparent">
-            Username Marketplace
-          </h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[var(--color-value-amber)] to-[var(--color-primary-green)] bg-clip-text text-transparent">
+              Username Marketplace
+            </h1>
+            <button
+              onClick={() => setShowMintModal(true)}
+              className="px-6 py-3 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold transition-all flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Mint Username
+            </button>
+          </div>
           <p className="text-gray-400 text-lg">
             Buy, sell, and auction premium Pulse usernames
           </p>
@@ -124,11 +196,10 @@ export function UsernameMarketplace() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Total Listings', value: listings.length, icon: Tag },
-            { label: 'Active Auctions', value: activeAuctions.length, icon: Gavel },
+            { label: 'Total Listings', value: blockchainListings.length, icon: Tag },
             {
               label: 'Avg Price',
-              value: `${(listings.reduce((sum, l) => sum + l.price, 0) / listings.length || 0).toFixed(1)} SOL`,
+              value: `${(blockchainListings.reduce((sum: number, l: any) => sum + l.price, 0) / blockchainListings.length || 0).toFixed(1)} SOL`,
               icon: TrendingUp,
             },
             { label: 'My Listings', value: myListings.length, icon: Plus },
@@ -154,7 +225,6 @@ export function UsernameMarketplace() {
           <div className="flex gap-6 overflow-x-auto">
             {[
               { id: 'buy', label: 'Browse Listings', icon: Search },
-              { id: 'auctions', label: 'Auctions', icon: Gavel },
               { id: 'sell', label: 'List Username', icon: Plus },
               { id: 'my-listings', label: 'My Listings', icon: Tag },
             ].map((tab) => (
@@ -272,7 +342,7 @@ export function UsernameMarketplace() {
 
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handlePurchase(listing.id, listing.price)}
+                      onClick={() => handlePurchase(listing)}
                       className="flex-1 px-4 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold transition-all"
                     >
                       Buy Now
@@ -494,6 +564,54 @@ export function UsernameMarketplace() {
       </div>
 
       <Footer />
+
+      {/* Mint Username Modal */}
+      {showMintModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-card rounded-2xl p-8 border border-white/10 max-w-md w-full"
+          >
+            <h2 className="text-2xl font-bold mb-6">Mint Username NFT</h2>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Username</label>
+                <input
+                  type="text"
+                  value={newListingUsername}
+                  onChange={(e) => setNewListingUsername(e.target.value)}
+                  placeholder="Enter username"
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white outline-none focus:border-[var(--color-solana-green)] transition-colors"
+                />
+              </div>
+
+              <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-sm text-yellow-400">
+                  Minting a username NFT will create a unique on-chain asset that represents ownership of this username.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowMintModal(false)}
+                className="flex-1 px-4 py-2 bg-white/5 rounded-lg font-medium hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMintUsername}
+                disabled={!newListingUsername || mintUsernameMutation.isPending}
+                className="flex-1 px-4 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {mintUsernameMutation.isPending ? 'Minting...' : 'Mint'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

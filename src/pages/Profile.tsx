@@ -7,9 +7,11 @@ import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { IconVerified } from '../components/icons/PulseIcons';
 import { useProfile } from '../hooks/useProfile';
+import { useIsFollowing, useFollowers, useFollowing, useFollowUser, useUnfollowUser } from '../hooks/useFollow';
 import { ProfileCreationModal } from '../components/profile/ProfileCreationModal';
 import { SendTipModal } from '../components/profile/SendTipModal';
 import { Crown } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 // Helper to generate avatar from wallet address
 const getAvatarUrl = (address: string) => {
@@ -34,7 +36,6 @@ export function Profile() {
   const [activeTab, setActiveTab] = useState<'posts' | 'replies' | 'media'>('posts');
   const [showCreateProfile, setShowCreateProfile] = useState(false);
   const [showSendTip, setShowSendTip] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
 
   // Resolve username to PublicKey via on-chain registry
   const targetPublicKey = useMemo(() => {
@@ -53,6 +54,16 @@ export function Profile() {
   // Fetch real profile from blockchain
   const { profile, isLoading, hasProfile } = useProfile(targetPublicKey || undefined);
 
+  // Follow hooks
+  const { data: isFollowing } = useIsFollowing(
+    publicKey?.toString() || '',
+    targetPublicKey?.toString() || ''
+  );
+  const { data: followers = [] } = useFollowers(targetPublicKey?.toString() || '');
+  const { data: following = [] } = useFollowing(targetPublicKey?.toString() || '');
+  const followMutation = useFollowUser();
+  const unfollowMutation = useUnfollowUser();
+
   // Prepare user data from blockchain profile
   const user = useMemo(() => {
     if (!targetPublicKey) return null;
@@ -67,8 +78,8 @@ export function Profile() {
         banner: getBannerUrl(parseInt(address.slice(0, 8), 36)),
         bio: `@${profile.username} on Pulse Social`, // TODO: Add bio to contract
         verified: false, // TODO: Add verification system
-        followers: profile.followersCount.toNumber(),
-        following: profile.followingCount.toNumber(),
+        followers: followers.length, // Use real follow data
+        following: following.length, // Use real follow data
         posts: profile.postsCount.toNumber(),
         tipsSent: (profile.totalTipsSent.toNumber() / 1e9).toFixed(3),
         tipsReceived: (profile.totalTipsReceived.toNumber() / 1e9).toFixed(3),
@@ -82,7 +93,7 @@ export function Profile() {
     // Username NFT registry not implemented yet
     // No profile found
     return null;
-  }, [targetPublicKey, profile, hasProfile, username]);
+  }, [targetPublicKey, profile, hasProfile, followers.length, following.length]);
 
   // Posts will be fetched from blockchain
   const posts = useMemo(() => {
@@ -132,9 +143,36 @@ export function Profile() {
   }, [user]);
 
   const handleFollow = () => {
-    if (!user) return;
-    setIsFollowing(!isFollowing);
-    // TODO: Implement on-chain follow system
+    if (!publicKey || !targetPublicKey) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+
+    if (isFollowing) {
+      unfollowMutation.mutate(
+        { followerId: publicKey.toString(), followingId: targetPublicKey.toString() },
+        {
+          onSuccess: () => {
+            toast.success('Unfollowed');
+          },
+          onError: () => {
+            toast.error('Failed to unfollow');
+          },
+        }
+      );
+    } else {
+      followMutation.mutate(
+        { followerId: publicKey.toString(), followingId: targetPublicKey.toString() },
+        {
+          onSuccess: () => {
+            toast.success('Followed!');
+          },
+          onError: () => {
+            toast.error('Failed to follow');
+          },
+        }
+      );
+    }
   };
 
   const handleSendTip = () => {

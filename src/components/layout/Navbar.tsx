@@ -1,12 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useState } from 'react';
+import { BookOpen } from 'lucide-react';
 import { IconExplore, IconFeed, IconHome, PulseMark } from '../icons/PulseIcons';
 
 export function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { connected, publicKey } = useWallet();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -55,6 +57,11 @@ export function Navbar() {
           />
         </svg>
       ),
+    },
+    {
+      path: '/guide',
+      label: 'Guide',
+      icon: <BookOpen className="w-4 h-4" />,
     },
   ];
 
@@ -118,6 +125,7 @@ export function Navbar() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate('/feed')}
                     className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[var(--color-solana-green)] text-black rounded-full font-bold hover:bg-[#9FE51C] transition-colors"
                   >
                     <span>+</span>

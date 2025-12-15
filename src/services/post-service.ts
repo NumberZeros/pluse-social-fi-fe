@@ -74,7 +74,6 @@ class PostService {
     this.posts.set(postId, post);
 
     // TODO: Persist to blockchain/IPFS
-    console.log('Post created (in-memory):', post);
 
     return post;
   }
@@ -123,7 +122,6 @@ class PostService {
     post.updatedAt = Date.now();
 
     // TODO: Record like on-chain
-    console.log('Post liked:', postId);
   }
 
   /**
@@ -139,7 +137,6 @@ class PostService {
     }
 
     // TODO: Record unlike on-chain
-    console.log('Post unliked:', postId);
   }
 
   /**
@@ -171,7 +168,6 @@ class PostService {
     this.posts.set(repostId, repost);
 
     // TODO: Record repost on-chain
-    console.log('Post reposted:', postId);
 
     return repost;
   }
@@ -179,7 +175,7 @@ class PostService {
   /**
    * Tip a post
    */
-  async tipPost(postId: string, amountInSol: number): Promise<void> {
+  async tipPost(postId: string, _amountInSol: number): Promise<void> {
     const post = this.posts.get(postId);
     if (!post) throw new Error('Post not found');
 
@@ -187,7 +183,6 @@ class PostService {
     post.updatedAt = Date.now();
 
     // TODO: Execute SOL transfer and record on-chain
-    console.log(`Tipped post ${postId} with ${amountInSol} SOL`);
   }
 
   /**
@@ -206,7 +201,6 @@ class PostService {
     this.posts.delete(postId);
 
     // TODO: Mark as deleted on-chain
-    console.log('Post deleted:', postId);
   }
 
   /**

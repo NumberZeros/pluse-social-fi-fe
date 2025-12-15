@@ -12,6 +12,7 @@ export function Footer() {
     learn: [
       { label: 'What is Pulse?', href: '/what' },
       { label: 'Why Pulse?', href: '/why' },
+      { label: 'User Guide', href: '/guide' },
       { label: 'How it Works', href: '/what' },
     ],
     community: [

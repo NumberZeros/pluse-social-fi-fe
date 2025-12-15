@@ -64,8 +64,8 @@ export class SocialFiSDK {
     try {
       const account = await this.program.account.userProfile.fetch(userProfile);
       return account;
-    } catch (error) {
-      console.log('Profile not found for:', targetOwner.toBase58());
+    } catch {
+      // Profile not found
       return null;
     }
   }
@@ -158,8 +158,8 @@ export class SocialFiSDK {
     try {
       const account = await this.program.account.creatorPool.fetch(creatorPool);
       return account;
-    } catch (error) {
-      console.log('Creator pool not found for:', creatorPubkey.toBase58());
+    } catch {
+      // Creator pool not found
       return null;
     }
   }
@@ -436,8 +436,8 @@ export class SocialFiSDK {
     try {
       const account = await this.program.account.group.fetch(groupPubkey);
       return account;
-    } catch (error) {
-      console.log('Group not found:', groupPubkey.toBase58());
+    } catch {
+      // Group not found
       return null;
     }
   }
@@ -571,8 +571,8 @@ export class SocialFiSDK {
     try {
       const account = await this.program.account.proposal.fetch(proposalPubkey);
       return account;
-    } catch (error) {
-      console.log('Proposal not found:', proposalPubkey.toBase58());
+    } catch {
+      // Proposal not found
       return null;
     }
   }

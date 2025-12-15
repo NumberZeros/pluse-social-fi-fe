@@ -68,14 +68,12 @@ export const useSubscription = (subscriberPubkey?: PublicKey, creatorPubkey?: Pu
       if (!sdk) throw new Error('SDK not initialized');
       return await sdk.subscribe(creator, tierId);
     },
-    onSuccess: (tx) => {
+    onSuccess: () => {
       toast.success('Subscribed successfully!');
-      console.log('Subscribe tx:', tx);
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
       queryClient.invalidateQueries({ queryKey: ['is_subscribed'] });
     },
     onError: (error: any) => {
-      console.error('Subscribe error:', error);
       toast.error(error.message || 'Failed to subscribe');
     },
   });
@@ -86,14 +84,12 @@ export const useSubscription = (subscriberPubkey?: PublicKey, creatorPubkey?: Pu
       if (!sdk) throw new Error('SDK not initialized');
       return await sdk.cancelSubscription(creator);
     },
-    onSuccess: (tx) => {
+    onSuccess: () => {
       toast.success('Subscription cancelled');
-      console.log('Cancel subscription tx:', tx);
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
       queryClient.invalidateQueries({ queryKey: ['is_subscribed'] });
     },
     onError: (error: any) => {
-      console.error('Cancel subscription error:', error);
       toast.error(error.message || 'Failed to cancel subscription');
     },
   });

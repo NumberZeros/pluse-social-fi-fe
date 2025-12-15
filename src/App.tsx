@@ -47,6 +47,7 @@ const DataExport = lazy(() =>
 );
 const What = lazy(() => import('./pages/What'));
 const Why = lazy(() => import('./pages/Why'));
+const UserGuide = lazy(() => import('./pages/UserGuide'));
 
 // Inner component that uses router hooks
 function RouterContent() {
@@ -71,6 +72,7 @@ function RouterContent() {
         <Route path="/export" element={<DataExport />} />
         <Route path="/what" element={<What />} />
         <Route path="/why" element={<Why />} />
+        <Route path="/guide" element={<UserGuide />} />
         <Route path="/:username" element={<Profile />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

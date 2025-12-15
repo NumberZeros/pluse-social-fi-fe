@@ -15,7 +15,9 @@ import {
 import useSubscriptionStore from '../stores/useSubscriptionStore';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useUserStore } from '../stores/useUserStore';
+import { useCreatorSubscriptionTiers, useCreateSubscriptionTier } from '../hooks/useSubscription';
 import toast from 'react-hot-toast';
+import { PublicKey } from '@solana/web3.js';
 
 export function CreatorDashboard() {
   const { publicKey } = useWallet();
@@ -28,12 +30,23 @@ export function CreatorDashboard() {
     deleteTier,
   } = useSubscriptionStore();
 
+  // Blockchain hooks
+  const { data: blockchainTiers = [], isLoading: tiersLoading } = useCreatorSubscriptionTiers(
+    publicKey || undefined
+  );
+  const createTierMutation = useCreateSubscriptionTier();
+
   const [showCreateTierModal, setShowCreateTierModal] = useState(false);
+  const [newTierName, setNewTierName] = useState('');
+  const [newTierPrice, setNewTierPrice] = useState('');
+  const [newTierDescription, setNewTierDescription] = useState('');
 
   const myTiers = useMemo(() => {
     if (!publicKey) return [];
-    return getTiersByCreator(publicKey.toBase58());
-  }, [publicKey, getTiersByCreator]);
+    // Combine local store tiers with blockchain tiers
+    const localTiers = getTiersByCreator(publicKey.toBase58());
+    return [...localTiers, ...blockchainTiers];
+  }, [publicKey, getTiersByCreator, blockchainTiers]);
 
   const mySubscribers = useMemo(() => {
     if (!publicKey) return [];
@@ -326,21 +339,105 @@ export function CreatorDashboard() {
 
       <Footer />
 
-      {/* TODO: Add Create Tier Modal component */}
+      {/* Create Tier Modal */}
       {showCreateTierModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-gray-900 p-6 rounded-xl max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold mb-4">Create Tier - Coming Soon</h3>
-            <p className="text-gray-400 mb-4">
-              Tier creation UI is under development. Use the store directly for now.
-            </p>
-            <button
-              onClick={() => setShowCreateTierModal(false)}
-              className="w-full px-4 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg transition-all font-bold"
-            >
-              Close
-            </button>
-          </div>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-card rounded-2xl p-8 border border-white/10 max-w-lg w-full"
+          >
+            <h2 className="text-2xl font-bold mb-6">Create Subscription Tier</h2>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Tier Name</label>
+                <input
+                  type="text"
+                  value={newTierName}
+                  onChange={(e) => setNewTierName(e.target.value)}
+                  placeholder="e.g., Bronze, Silver, Gold"
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white outline-none focus:border-[var(--color-solana-green)] transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Price (SOL/month)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={newTierPrice}
+                  onChange={(e) => setNewTierPrice(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white outline-none focus:border-[var(--color-solana-green)] transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Description</label>
+                <textarea
+                  value={newTierDescription}
+                  onChange={(e) => setNewTierDescription(e.target.value)}
+                  placeholder="Describe what subscribers will get..."
+                  rows={4}
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white outline-none focus:border-[var(--color-solana-green)] transition-colors resize-none"
+                />
+              </div>
+
+              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <p className="text-sm text-blue-400">
+                  Creating a tier on the blockchain ensures transparent and decentralized subscription management.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowCreateTierModal(false);
+                  setNewTierName('');
+                  setNewTierPrice('');
+                  setNewTierDescription('');
+                }}
+                className="flex-1 px-4 py-2 bg-white/5 rounded-lg font-medium hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!newTierName || !newTierPrice) {
+                    toast.error('Please fill in all required fields');
+                    return;
+                  }
+
+                  createTierMutation.mutate(
+                    {
+                      name: newTierName,
+                      pricePerMonth: parseFloat(newTierPrice),
+                      metadata: newTierDescription,
+                    },
+                    {
+                      onSuccess: () => {
+                        toast.success('Subscription tier created!');
+                        setShowCreateTierModal(false);
+                        setNewTierName('');
+                        setNewTierPrice('');
+                        setNewTierDescription('');
+                      },
+                      onError: (error: any) => {
+                        toast.error(error.message || 'Failed to create tier');
+                      },
+                    }
+                  );
+                }}
+                disabled={!newTierName || !newTierPrice || createTierMutation.isPending}
+                className="flex-1 px-4 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {createTierMutation.isPending ? 'Creating...' : 'Create Tier'}
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
     </div>

@@ -1,31 +1,46 @@
 import { motion } from 'framer-motion';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { CreatePost } from '../components/feed/CreatePost';
 import TrendingSidebar from '../components/feed/TrendingSidebar';
 import { useUserStore } from '../stores/useUserStore';
 import { SEO } from '../components/SEO';
-
-// Posts will be stored on-chain (Shadow Drive, Arweave, or IPFS)
-// For now, feed is empty until on-chain post storage is implemented
-const POSTS: any[] = [];
+import { useTimeline, useCreatePost, useLikePost, useUnlikePost, useRepostPost, useTipPost } from '../hooks/useFeed';
+import { Heart, Repeat2, DollarSign, MessageCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export function Feed() {
-  const [posts, setPosts] = useState(POSTS);
-  const [isLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const { publicKey } = useWallet();
   const loadMoreRef = useRef<HTMLDivElement>(null);
-
   const profile = useUserStore((state) => state.profile);
+
+  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useTimeline();
+  const createPostMutation = useCreatePost();
+  const likePostMutation = useLikePost();
+  const unlikePostMutation = useUnlikePost();
+  const repostMutation = useRepostPost();
+  const tipPostMutation = useTipPost();
+
+  const posts = (data?.pages.flatMap((page) => page) || []).map((post) => ({
+    ...post,
+    author: {
+      username: post.authorUsername,
+      address: post.authorAddress,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.authorAddress}`,
+      verified: false,
+    },
+    timestamp: post.createdAt,
+    images: post.imageUrls,
+  }));
 
   // Intersection Observer for infinite scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isLoadingMore && hasMore) {
-          loadMorePosts();
+        if (entries[0].isIntersecting && !isFetchingNextPage && hasNextPage) {
+          fetchNextPage();
         }
       },
       { threshold: 0.1 },
@@ -36,41 +51,82 @@ export function Feed() {
     }
 
     return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoadingMore, hasMore]);
-
-  const loadMorePosts = async () => {
-    if (isLoadingMore || !hasMore) return;
-
-    setIsLoadingMore(true);
-
-    // TODO: Query more posts from blockchain storage
-    // For now, no posts are available until storage is implemented
-    setIsLoadingMore(false);
-    setHasMore(false);
-  };
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage]);
 
   const handleCreatePost = (content: string, images: string[]) => {
-    const newPost = {
-      id: Date.now().toString(),
-      author: {
-        username: profile.username || 'user',
-        address: profile.walletAddress || '5eykt...j7Pn',
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username || 'user'}`,
-        verified: false,
-      },
-      content,
-      timestamp: new Date(),
-      likes: 0,
-      reposts: 0,
-      tips: 0,
-      comments: 0,
-      images,
-      isLiked: false,
-      isReposted: false,
-    };
+    if (!publicKey) {
+      toast.error('Please connect your wallet');
+      return;
+    }
 
-    setPosts([newPost, ...posts]);
+    const username = profile.username || publicKey.toBase58().slice(0, 8);
+    createPostMutation.mutate(
+      {
+        content,
+        images,
+        authorId: publicKey.toBase58(),
+        authorUsername: username,
+      },
+      {
+        onSuccess: () => {
+          toast.success('Post created!');
+        },
+        onError: () => {
+          toast.error('Failed to create post');
+        },
+      },
+    );
+  };
+
+  const handleLikePost = (postId: string, isLiked: boolean) => {
+    if (!publicKey) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+
+    if (isLiked) {
+      unlikePostMutation.mutate(postId);
+    } else {
+      likePostMutation.mutate(postId);
+    }
+  };
+
+  const handleRepost = (postId: string) => {
+    if (!publicKey) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+
+    repostMutation.mutate(
+      { postId, userId: publicKey.toBase58() },
+      {
+        onSuccess: () => {
+          toast.success('Reposted!');
+        },
+      },
+    );
+  };
+
+  const handleTip = (postId: string) => {
+    if (!publicKey) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+
+    const amount = prompt('Enter tip amount (SOL):');
+    if (!amount || isNaN(parseFloat(amount))) return;
+
+    tipPostMutation.mutate(
+      { postId, amount: parseFloat(amount) },
+      {
+        onSuccess: () => {
+          toast.success(`Tipped ${amount} SOL!`);
+        },
+        onError: () => {
+          toast.error('Failed to send tip');
+        },
+      },
+    );
   };
 
   return (
@@ -120,9 +176,73 @@ export function Feed() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="bg-white/5 rounded-lg p-4 border border-white/10"
+                      className="glass-card rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all"
                     >
-                      <div className="text-white">{post.content}</div>
+                      {/* Post Header */}
+                      <div className="flex items-start gap-3 mb-4">
+                        <img
+                          src={post.author.avatar}
+                          alt={post.author.username}
+                          className="w-12 h-12 rounded-full"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-white">{post.author.username}</span>
+                            <span className="text-gray-400 text-sm">
+                              {post.author.address.slice(0, 4)}...{post.author.address.slice(-4)}
+                            </span>
+                            <span className="text-gray-500 text-sm">·</span>
+                            <span className="text-gray-500 text-sm">
+                              {new Date(post.timestamp).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Post Content */}
+                      <div className="text-white mb-4">{post.content}</div>
+
+                      {/* Post Images */}
+                      {post.images.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 mb-4 rounded-lg overflow-hidden">
+                          {post.images.map((img, i) => (
+                            <img key={i} src={img} alt="" className="w-full h-48 object-cover" />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Post Actions */}
+                      <div className="flex items-center gap-6 text-gray-400">
+                        <button
+                          onClick={() => handleLikePost(post.id, post.isLiked)}
+                          className={`flex items-center gap-2 hover:text-pink-500 transition-colors ${
+                            post.isLiked ? 'text-pink-500' : ''
+                          }`}
+                        >
+                          <Heart className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} />
+                          <span>{post.likes}</span>
+                        </button>
+                        <button className="flex items-center gap-2 hover:text-blue-400 transition-colors">
+                          <MessageCircle className="w-5 h-5" />
+                          <span>{post.comments}</span>
+                        </button>
+                        <button
+                          onClick={() => handleRepost(post.id)}
+                          className={`flex items-center gap-2 hover:text-green-500 transition-colors ${
+                            post.isReposted ? 'text-green-500' : ''
+                          }`}
+                        >
+                          <Repeat2 className="w-5 h-5" />
+                          <span>{post.reposts}</span>
+                        </button>
+                        <button
+                          onClick={() => handleTip(post.id)}
+                          className="flex items-center gap-2 hover:text-[var(--color-solana-green)] transition-colors"
+                        >
+                          <DollarSign className="w-5 h-5" />
+                          <span>{post.tips.toFixed(2)} SOL</span>
+                        </button>
+                      </div>
                     </motion.div>
                   ))}
                 </div>
@@ -151,7 +271,7 @@ export function Feed() {
               {/* Infinite Scroll Trigger */}
               {!isLoading && posts.length > 0 && (
                 <div ref={loadMoreRef} className="py-8">
-                  {isLoadingMore && (
+                  {isFetchingNextPage && (
                     <div className="flex justify-center">
                       <div className="flex items-center gap-2 text-gray-400">
                         <div className="w-5 h-5 border-2 border-[#ABFE2C] border-t-transparent rounded-full animate-spin"></div>
@@ -159,7 +279,7 @@ export function Feed() {
                       </div>
                     </div>
                   )}
-                  {!hasMore && (
+                  {!hasNextPage && (
                     <div className="text-center text-gray-500 py-4">
                       <p>You've reached the end! 🎉</p>
                     </div>

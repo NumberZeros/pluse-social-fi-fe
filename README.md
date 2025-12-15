@@ -89,6 +89,13 @@ Pulse Social is a **fully decentralized social platform** built on Solana that r
 - **Privacy Controls**: Manage what data is stored and shared
 - **Decentralized Backup**: Content stored on decentralized networks
 
+### 📖 User Guide
+- **Comprehensive Documentation**: Step-by-step guides for all features
+- **Interactive Search**: Find guides quickly with keyword search
+- **Quick Navigation**: Table of contents with anchor links
+- **FAQ Section**: Answers to common questions
+- **Best Practices**: Tips for optimal platform usage
+
 ## 🏗️ Architecture
 
 ### Frontend Stack
@@ -237,6 +244,12 @@ We welcome contributions from the community! Here's how you can help:
 
 ## 📚 Documentation
 
+### For Users
+- **[User Guide](https://pulse.thosoft.xyz/guide)**: Complete step-by-step guide for all features
+- **[What is Pulse](https://pulse.thosoft.xyz/what)**: Platform overview and core concepts
+- **[Why Pulse](https://pulse.thosoft.xyz/why)**: Benefits of decentralized social
+
+### For Developers
 - **[Blockchain Integration Status](./BLOCKCHAIN_STATUS.md)**: Current implementation status
 - **[Code Analysis](./CODE_ANALYSIS.md)**: Codebase structure and cleanup
 - **[Whitepaper](./public/whitepaper.md)**: Complete technical documentation
@@ -278,16 +291,19 @@ Price increases quadratically with supply, ensuring early supporters benefit.
 | Route          | Feature              | Status      |
 |----------------|----------------------|-------------|
 | `/`            | Landing Page         | ✅ Complete |
-| `/feed`        | Social Feed          | ⏳ Pending  |
+| `/feed`        | Social Feed          | ✅ Complete |
 | `/explore`     | Trending Content     | ⏳ Pending  |
+| `/what`        | What is Pulse        | ✅ Complete |
+| `/why`         | Why Pulse            | ✅ Complete |
+| `/guide`       | User Guide           | ✅ Complete |
 | `/airdrop`     | Airdrop Dashboard    | ✅ Complete |
 | `/:username`   | User Profile         | ✅ Complete |
-| `/subscriptions` | Manage Subscriptions | 🔄 UI Only |
-| `/creator`     | Creator Dashboard    | 🔄 UI Only |
-| `/groups`      | Groups Discovery     | 🔄 UI Only |
-| `/groups/:id`  | Group Detail         | 🔄 UI Only |
-| `/marketplace` | Username Trading     | 🔄 UI Only |
-| `/governance`  | Staking & Voting     | 🔄 UI Only |
+| `/subscriptions` | Manage Subscriptions | ✅ Complete |
+| `/creator`     | Creator Dashboard    | ✅ Complete |
+| `/groups`      | Groups Discovery     | ✅ Complete |
+| `/groups/:id`  | Group Detail         | ✅ Complete |
+| `/marketplace` | Username Trading     | ✅ Complete |
+| `/governance`  | Staking & Voting     | ✅ Complete |
 | `/shares`      | Creator Shares       | ✅ Complete |
 | `/moderation`  | Moderation Tools     | 🔄 UI Only |
 | `/export`      | Data Export          | 🔄 UI Only |
@@ -306,9 +322,12 @@ Price increases quadratically with supply, ensuring early supporters benefit.
 - [x] On-chain tipping
 - [x] Profile creation
 - [x] Creator shares trading
+- [x] Social feed with posts, likes, reposts
+- [x] Follow system
+- [x] User guide documentation
 - [ ] Post storage (Shadow Drive/Arweave)
 - [ ] Social graph queries
-- [ ] Real-time feed
+- [ ] Real-time updates
 
 ### Phase 3: Advanced Features
 - [ ] Group functionality
@@ -335,19 +354,27 @@ Price increases quadratically with supply, ensuring early supporters benefit.
 - ✅ Profile creation (on-chain)
 - ✅ Tipping system
 - ✅ Creator shares (buy/sell)
+- ✅ Social feed with engagement
+- ✅ Follow/unfollow system
+- ✅ Subscription tiers
+- ✅ Groups & communities
+- ✅ Governance staking & voting
+- ✅ Username marketplace UI
+- ✅ Comprehensive user guide
 - ✅ Wallet connection
-- ✅ UI for all features
 
 **In Progress:**
-- 🔄 Post storage integration
-- 🔄 PDA queries for market data
+- 🔄 Post storage integration (Shadow Drive)
+- 🔄 Username listing queries (PDA)
 - 🔄 Event indexing
+- 🔄 Real-time notifications
 
 **Next Steps:**
-1. Implement decentralized storage (Shadow Drive)
-2. Add PDA query system
-3. Build event indexer
-4. Enable real-time features
+1. Implement decentralized storage (Shadow Drive/Arweave)
+2. Complete PDA query system for marketplace
+3. Build event indexer for real-time updates
+4. Add push notifications
+5. Mobile app development
 
 See [BLOCKCHAIN_STATUS.md](./BLOCKCHAIN_STATUS.md) for detailed integration status.
 
@@ -438,19 +465,22 @@ The `dist/` folder contains the production build. Deploy it to any static hostin
 | Route                     | Page                     | Description                      |
 |---------------------------|--------------------------|----------------------------------|
 | `/`                       | Landing                  | Hero + username minting          |
-| `/feed`                   | Feed                     | Main social feed                 |
-| `/explore`                | Explore                  | Trending content                 |
-| `/airdrop`                | AirdropDashboard         | Track eligibility                |
-| `/:username`              | Profile                  | User profiles                    |
-| `/subscriptions`          | Subscriptions            | Manage subscriptions             |
-| `/creator`                | CreatorDashboard         | Creator analytics                |
-| `/groups`                 | GroupsDiscovery          | Browse groups                    |
-| `/groups/:id`             | GroupDetail              | Group page                       |
-| `/marketplace`            | UsernameMarketplace      | Trade usernames                  |
-| `/governance`             | Governance               | Stake & vote                     |
-| `/shares`                 | CreatorShares            | Trade creator shares             |
+| `/feed`                   | Feed                     | Main social feed with posts      |
+| `/explore`                | Explore                  | Trending content & discovery     |
+| `/what`                   | What                     | Platform introduction            |
+| `/why`                    | Why                      | Benefits & use cases             |
+| `/guide`                  | UserGuide                | Complete feature documentation   |
+| `/airdrop`                | AirdropDashboard         | Track airdrop eligibility        |
+| `/:username`              | Profile                  | User profiles with follow system |
+| `/subscriptions`          | Subscriptions            | Manage creator subscriptions     |
+| `/creator`                | CreatorDashboard         | Creator analytics & tier mgmt    |
+| `/groups`                 | GroupsDiscovery          | Browse & create groups           |
+| `/groups/:id`             | GroupDetail              | Group feed & member management   |
+| `/marketplace`            | UsernameMarketplace      | Trade username NFTs              |
+| `/governance`             | Governance               | Stake tokens & vote on proposals |
+| `/shares`                 | CreatorShares            | Trade creator shares (bonding curve) |
 | `/moderation`             | ModerationDashboard      | Moderation tools (mods only)     |
-| `/export`                 | DataExport               | Download your data               |
+| `/export`                 | DataExport               | Download your data (GDPR)        |
 
 ## 🔗 Links
 

@@ -38,8 +38,7 @@ export class MinimalSDK {
    */
   async testConnection(): Promise<boolean> {
     try {
-      const slot = await this.connection.getSlot();
-      console.log('✅ Connected to Solana, current slot:', slot);
+      await this.connection.getSlot();
       return true;
     } catch (error) {
       console.error('❌ Connection failed:', error);
