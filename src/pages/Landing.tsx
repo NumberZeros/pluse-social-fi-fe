@@ -77,15 +77,18 @@ export function Landing() {
       <div className="fixed inset-0 z-0 mesh-gradient-lens opacity-60 pointer-events-none" />
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-6 flex justify-between items-center max-w-[1400px] mx-auto w-full mix-blend-difference">
-        <div className="text-2xl font-display font-bold tracking-tighter flex items-center gap-2">
+      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-6 flex justify-between items-center max-w-[1400px] mx-auto w-full bg-black/50 backdrop-blur-lg border-b border-white/5">
+        <Link
+          to="/"
+          className="text-2xl font-display font-bold tracking-tighter flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <PulseMark className="w-7 h-7" />
-          Pulse Social
-        </div>
+          Pulse
+        </Link>
         <div className="hidden md:flex gap-8 text-sm font-medium text-gray-300">
           <Link
             to="/"
-            className="hover:text-[var(--color-solana-green)] transition-colors"
+            className="text-[var(--color-solana-green)]"
           >
             Home
           </Link>
@@ -93,19 +96,19 @@ export function Landing() {
             to="/what"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
-            What is Pulse?
+            What
           </Link>
           <Link
             to="/why"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
-            Why Join?
+            Why
           </Link>
           <Link
             to="/guide"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
-            User Guide
+            Guide
           </Link>
           <Link
             to="/airdrop"

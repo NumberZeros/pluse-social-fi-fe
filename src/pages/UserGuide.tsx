@@ -303,7 +303,7 @@ export default function UserGuide() {
           className="text-2xl font-display font-bold tracking-tighter flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
           <PulseMark className="w-7 h-7" />
-          Pulse Social
+          Pulse
         </Link>
         <div className="hidden md:flex gap-8 text-sm font-medium text-gray-300">
           <Link
@@ -316,22 +316,22 @@ export default function UserGuide() {
             to="/what"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
-            What is Pulse?
+            What
           </Link>
           <Link
             to="/why"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
-            Why Join?
+            Why
           </Link>
           <Link to="/guide" className="text-[var(--color-solana-green)]">
-            User Guide
+            Guide
           </Link>
           <Link
-            to="/feed"
+            to="/airdrop"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
-            Enter App
+            Airdrop
           </Link>
         </div>
         <WalletMultiButton className="!px-6 !py-3 !bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[var(--color-solana-green)] !transition-colors" />

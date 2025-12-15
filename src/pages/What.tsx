@@ -67,6 +67,12 @@ export default function What() {
             Why
           </Link>
           <Link
+            to="/guide"
+            className="hover:text-[var(--color-solana-green)] transition-colors"
+          >
+            Guide
+          </Link>
+          <Link
             to="/airdrop"
             className="hover:text-[var(--color-solana-green)] transition-colors"
           >
