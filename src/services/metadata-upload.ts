@@ -1,6 +1,4 @@
-import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 import type { WalletAdapter } from '../lib/wallet-adapter';
-import { NETWORK, RPC_ENDPOINTS } from '../utils/constants';
 
 /**
  * Metadata Upload Service - Metaplex Standard
@@ -42,12 +40,9 @@ export interface UsernameMetadataInput {
 }
 
 export class MetadataUploadService {
-  private umi: any;
-
-  constructor(wallet: WalletAdapter, rpcUrl?: string) {
-    const endpoint = rpcUrl || RPC_ENDPOINTS[NETWORK];
-    
-    this.umi = createUmi(endpoint);
+  constructor(_wallet: WalletAdapter, _rpcUrl?: string) {
+    // Service is stateless, parameters kept for API compatibility
+    // Actual implementation uses Pinata API directly
   }
 
   /**
@@ -160,75 +155,66 @@ export class MetadataUploadService {
   }
 
   /**
-   * Upload JSON to Irys (direct API call)
+   * Upload JSON to IPFS via Pinata (free tier available)
+   * Pinata is reliable and has good free limits for MVP
    */
   private async uploadToIrys(data: string): Promise<string> {
-    const irysEndpoint = 'https://devnet.irys.xyz';
+    const pinataJWT = import.meta.env.VITE_PINATA_JWT;
     
-    try {
-      // Use Irys direct API endpoint
-      const response = await fetch(`${irysEndpoint}/upload`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: data,
-      });
-
-      if (!response.ok) {
-        // Try alternative approach - upload to ArWeave directly via public gateway
-        console.warn('Irys upload failed, trying Arweave gateway...');
-        return await this.uploadToArweaveGateway(data);
-      }
-
-      const result = await response.json();
-      const transactionId = result.id || result.transaction;
-      
-      if (!transactionId) {
-        throw new Error('No transaction ID returned from Irys');
-      }
-
-      return `https://arweave.net/${transactionId}`;
-    } catch (error) {
-      console.warn('Irys upload failed:', error);
-      // Fallback to Arweave gateway
-      return await this.uploadToArweaveGateway(data);
+    if (!pinataJWT || pinataJWT === 'YOUR_PINATA_JWT_HERE') {
+      throw new Error(
+        'VITE_PINATA_JWT not configured. Get free API key at https://pinata.cloud\n' +
+        '1. Sign up at pinata.cloud\n' +
+        '2. Go to API Keys → New Key\n' +
+        '3. Copy JWT and add to .env as VITE_PINATA_JWT=your_jwt_here'
+      );
     }
-  }
 
-  /**
-   * Fallback: Upload to Arweave via public gateway
-   */
-  private async uploadToArweaveGateway(data: string): Promise<string> {
     try {
-      console.log('Uploading via Arweave gateway...');
+      console.log('Uploading metadata to IPFS via Pinata...');
       
-      // Use Arweave uploader endpoint
-      const response = await fetch('https://api.arweave.com/tx', {
+      const metadata = JSON.parse(data);
+      const blob = new Blob([data], { type: 'application/json' });
+      const formData = new FormData();
+      formData.append('file', blob, `${metadata.name}_metadata.json`);
+      
+      // Add metadata for easier management
+      formData.append('pinataMetadata', JSON.stringify({
+        name: `NFT Metadata: @${metadata.name}`,
+      }));
+
+      const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${pinataJWT}`,
         },
-        body: data,
+        body: formData,
       });
 
       if (!response.ok) {
-        throw new Error(`Arweave gateway error: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Pinata upload failed: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
+      const ipfsHash = result.IpfsHash;
       
-      // For demo, generate a mock URI that looks real
-      // In production, wait for Arweave confirmation
-      const mockId = Buffer.from(data).toString('hex').slice(0, 43);
-      return `https://arweave.net/${mockId}`;
+      if (!ipfsHash) {
+        throw new Error('No IPFS hash returned from Pinata');
+      }
+
+      // Use Pinata gateway (fast and reliable)
+      const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+      
+      console.log('✅ Metadata uploaded to IPFS via Pinata');
+      console.log('   URL:', ipfsUrl);
+      console.log('   IPFS Hash:', ipfsHash);
+      
+      return ipfsUrl;
+      
     } catch (error) {
-      console.warn('Arweave gateway failed:', error);
-      // Final fallback: return a valid-looking metadata URI
-      // This allows testing the mint flow without actual upload
-      const mockId = Buffer.from(data).toString('hex').slice(0, 43);
-      console.log('Using mock metadata URI:', `https://arweave.net/${mockId}`);
-      return `https://arweave.net/${mockId}`;
+      console.error('❌ Pinata upload failed:', error);
+      throw error;
     }
   }
 

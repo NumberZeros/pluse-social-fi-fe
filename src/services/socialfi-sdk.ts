@@ -179,6 +179,24 @@ export class SocialFiSDK {
   }
 
   /**
+   * Check if username is available
+   * @param username - Username to check
+   * @returns true if available, false if taken
+   */
+  async isUsernameAvailable(username: string): Promise<boolean> {
+    const [usernameNft] = PDAs.getUsernameNFT(username);
+    
+    try {
+      const accountInfo = await this.connection.getAccountInfo(usernameNft);
+      // If account exists, username is taken
+      return accountInfo === null;
+    } catch {
+      // Error fetching account, assume available
+      return true;
+    }
+  }
+
+  /**
    * Send tip to another user
    */
   async sendTip(recipientPubkey: PublicKey, amount: number) {
@@ -344,7 +362,7 @@ export class SocialFiSDK {
     try {
       const account = await this.program.account.platformConfig.fetch(platformConfig);
       return account;
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -438,7 +456,7 @@ export class SocialFiSDK {
     try {
       const account = await this.program.account.subscription.fetch(subscription);
       return account;
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -452,7 +470,7 @@ export class SocialFiSDK {
     try {
       const account = await this.program.account.subscriptionTier.fetch(subscriptionTier);
       return account;
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -572,7 +590,7 @@ export class SocialFiSDK {
     try {
       const account = await this.program.account.groupMember.fetch(groupMember);
       return account;
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -746,7 +764,7 @@ export class SocialFiSDK {
     try {
       const account = await this.program.account.stakePosition.fetch(stakePosition);
       return account;
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -760,7 +778,7 @@ export class SocialFiSDK {
     try {
       const account = await this.program.account.vote.fetch(vote);
       return account;
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }

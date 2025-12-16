@@ -13,7 +13,7 @@ import Footer from '../components/layout/Footer';
 
 export function Landing() {
   const { connected, publicKey, wallet } = useWallet();
-  const { mintUsername } = useSocialFi();
+  const { mintUsername, sdk } = useSocialFi();
   const {
     mintUsernameModal,
     openMintUsernameModal,
@@ -49,6 +49,10 @@ export function Landing() {
       toast.error('Username must be at least 3 characters');
       return;
     }
+    if (username.length > 20) {
+      toast.error('Username must be 20 characters or less');
+      return;
+    }
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
       toast.error('Username can only contain letters, numbers and underscore');
       return;
@@ -56,13 +60,42 @@ export function Landing() {
 
     setProcessing(true);
     try {
-      // ========== STEP 1: Upload metadata to Arweave ==========
-      toast.loading('📤 Uploading metadata...', { id: 'mint-process' });
+      // ========== STEP 0: Check username availability ==========
+      if (!sdk) {
+        toast.error('Wallet not ready. Please reconnect.', { id: 'mint-process' });
+        setProcessing(false);
+        return;
+      }
+      
+      toast.loading('🔍 Checking username availability...', { id: 'mint-process' });
+      
+      const isAvailable = await sdk.isUsernameAvailable(username);
+      
+      if (!isAvailable) {
+        toast.error(`❌ Username "@${username}" is already taken. Try another one!`, { 
+          id: 'mint-process',
+          duration: 4000 
+        });
+        setProcessing(false);
+        return;
+      }
+
+      toast.success('✅ Username available!', { id: 'mint-process', duration: 1000 });
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // ========== STEP 1: Upload metadata to IPFS ==========
+      if (!wallet) {
+        toast.error('Wallet not ready. Please reconnect.', { id: 'mint-process' });
+        setProcessing(false);
+        return;
+      }
+      
+      toast.loading('📤 Uploading metadata to IPFS...', { id: 'mint-process' });
       
       const { getMetadataService } = await import(
         '../services/metadata-upload'
       );
-      const uploadService = getMetadataService(wallet!);
+      const uploadService = getMetadataService(wallet);
 
       const metadataUri = await uploadService.uploadUsernameMetadata({
         username,
@@ -72,6 +105,8 @@ export function Landing() {
       });
 
       console.log('✅ Metadata uploaded:', metadataUri);
+      console.log('🔍 Username to mint:', username, '(length:', username.length, ')');
+      console.log('🔍 Metadata URI length:', metadataUri.length, 'chars');
 
       // ========== STEP 2: Mint NFT on-chain ==========
       const result = await mintUsername(username, metadataUri);
@@ -100,11 +135,49 @@ export function Landing() {
           duration: 5000,
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Mint failed:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'Failed to mint username';
-      toast.error(errorMessage, { id: 'mint-process' });
+      
+      // Log transaction logs if available
+      if (error?.transactionLogs) {
+        console.group('📋 Transaction Logs:');
+        error.transactionLogs.forEach((log: string, index: number) => {
+          console.log(`${index}: ${log}`);
+        });
+        console.groupEnd();
+      }
+      
+      // Parse program error if available
+      if (error?.programErrorStack) {
+        console.error('🔴 Program Error Stack:', error.programErrorStack);
+      }
+      
+      // Parse error message
+      let errorMessage = 'Failed to mint username';
+      
+      if (error?.transactionLogs) {
+        const logs = error.transactionLogs.join(' ');
+        
+        if (logs.includes('already in use')) {
+          errorMessage = `Username "@${username}" is already taken! Please choose another one.`;
+        } else if (logs.includes('custom program error: 0x0')) {
+          errorMessage = 'Username is too long (max 20 characters)';
+        } else if (logs.includes('custom program error: 0x1')) {
+          errorMessage = 'Username is already taken';
+        } else if (logs.includes('custom program error: 0x2')) {
+          errorMessage = 'Invalid username format. Use only letters, numbers, and underscore';
+        } else if (logs.includes('Metadata URI too long')) {
+          errorMessage = 'Metadata URL is too long';
+        } else if (logs.includes('insufficient funds')) {
+          errorMessage = 'Insufficient SOL balance. Need ~0.02 SOL for minting.';
+        }
+      }
+      
+      if (error?.message && !errorMessage.includes('taken')) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage, { id: 'mint-process', duration: 5000 });
     } finally {
       setProcessing(false);
     }

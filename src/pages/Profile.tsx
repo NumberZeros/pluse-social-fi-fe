@@ -10,8 +10,10 @@ import { useProfile } from '../hooks/useProfile';
 import { useIsFollowing, useFollowers, useFollowing, useFollowUser, useUnfollowUser } from '../hooks/useFollow';
 import { ProfileCreationModal } from '../components/profile/ProfileCreationModal';
 import { SendTipModal } from '../components/profile/SendTipModal';
-import { Crown } from 'lucide-react';
+import { Crown, ExternalLink, Copy } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useUserNFTs } from '../hooks/useUserNFTs';
+import { NETWORK } from '../utils/constants';
 
 // Helper to generate avatar from wallet address
 const getAvatarUrl = (address: string) => {
@@ -51,8 +53,16 @@ export function Profile() {
     }
   }, [username, publicKey]);
 
+  // Check if viewing own profile
+  const isOwnProfile = publicKey && targetPublicKey && publicKey.equals(targetPublicKey);
+
   // Fetch real profile from blockchain
   const { profile, isLoading, hasProfile } = useProfile(targetPublicKey || undefined);
+
+  // Fetch user's NFTs (only for own profile)
+  const { data: userNFTs = [], isLoading: isLoadingNFTs } = useUserNFTs(
+    isOwnProfile ? targetPublicKey : undefined
+  );
 
   // Follow hooks
   const { data: isFollowing } = useIsFollowing(
@@ -179,8 +189,6 @@ export function Profile() {
     if (!targetPublicKey || !hasProfile) return;
     setShowSendTip(true);
   };
-
-  const isOwnProfile = publicKey && targetPublicKey && publicKey.equals(targetPublicKey);
 
   // Loading state
   if (isLoading) {
@@ -362,59 +370,132 @@ export function Profile() {
           </div>
         </div>
 
-        {/* Username NFT Card (if own profile and has username) */}
-        {isOwnProfile && displayUser.username && (
+        {/* Username NFT Cards (if own profile) */}
+        {isOwnProfile && (
           <div className="px-6 py-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass-card rounded-2xl p-6 border border-white/10 bg-gradient-to-br from-[var(--color-premium-purple)]/10 to-transparent"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-premium-purple)] to-[var(--color-premium-pink)] flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-white mb-1">Your Username NFT</div>
-                    <div className="text-sm text-gray-400">Minted on Solana</div>
-                  </div>
-                </div>
-                {displayUser.verified && (
-                  <div className="px-3 py-1 rounded-full bg-gradient-to-r from-[var(--color-premium-purple)] to-[var(--color-premium-pink)] text-white text-xs font-bold">
-                    VERIFIED
-                  </div>
-                )}
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
-                  <span className="text-gray-400 text-sm">Username</span>
-                  <span className="text-white font-bold text-lg">@{displayUser.username}</span>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
-                  <span className="text-gray-400 text-sm">Handle</span>
-                  <span className="text-[var(--color-social-cyan)] font-mono text-sm">{displayUser.username}.pulse</span>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
-                  <span className="text-gray-400 text-sm">NFT Type</span>
-                  <span className="text-[var(--color-value-amber)] font-bold text-sm">Premium Username</span>
-                </div>
-              </div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">Your Username NFTs</h2>
+              <span className="text-sm text-gray-400">{userNFTs.length} NFT{userNFTs.length !== 1 ? 's' : ''}</span>
+            </div>
 
-              <div className="mt-4 pt-4 border-t border-white/10">
-                <div className="flex gap-3">
-                  <button className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg font-medium transition-all text-sm">
-                    View on Explorer
-                  </button>
-                  <button className="flex-1 px-4 py-2 bg-gradient-to-r from-[var(--color-value-amber)] to-[var(--color-primary-green)] hover:opacity-90 text-black rounded-lg font-bold transition-all text-sm shadow-lg shadow-[var(--color-value-amber)]/30">
-                    List on Marketplace
-                  </button>
-                </div>
+            {isLoadingNFTs && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-solana-green)] mx-auto"></div>
+                <p className="text-gray-400 mt-2 text-sm">Loading your NFTs...</p>
               </div>
-            </motion.div>
+            )}
+
+            {!isLoadingNFTs && userNFTs.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="glass-card rounded-2xl p-8 border border-white/10 text-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                </div>
+                <p className="text-gray-400 mb-4">You don't have any username NFTs yet</p>
+                <Link to="/">
+                  <button className="px-6 py-2 bg-gradient-to-r from-[var(--color-value-amber)] to-[var(--color-primary-green)] hover:opacity-90 text-black rounded-lg font-bold transition-all shadow-lg">
+                    Mint Your Username
+                  </button>
+                </Link>
+              </motion.div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {userNFTs.map((nft, index) => (
+                <motion.div
+                  key={nft.mint}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="glass-card rounded-2xl p-6 border border-white/10 bg-gradient-to-br from-[var(--color-premium-purple)]/10 to-transparent hover:border-[var(--color-premium-purple)]/50 transition-all"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      {nft.image ? (
+                        <img 
+                          src={nft.image} 
+                          alt={nft.username}
+                          className="w-12 h-12 rounded-xl object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-premium-purple)] to-[var(--color-premium-pink)] flex items-center justify-center">
+                          <span className="text-white font-bold text-xl">
+                            {nft.username.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-lg font-bold text-white mb-1">@{nft.username}</div>
+                        <div className="text-xs text-gray-400">
+                          {nft.mintedAt 
+                            ? new Date(nft.mintedAt * 1000).toLocaleDateString()
+                            : 'Username NFT'}
+                        </div>
+                      </div>
+                    </div>
+                    {nft.category && (
+                      <div className="px-2 py-1 rounded-full bg-gradient-to-r from-[var(--color-premium-purple)] to-[var(--color-premium-pink)] text-white text-xs font-bold capitalize">
+                        {nft.category}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-white/5 text-xs">
+                      <span className="text-gray-400">Mint</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(nft.mint);
+                          toast.success('Mint address copied!');
+                        }}
+                        className="flex items-center gap-1 text-[var(--color-social-cyan)] hover:text-[var(--color-social-cyan-hover)] transition-colors"
+                      >
+                        <span className="font-mono">{nft.mint.slice(0, 6)}...{nft.mint.slice(-4)}</span>
+                        <Copy className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <a
+                      href={`https://explorer.solana.com/address/${nft.mint}${NETWORK !== 'mainnet-beta' ? `?cluster=${NETWORK}` : ''}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg font-medium transition-all text-xs"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Explorer
+                    </a>
+                    <a
+                      href={`https://solscan.io/token/${nft.mint}${NETWORK !== 'mainnet-beta' ? `?cluster=${NETWORK}` : ''}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg font-medium transition-all text-xs"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Solscan
+                    </a>
+                    <a
+                      href={`https://magiceden.io/item-details/${nft.mint}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-[var(--color-value-amber)] to-[var(--color-primary-green)] hover:opacity-90 text-black rounded-lg font-bold transition-all text-xs shadow-lg"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Magic Eden
+                    </a>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         )}
 
