@@ -55,6 +55,10 @@ export function WalletProvider({ children, endpoint, config = {} }: WalletProvid
   const select = useCallback((walletName: WalletName) => {
     const adapter = adapters.find((a) => a.name === walletName);
     if (adapter) {
+      // Clear previous state
+      setPublicKey(null);
+      setConnected(false);
+      // Set new wallet
       setWallet(adapter);
       storage.setSelectedWallet(walletName);
     }
@@ -69,10 +73,17 @@ export function WalletProvider({ children, endpoint, config = {} }: WalletProvid
     try {
       setConnecting(true);
       await wallet.connect();
-      setPublicKey(wallet.publicKey);
-      setConnected(true);
+      
+      // Ensure state is updated even if events don't fire
+      if (wallet.publicKey && wallet.connected) {
+        setPublicKey(wallet.publicKey);
+        setConnected(true);
+      }
     } catch (error: any) {
       console.error('Failed to connect wallet:', error);
+      setPublicKey(null);
+      setConnected(false);
+      
       if (onError && error instanceof WalletError) {
         onError(error);
       }
@@ -190,6 +201,7 @@ export function WalletProvider({ children, endpoint, config = {} }: WalletProvid
     // Listen to connect events
     cleanups.push(
       wallet.on('connect', (pk) => {
+        console.log('[WalletProvider] Connect event:', pk.toBase58());
         setPublicKey(pk);
         setConnected(true);
         setConnecting(false);
@@ -199,6 +211,7 @@ export function WalletProvider({ children, endpoint, config = {} }: WalletProvid
     // Listen to disconnect events
     cleanups.push(
       wallet.on('disconnect', () => {
+        console.log('[WalletProvider] Disconnect event');
         setPublicKey(null);
         setConnected(false);
         setDisconnecting(false);
@@ -208,19 +221,30 @@ export function WalletProvider({ children, endpoint, config = {} }: WalletProvid
     // Listen to account change events
     cleanups.push(
       wallet.on('accountChanged', (pk) => {
+        console.log('[WalletProvider] Account changed:', pk?.toBase58());
         setPublicKey(pk);
+        if (!pk) {
+          setConnected(false);
+        }
       })
     );
 
     // Listen to error events
     cleanups.push(
       wallet.on('error', (error) => {
-        console.error('Wallet error:', error);
+        console.error('[WalletProvider] Wallet error:', error);
         if (onError) {
           onError(error);
         }
       })
     );
+
+    // Initial state sync when wallet changes
+    if (wallet.connected && wallet.publicKey) {
+      console.log('[WalletProvider] Syncing initial wallet state');
+      setPublicKey(wallet.publicKey);
+      setConnected(true);
+    }
 
     return () => {
       cleanups.forEach((cleanup) => cleanup());
@@ -237,11 +261,25 @@ export function WalletProvider({ children, endpoint, config = {} }: WalletProvid
         const adapter = adapters.find((a) => a.name === savedWallet);
         if (adapter) {
           setWallet(adapter);
+          setConnecting(true);
+          
           // Attempt silent connect
-          adapter.connect().catch((error) => {
-            console.warn('Auto-connect failed:', error);
-            storage.clearSelectedWallet();
-          });
+          adapter.connect()
+            .then(() => {
+              // Update state after successful connection
+              if (adapter.publicKey && adapter.connected) {
+                setPublicKey(adapter.publicKey);
+                setConnected(true);
+              }
+              setConnecting(false);
+            })
+            .catch((error) => {
+              console.warn('Auto-connect failed:', error);
+              storage.clearSelectedWallet();
+              setConnecting(false);
+              setPublicKey(null);
+              setConnected(false);
+            });
         }
       }
     }

@@ -5,7 +5,7 @@ import type {
   WalletMetadata,
   WalletName,
 } from '../types';
-import { WalletError, WalletReadyState } from '../types';
+import { WalletReadyState } from '../types';
 
 type EventHandler<E extends keyof WalletAdapterEvents> = WalletAdapterEvents[E];
 

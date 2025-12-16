@@ -23,6 +23,9 @@ interface SolflareProvider {
 
 interface SolflareWindow extends Window {
   solflare?: SolflareProvider;
+  solana?: SolflareProvider & {
+    isSolflare?: boolean;
+  };
 }
 
 declare const window: SolflareWindow;
@@ -58,11 +61,38 @@ export class SolflareWalletAdapter extends BaseWalletAdapter {
       return;
     }
 
+    let provider: SolflareProvider | null = null;
+
+    // Check window.solflare first (preferred for newer versions)
     if (window.solflare?.isSolflare) {
-      this.provider = window.solflare;
+      provider = window.solflare;
+      console.log('[SolflareAdapter] Detected via window.solflare');
+    }
+    // Check window.solana.isSolflare (some versions inject here)
+    else if (window.solana?.isSolflare) {
+      provider = window.solana;
+      console.log('[SolflareAdapter] Detected via window.solana.isSolflare');
+    }
+    // Check if window.solflare exists without isSolflare flag (older versions)
+    else if (window.solflare && typeof window.solflare.connect === 'function') {
+      provider = window.solflare;
+      console.log('[SolflareAdapter] Detected via window.solflare (legacy)');
+    }
+
+    if (provider) {
+      this.provider = provider;
       this.updateReadyState(WalletReadyState.Installed);
+      
+      // Check if already connected
+      if (provider.publicKey) {
+        this._publicKey = new PublicKey(provider.publicKey.toBytes());
+        this._connected = true;
+        console.log('[SolflareAdapter] Already connected:', this._publicKey.toBase58());
+      }
+      
       this.setupEventListeners();
     } else {
+      console.log('[SolflareAdapter] Not detected - available window properties:', Object.keys(window).filter(k => k.includes('sol')));
       this.updateReadyState(WalletReadyState.NotDetected);
     }
   }
@@ -126,14 +156,19 @@ export class SolflareWalletAdapter extends BaseWalletAdapter {
 
     try {
       this._connecting = true;
+      console.log('[SolflareAdapter] Connecting...');
       const response = await this.provider.connect();
       
       if (response.publicKey) {
         this._publicKey = new PublicKey(response.publicKey.toBytes());
         this._connected = true;
+        console.log('[SolflareAdapter] Connected:', this._publicKey.toBase58());
+        
+        // Emit connect event explicitly
         this.emit('connect', this._publicKey);
       }
     } catch (error: any) {
+      console.error('[SolflareAdapter] Connection failed:', error);
       this._connected = false;
       this._publicKey = null;
       

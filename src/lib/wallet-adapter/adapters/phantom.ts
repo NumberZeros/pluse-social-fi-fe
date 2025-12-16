@@ -142,14 +142,19 @@ export class PhantomWalletAdapter extends BaseWalletAdapter {
 
     try {
       this._connecting = true;
+      console.log('[PhantomAdapter] Connecting...');
       const response = await this.provider.connect();
       
       if (response.publicKey) {
         this._publicKey = new PublicKey(response.publicKey.toBytes());
         this._connected = true;
+        console.log('[PhantomAdapter] Connected:', this._publicKey.toBase58());
+        
+        // Emit connect event explicitly
         this.emit('connect', this._publicKey);
       }
     } catch (error: any) {
+      console.error('[PhantomAdapter] Connection failed:', error);
       this._connected = false;
       this._publicKey = null;
       

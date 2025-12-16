@@ -20,12 +20,34 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     new PhantomWalletAdapter(),
     new SolflareWalletAdapter(),
   ];
+  
+  // Log wallet detection status
+  useEffect(() => {
+    if (isOpen) {
+      console.log('[WalletModal] Wallet detection status:');
+      wallets.forEach(wallet => {
+        console.log(`  - ${wallet.name}: ${wallet.readyState} (connected: ${wallet.connected})`);
+      });
+    }
+  }, [isOpen]);
 
   const handleWalletSelect = async (walletName: string) => {
-    select(walletName as any);
-    onClose();
-    // Connect will be triggered automatically after selection
-    setTimeout(() => connect(), 100);
+    try {
+      console.log('[WalletModal] Selecting wallet:', walletName);
+      select(walletName as any);
+      
+      // Small delay to let state update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('[WalletModal] Attempting to connect...');
+      await connect();
+      console.log('[WalletModal] Connection successful');
+      
+      onClose();
+    } catch (error) {
+      console.error('[WalletModal] Failed to connect wallet:', error);
+      // Don't close modal on error so user can try again
+    }
   };
 
   const getStatusBadge = (readyState: WalletReadyState) => {
