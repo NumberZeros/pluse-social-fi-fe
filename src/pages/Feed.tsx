@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useEffect, useRef } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '../lib/wallet-adapter';
 import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { CreatePost } from '../components/feed/CreatePost';

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '../lib/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
 import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';

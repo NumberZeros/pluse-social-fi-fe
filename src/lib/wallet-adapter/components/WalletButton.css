@@ -1,0 +1,269 @@
+.wallet-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.wallet-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.wallet-button:active {
+  transform: translateY(0);
+}
+
+.wallet-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.wallet-button--connected {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.wallet-button__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.375rem;
+}
+
+.wallet-button__text {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+/* Modal Styles */
+.wallet-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.wallet-modal {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 28rem;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wallet-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.wallet-modal__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.wallet-modal__close {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.wallet-modal__close:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.wallet-modal__content {
+  padding: 1rem;
+  max-height: calc(90vh - 5rem);
+  overflow-y: auto;
+}
+
+.wallet-modal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.wallet-option {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  width: 100%;
+  text-align: left;
+}
+
+.wallet-option:hover {
+  border-color: #667eea;
+  background-color: #f9fafb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.wallet-option:active {
+  transform: translateY(0);
+}
+
+.wallet-option--not-installed {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wallet-option--not-installed:hover {
+  border-color: #e5e7eb;
+  background-color: white;
+  transform: none;
+  box-shadow: none;
+}
+
+.wallet-option__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+}
+
+.wallet-option__info {
+  flex: 1;
+}
+
+.wallet-option__name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.wallet-option__status {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.wallet-option__badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.wallet-option__badge--installed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.wallet-option__badge--not-detected {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.wallet-option__download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  color: #667eea;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.wallet-option__download:hover {
+  color: #764ba2;
+}
+
+@media (prefers-color-scheme: dark) {
+  .wallet-modal {
+    background: #1f2937;
+  }
+
+  .wallet-modal__header {
+    border-bottom-color: #374151;
+  }
+
+  .wallet-modal__title {
+    color: #f9fafb;
+  }
+
+  .wallet-modal__close {
+    color: #9ca3af;
+  }
+
+  .wallet-modal__close:hover {
+    background-color: #374151;
+    color: #f9fafb;
+  }
+
+  .wallet-option {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .wallet-option:hover {
+    background-color: #374151;
+    border-color: #667eea;
+  }
+
+  .wallet-option__name {
+    color: #f9fafb;
+  }
+
+  .wallet-option__status {
+    color: #9ca3af;
+  }
+}

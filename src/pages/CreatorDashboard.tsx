@@ -13,7 +13,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import useSubscriptionStore from '../stores/useSubscriptionStore';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '../lib/wallet-adapter';
 import { useUserStore } from '../stores/useUserStore';
 import toast from 'react-hot-toast';
 

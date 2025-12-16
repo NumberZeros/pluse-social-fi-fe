@@ -13,7 +13,7 @@ import {
   XCircle,
 } from 'lucide-react';
 
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '../lib/wallet-adapter';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 

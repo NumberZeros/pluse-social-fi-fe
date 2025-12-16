@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { WalletButton } from '../lib/wallet-adapter/components';
 import { motion } from 'framer-motion';
 import { PulseMark } from '../components/icons/PulseIcons';
 import Footer from '../components/layout/Footer';
@@ -100,7 +100,7 @@ export default function Why() {
             Airdrop
           </Link>
         </div>
-        <WalletMultiButton className="!px-6 !py-3 !bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[var(--color-solana-green)] !transition-colors" />
+        <WalletButton className="!px-6 !py-3 !bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[var(--color-solana-green)] !transition-colors" />
       </nav>
 
       {/* Content */}

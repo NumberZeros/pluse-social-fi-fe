@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { useSolanaIdentity } from '../hooks/useSolana';
+import { useWallet } from '../lib/wallet-adapter';
+import { WalletButton } from '../lib/wallet-adapter/components';
+import { useSocialFi } from '../hooks/useSocialFi';
 import { toast } from 'react-hot-toast';
 import { useUIStore } from '../stores/useUIStore';
 import { useUserStore } from '../stores/useUserStore';
@@ -12,8 +12,8 @@ import { IconIdentity, PulseMark } from '../components/icons/PulseIcons';
 import Footer from '../components/layout/Footer';
 
 export function Landing() {
-  const { connected, publicKey } = useWallet();
-  const { mintUsername } = useSolanaIdentity();
+  const { connected, publicKey, wallet } = useWallet();
+  const { mintUsername } = useSocialFi();
   const {
     mintUsernameModal,
     openMintUsernameModal,
@@ -56,16 +56,55 @@ export function Landing() {
 
     setProcessing(true);
     try {
-      const success = await mintUsername(username);
-      if (success) {
-        setUserUsername(username);
-        updateAirdropProgress('username', 1);
-        markDayActive();
-        closeMintUsernameModal();
-        setUsername('');
+      // ========== STEP 1: Upload metadata to Arweave ==========
+      toast.loading('📤 Uploading metadata...', { id: 'mint-process' });
+      
+      const { getMetadataService } = await import(
+        '../services/metadata-upload'
+      );
+      const uploadService = getMetadataService(wallet!);
+
+      const metadataUri = await uploadService.uploadUsernameMetadata({
+        username,
+        category: 'custom',
+        mintedAt: Math.floor(Date.now() / 1000),
+        owner: publicKey!.toString(),
+      });
+
+      console.log('✅ Metadata uploaded:', metadataUri);
+
+      // ========== STEP 2: Mint NFT on-chain ==========
+      const result = await mintUsername(username, metadataUri);
+
+      if (!result) {
+        toast.error('Failed to mint NFT', { id: 'mint-process' });
+        setProcessing(false);
+        return;
       }
+
+      console.log('✅ NFT minted:', result.signature);
+      console.log('✅ NFT address:', result.mint.toString());
+      console.log('✅ Collection set:', result.collectionSignature);
+
+      // ========== STEP 3: Update UI & stores ==========
+      setUserUsername(username);
+      updateAirdropProgress('username', 1);
+      markDayActive();
+      closeMintUsernameModal();
+      setUsername('');
+
+      toast.success(
+        '🎉 Username minted! It will appear on Magic Eden in 5-10 minutes.',
+        {
+          id: 'mint-process',
+          duration: 5000,
+        }
+      );
     } catch (error) {
       console.error('Mint failed:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to mint username';
+      toast.error(errorMessage, { id: 'mint-process' });
     } finally {
       setProcessing(false);
     }
@@ -117,7 +156,7 @@ export function Landing() {
             Airdrop
           </Link>
         </div>
-        <WalletMultiButton className="!px-6 !py-3 !bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[var(--color-solana-green)] !transition-colors" />
+        <WalletButton className="!px-6 !py-3 !bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[var(--color-solana-green)] !transition-colors" />
       </nav>
 
       {/* Hero Section */}
@@ -438,6 +477,33 @@ export function Landing() {
             </div>
 
             <div className="space-y-4">
+              {isProcessing && (
+                <div className="bg-white/5 rounded-xl p-4 space-y-2 mb-4 border border-[var(--color-solana-green)]/20">
+                  <div className="text-sm font-medium text-[var(--color-solana-green)] mb-3">Processing...</div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-300">
+                      <svg className="animate-spin h-4 w-4 text-[var(--color-solana-green)]" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      <span>📤 Uploading metadata to Arweave...</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <svg className="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M9 12l2 2 4-4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span>⚙️ Minting NFT on-chain...</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <svg className="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M9 12l2 2 4-4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span>🏛️ Setting collection...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm text-gray-400 mb-2 font-medium">
                   Choose Your Username

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '../../lib/wallet-adapter';
 import { useUserStore } from '../../stores/useUserStore';
 import { useAirdropStore } from '../../stores/useAirdropStore';
 import useSubscriptionStore from '../../stores/useSubscriptionStore';

@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import type { AnchorWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection, useAnchorWallet } from '../lib/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
 import { toast } from 'react-hot-toast';
 import { SocialFiSDK } from '../services/socialfi-sdk';
@@ -8,21 +7,23 @@ import { SocialFiSDK } from '../services/socialfi-sdk';
 /**
  * Main hook for interacting with Social-Fi smart contract
  * Provides all contract methods with error handling and notifications
+ * Updated to use custom wallet adapter
  */
 export function useSocialFi() {
-  const { publicKey, wallet } = useWallet();
+  const { publicKey } = useWallet();
   const { connection } = useConnection();
+  const anchorWallet = useAnchorWallet();
 
   // Create SDK instance
   const sdk = useMemo(() => {
-    if (!wallet || !publicKey) return null;
+    if (!anchorWallet || !publicKey) return null;
     try {
-      return new SocialFiSDK(wallet.adapter as unknown as AnchorWallet, connection);
+      return new SocialFiSDK(anchorWallet, connection);
     } catch (error) {
       console.error('Failed to create SDK:', error);
       return null;
     }
-  }, [wallet, publicKey, connection]);
+  }, [anchorWallet, publicKey, connection]);
 
   // ==================== PROFILE OPERATIONS ====================
 
@@ -188,6 +189,65 @@ export function useSocialFi() {
     }
   }, [sdk]);
 
+  // ==================== MARKETPLACE (Username NFT) ====================
+
+  const mintUsername = useCallback(
+    async (username: string, metadataUri: string) => {
+      if (!sdk) {
+        toast.error('Please connect your wallet');
+        return null;
+      }
+
+      try {
+        toast.loading('⚙️ Minting username NFT...', { id: 'mint-username' });
+        const result = await sdk.mintUsername(username, metadataUri);
+        
+        toast.loading('🏛️ Setting collection...', { id: 'mint-username' });
+        const collectionSig = await sdk.setCollectionForUsername(
+          result.nft,
+          result.mint
+        );
+
+        toast.success('🎉 Username NFT minted! Check Magic Eden in 5-10 min', {
+          id: 'mint-username',
+          duration: 5000,
+        });
+
+        return {
+          nft: result.nft,
+          mint: result.mint,
+          signature: result.signature,
+          collectionSignature: collectionSig,
+        };
+      } catch (error: any) {
+        console.error('Mint username error:', error);
+        const message = parseAnchorError(error);
+        toast.error(message, { id: 'mint-username' });
+        throw error;
+      }
+    },
+    [sdk]
+  );
+
+  const setCollectionForUsername = useCallback(
+    async (usernameNft: PublicKey, mint: PublicKey) => {
+      if (!sdk) {
+        toast.error('Please connect your wallet');
+        return null;
+      }
+
+      try {
+        return await sdk.setCollectionForUsername(usernameNft, mint);
+      } catch (error: any) {
+        console.error('Set collection error:', error);
+        const message = parseAnchorError(error);
+        toast.error(message, { id: 'set-collection' });
+        throw error;
+      }
+    },
+    [sdk]
+  );
+
   return {
     // SDK instance
     sdk,
@@ -204,6 +264,10 @@ export function useSocialFi() {
     sellShares,
     getCreatorShares,
     calculateSharePrice,
+
+    // Marketplace operations (NEW)
+    mintUsername,
+    setCollectionForUsername,
 
     // Utilities
     getBalance,

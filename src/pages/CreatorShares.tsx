@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '../lib/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
 
 import { Navbar } from '../components/layout/Navbar';

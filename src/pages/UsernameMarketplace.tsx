@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '../lib/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
 import { useQuery } from '@tanstack/react-query';
 import { Navbar } from '../components/layout/Navbar';

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '../lib/wallet-adapter';
 import {
   useExportStore,
   type ExportDataType,
