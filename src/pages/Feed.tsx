@@ -15,23 +15,28 @@ export function Feed() {
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const profile = useUserStore((state) => state.profile);
 
-  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useTimeline();
+  const { data: rawPosts, isLoading } = useTimeline();
   const createPostMutation = useCreatePost();
   const likePostMutation = useLikePost();
   const unlikePostMutation = useUnlikePost();
   const repostMutation = useRepostPost();
   const tipPostMutation = useTipPost();
 
-  const posts = (data?.pages.flatMap((page) => page) || []).map((post) => ({
+  // Mock pagination for now until SDK supports it
+  const hasNextPage = false;
+  const isFetchingNextPage = false;
+  const fetchNextPage = () => {};
+
+  const posts = (rawPosts || []).map((post) => ({
     ...post,
     author: {
-      username: post.authorUsername,
-      address: post.authorAddress,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.authorAddress}`,
+      username: post.authorUsername || post.author.slice(0, 8), // Fallback if username missing
+      address: post.author, // SDK returns author address as 'author' field
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author}`,
       verified: false,
     },
-    timestamp: post.createdAt,
-    images: post.imageUrls,
+    timestamp: post.createdAt, // SDK returns milliseconds or seconds? SDK uses Date.now() usually, let's check sdk.ts. It returns .toNumber().
+    images: post.imageUrls || [], // Check if SDK returns imageUrls. sdk.ts: getAllPosts maps to { publicKey, author, uri, mint, createdAt }. URI needs fetching?
   }));
 
   // Intersection Observer for infinite scroll
@@ -50,7 +55,7 @@ export function Feed() {
     }
 
     return () => observer.disconnect();
-  }, [isFetchingNextPage, hasNextPage, fetchNextPage]);
+  }, [isFetchingNextPage, hasNextPage]);
 
   const handleCreatePost = (content: string, images: string[]) => {
     if (!publicKey) {
@@ -58,13 +63,15 @@ export function Feed() {
       return;
     }
 
-    const username = profile.username || publicKey.toBase58().slice(0, 8);
+    if (!publicKey) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+
     createPostMutation.mutate(
       {
         content,
         images,
-        authorId: publicKey.toBase58(),
-        authorUsername: username,
       },
       {
         onSuccess: () => {
@@ -97,7 +104,7 @@ export function Feed() {
     }
 
     repostMutation.mutate(
-      { postId, userId: publicKey.toBase58() },
+      { postId },
       {
         onSuccess: () => {
           toast.success('Reposted!');

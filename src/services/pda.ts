@@ -250,4 +250,64 @@ export class PDAs {
       PROGRAM_ID
     );
   }
+
+  /**
+   * Get Follow PDA
+   */
+  static getFollow(follower: PublicKey, following: PublicKey): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('follow'),
+        follower.toBuffer(),
+        following.toBuffer()
+      ],
+      PROGRAM_ID
+    );
+  }
+
+  /**
+   * Get Like PDA
+   */
+  static getLike(user: PublicKey, post: PublicKey): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('like'),
+        user.toBuffer(),
+        post.toBuffer()
+      ],
+      PROGRAM_ID
+    );
+  }
+
+  /**
+   * Get Repost PDA
+   */
+  static getRepost(user: PublicKey, originalPost: PublicKey): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('repost'),
+        user.toBuffer(),
+        originalPost.toBuffer()
+      ],
+      PROGRAM_ID
+    );
+  }
+
+  /**
+   * Get Comment PDA
+   */
+  static getComment(post: PublicKey, author: PublicKey, nonce: number): [PublicKey, number] {
+    const nonceBuffer = Buffer.alloc(8);
+    // @ts-ignore
+    nonceBuffer.writeBigUInt64LE(BigInt(nonce), 0);
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('comment'),
+        post.toBuffer(),
+        author.toBuffer(),
+        nonceBuffer
+      ],
+      PROGRAM_ID
+    );
+  }
 }

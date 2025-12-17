@@ -1,25 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
 import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
-
+import { useConnection } from '../lib/wallet-adapter';
+import { NFTService } from '../services/nft-service';
 
 export interface UsernameAccount {
   mint: string;
   username: string;
   owner: string;
   publicKey: string;
-  image?: string; // Optional for compatibility
-  category?: string; // Optional for compatibility
-  mintedAt?: number; // Optional for compatibility
-  // Add other fields if needed for UI, but these are the core ones from on-chain state
+  image?: string;
+  category?: string;
+  mintedAt?: number;
 }
 
 /**
- * Hook to fetch user's username NFTs directly from Anchor program
- * This is more robust than fetching Metaplex metadata which might be down/broken (Arweave)
+ * Hook to fetch user's username NFTs with full metadata
+ * Fetches from Anchor program + Metaplex metadata for images
  */
 export function useUserNFTs(owner?: PublicKey | string) {
   const { sdk } = useSocialFi();
+  const { connection } = useConnection();
 
   return useQuery<UsernameAccount[], Error>({
     queryKey: ['userNFTs', owner?.toString()],
@@ -30,32 +31,68 @@ export function useUserNFTs(owner?: PublicKey | string) {
 
       try {
         // Fetch all UsernameNft accounts owned by this wallet
-        // We filter by the 8-byte discriminator + owner field (32 bytes)
-        // Standard Anchor account layout: [discriminator (8)] [owner (32)] ...
         const accounts = await sdk.program.account.usernameNft.all([
           {
             memcmp: {
-              offset: 8, // Discriminator is 8 bytes
+              offset: 8,
               bytes: ownerPubkey.toBase58(),
             },
           },
         ]);
 
-        return accounts.map((acc) => ({
-          publicKey: acc.publicKey.toBase58(),
-          mint: acc.account.mint.toBase58(),
-          username: acc.account.username,
-          owner: acc.account.owner.toBase58(),
-        }));
+        // Create NFT service to fetch metadata
+        const nftService = new NFTService(connection);
 
+        // Fetch metadata for each NFT
+        const nftsWithMetadata = await Promise.all(
+          accounts.map(async (acc) => {
+            const mint = new PublicKey(acc.account.mint);
+            const baseData: UsernameAccount = {
+              publicKey: acc.publicKey.toBase58(),
+              mint: acc.account.mint.toBase58(),
+              username: acc.account.username,
+              owner: acc.account.owner.toBase58(),
+            };
+
+            try {
+              // Try to fetch Metaplex metadata
+              const metadataUri = await nftService.getMetadataUri(mint);
+              if (metadataUri) {
+                const metadata = await nftService.fetchMetadata(metadataUri);
+                if (metadata) {
+                  // Get category from attributes
+                  const categoryAttr = metadata.attributes?.find(
+                    (attr) => attr.trait_type === 'Category'
+                  );
+                  // Get minted timestamp
+                  const mintedAtAttr = metadata.attributes?.find(
+                    (attr) => attr.trait_type === 'Minted At'
+                  );
+
+                  return {
+                    ...baseData,
+                    image: metadata.image,
+                    category: categoryAttr?.value as string | undefined,
+                    mintedAt: mintedAtAttr?.value as number | undefined,
+                  };
+                }
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch metadata for ${mint.toBase58()}:`, error);
+            }
+
+            return baseData;
+          })
+        );
+
+        return nftsWithMetadata;
       } catch (error) {
         console.error('Error fetching user username NFTs:', error);
         return [];
       }
     },
     enabled: !!owner && !!sdk,
-    staleTime: 30000, 
+    staleTime: 60000, // Cache for 1 minute
     refetchOnWindowFocus: false,
   });
 }
-

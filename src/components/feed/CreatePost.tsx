@@ -4,7 +4,7 @@ import { useWallet } from '../../lib/wallet-adapter';
 import { useUserStore } from '../../stores/useUserStore';
 import { useAirdropStore } from '../../stores/useAirdropStore';
 import useSubscriptionStore from '../../stores/useSubscriptionStore';
-import { useMintPost } from '../../hooks/usePost';
+import { usePost } from '../../hooks/usePost';
 import { toast } from 'react-hot-toast';
 import { Crown, Sparkles } from 'lucide-react';
 
@@ -28,7 +28,7 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
   const [isSubscriberOnly, setIsSubscriberOnly] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string>('');
   const [mintAsNft, setMintAsNft] = useState(false);
-  const mintPostMutation = useMintPost();
+  const { createPost, mintPost, loading: postLoading } = usePost();
   const incrementPostsCount = useUserStore((state) => state.incrementPostsCount);
   const updateAirdropProgress = useAirdropStore((state) => state.updateProgress);
   const markDayActive = useUserStore((state) => state.markDayActive);
@@ -43,15 +43,14 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
   const handlePost = async () => {
     if (content.trim()) {
       if (mintAsNft) {
-        try {
-            await mintPostMutation.mutateAsync({
-                title: content.slice(0, 32),
-                uri: "https://arweave.net/placeholder", // In a real app, upload content to Arweave here
-            });
-        } catch (e) {
-            console.error("Minting failed", e);
-            return;
-        }
+        // First create the post PDA
+        const uri = "https://arweave.net/placeholder"; // In a real app, upload content to Arweave here
+        const postResult = await createPost(uri);
+        if (!postResult) return;
+
+        // Then mint as NFT
+        const mintResult = await mintPost(postResult.post, content.slice(0, 32));
+        if (!mintResult) return;
       }
 
       onPost?.(content, images, isSubscriberOnly, selectedTierData?.name, groupId);

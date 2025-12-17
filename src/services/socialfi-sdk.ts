@@ -7,7 +7,7 @@ import type { AnchorWallet } from '../lib/wallet-adapter';
 import idlJson from '../idl/social_fi_contract.json';
 import type { SocialFiContract } from '../idl/social_fi_contract';
 import { PDAs } from './pda';
-import { RPC_ENDPOINTS, NETWORK, DEFAULT_COMMITMENT } from '../utils/constants';
+import { RPC_ENDPOINTS, NETWORK, DEFAULT_COMMITMENT, TOKEN_METADATA_PROGRAM_ID } from '../utils/constants';
 
 /**
  * Social-Fi SDK
@@ -138,6 +138,87 @@ export class SocialFiSDK {
       .rpc();
 
     return tx;
+  }
+
+
+  // ==================== POSTS ====================
+
+  /**
+   * Create a new post (PDA only, lightweight)
+   * @param uri - Metadata URI (e.g., Arweave/IPFS link)
+   */
+  async createPost(uri: string) {
+    const [post] = PDAs.getPost(this.wallet.publicKey, uri);
+    const [platformConfig] = PDAs.getPlatformConfig();
+
+    const tx = await this.program.methods
+      .createPost(uri)
+      .accounts({
+        post,
+        author: this.wallet.publicKey,
+        platformConfig,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    return { signature: tx, post };
+  }
+
+  /**
+   * Mint a post as an NFT
+   * @param postPubkey - The Post PDA to mint
+   * @param title - Title for the NFT (Metadata)
+   */
+  async mintPost(postPubkey: PublicKey, title: string) {
+    // Generate a new Mint Keypair
+    const mintKeypair = Keypair.generate();
+    const mint = mintKeypair.publicKey;
+
+    // Get ATA for the author
+    const tokenAccount = await getAssociatedTokenAddress(
+      mint,
+      this.wallet.publicKey
+    );
+
+    // Get Metaplex PDAs
+    const [metadata] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('metadata'),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mint.toBuffer(),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    );
+
+    const [masterEdition] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('metadata'),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mint.toBuffer(),
+        Buffer.from('edition'),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    );
+
+    const tx = await this.program.methods
+      .mintPost(title)
+      .accounts({
+        post: postPubkey,
+        mint,
+        tokenAccount,
+        metadata,
+        masterEdition,
+        author: this.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+        rent: SYSVAR_RENT_PUBKEY,
+      } as any)
+      .signers([mintKeypair])
+      .rpc();
+
+    return { signature: tx, mint };
   }
 
   // ==================== USER PROFILE ====================
@@ -331,11 +412,277 @@ export class SocialFiSDK {
     return totalCost / 1e9; // Convert lamports to SOL
   }
 
-  // ==================== ADVANCED FEATURES ====================
-  // TODO: Implement subscriptions, groups, governance when needed
-  // These features require more complex setup and are not part of MVP
+  // ==================== SOCIAL INTERACTIONS ====================
+
+  /**
+   * Follow a user
+   * @param followingPubkey - User to follow
+   */
+  async followUser(followingPubkey: PublicKey) {
+    const [follow] = PDAs.getFollow(this.wallet.publicKey, followingPubkey);
+    const [followerProfile] = PDAs.getUserProfile(this.wallet.publicKey);
+    const [followingProfile] = PDAs.getUserProfile(followingPubkey);
+
+    const tx = await this.program.methods
+      .followUser()
+      .accounts({
+        follow,
+        follower: this.wallet.publicKey,
+        following: followingPubkey,
+        followerProfile,
+        followingProfile,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    return { signature: tx, follow };
+  }
+
+  /**
+   * Unfollow a user
+   * @param followingPubkey - User to unfollow
+   */
+  async unfollowUser(followingPubkey: PublicKey) {
+    const [follow] = PDAs.getFollow(this.wallet.publicKey, followingPubkey);
+    const [followerProfile] = PDAs.getUserProfile(this.wallet.publicKey);
+    const [followingProfile] = PDAs.getUserProfile(followingPubkey);
+
+    const tx = await this.program.methods
+      .unfollowUser()
+      .accounts({
+        follow,
+        follower: this.wallet.publicKey,
+        following: followingPubkey,
+        followerProfile,
+        followingProfile,
+      } as any)
+      .rpc();
+
+    return { signature: tx };
+  }
+
+  /**
+   * Like a post
+   * @param postPubkey - Post PDA to like
+   */
+  async likePost(postPubkey: PublicKey) {
+    const [like] = PDAs.getLike(this.wallet.publicKey, postPubkey);
+
+    const tx = await this.program.methods
+      .likePost()
+      .accounts({
+        like,
+        user: this.wallet.publicKey,
+        post: postPubkey,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    return { signature: tx, like };
+  }
+
+  /**
+   * Unlike a post
+   * @param postPubkey - Post PDA to unlike
+   */
+  async unlikePost(postPubkey: PublicKey) {
+    const [like] = PDAs.getLike(this.wallet.publicKey, postPubkey);
+
+    const tx = await this.program.methods
+      .unlikePost()
+      .accounts({
+        like,
+        user: this.wallet.publicKey,
+        post: postPubkey,
+      } as any)
+      .rpc();
+
+    return { signature: tx };
+  }
+
+  /**
+   * Repost a post
+   * @param originalPostPubkey - Original post PDA to repost
+   */
+  async createRepost(originalPostPubkey: PublicKey) {
+    const [repost] = PDAs.getRepost(this.wallet.publicKey, originalPostPubkey);
+
+    const tx = await this.program.methods
+      .createRepost()
+      .accounts({
+        repost,
+        user: this.wallet.publicKey,
+        originalPost: originalPostPubkey,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    return { signature: tx, repost };
+  }
+
+  /**
+   * Create a comment on a post
+   * @param postPubkey - Post PDA to comment on
+   * @param content - Comment content (max 280 chars)
+   * @param nonce - Unique nonce for this comment (e.g., Date.now())
+   */
+  async createComment(postPubkey: PublicKey, content: string, nonce: number = Date.now()) {
+    const [comment] = PDAs.getComment(postPubkey, this.wallet.publicKey, nonce);
+
+    const tx = await this.program.methods
+      .createComment(new BN(nonce), content)
+      .accounts({
+        comment,
+        author: this.wallet.publicKey,
+        post: postPubkey,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    return { signature: tx, comment };
+  }
+
+  /**
+   * Check if user is following another user
+   */
+  async isFollowing(followingPubkey: PublicKey): Promise<boolean> {
+    const [follow] = PDAs.getFollow(this.wallet.publicKey, followingPubkey);
+    try {
+      await this.program.account.follow.fetch(follow);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Check if user has liked a post
+   */
+  async hasLikedPost(postPubkey: PublicKey): Promise<boolean> {
+    const [like] = PDAs.getLike(this.wallet.publicKey, postPubkey);
+    try {
+      await this.program.account.like.fetch(like);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Get all posts from blockchain
+   */
+  async getAllPosts() {
+    try {
+      const posts = await this.program.account.post.all();
+      return posts.map(p => ({
+        publicKey: p.publicKey.toBase58(),
+        author: p.account.author.toBase58(),
+        uri: p.account.uri,
+        mint: p.account.mint?.toBase58() || null,
+        createdAt: p.account.createdAt.toNumber(),
+      }));
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get all followers of a user
+   */
+  async getFollowers(userPubkey: PublicKey) {
+    try {
+      const follows = await this.program.account.follow.all([
+        {
+          memcmp: {
+            offset: 8 + 32, // Skip discriminator (8) + follower (32)
+            bytes: userPubkey.toBase58(),
+          },
+        },
+      ]);
+      return follows.map(f => ({
+        follower: f.account.follower.toBase58(),
+        createdAt: f.account.createdAt.toNumber(),
+      }));
+    } catch (error) {
+      console.error('Error fetching followers:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get all users a user is following
+   */
+  async getFollowing(userPubkey: PublicKey) {
+    try {
+      const follows = await this.program.account.follow.all([
+        {
+          memcmp: {
+            offset: 8, // Skip discriminator
+            bytes: userPubkey.toBase58(),
+          },
+        },
+      ]);
+      return follows.map(f => ({
+        following: f.account.following.toBase58(),
+        createdAt: f.account.createdAt.toNumber(),
+      }));
+    } catch (error) {
+      console.error('Error fetching following:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get likes for a post
+   */
+  async getPostLikes(postPubkey: PublicKey) {
+    try {
+      const likes = await this.program.account.like.all([
+        {
+          memcmp: {
+            offset: 8 + 32, // Skip discriminator (8) + user (32)
+            bytes: postPubkey.toBase58(),
+          },
+        },
+      ]);
+      return likes.map(l => ({
+        user: l.account.user.toBase58(),
+        createdAt: l.account.createdAt.toNumber(),
+      }));
+    } catch (error) {
+      console.error('Error fetching likes:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get comments for a post
+   */
+  async getPostComments(postPubkey: PublicKey) {
+    try {
+      const comments = await this.program.account.comment.all([
+        {
+          memcmp: {
+            offset: 8 + 32, // Skip discriminator (8) + author (32)
+            bytes: postPubkey.toBase58(),
+          },
+        },
+      ]);
+      return comments.map(c => ({
+        publicKey: c.publicKey.toBase58(),
+        author: c.account.author.toBase58(),
+        content: c.account.content,
+        createdAt: c.account.createdAt.toNumber(),
+      }));
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      return [];
+    }
+  }
 
   // ==================== UTILITIES ====================
+
 
   /**
    * Get program ID
@@ -1175,70 +1522,6 @@ export class SocialFiSDK {
   async isUserBanned(_userPubkey: PublicKey): Promise<boolean> {
     // Note: Ban system not yet implemented
     return false;
-  }
-  // ==================== POSTS ====================
-
-  /**
-   * Mint a post as NFT
-   * @param title - Post title
-   * @param uri - Metadata URI
-   */
-  async createPost(title: string, uri: string) {
-    const [post] = PDAs.getPost(this.wallet.publicKey, uri);
-    
-    // Generate new mint keypair
-    const mint = Keypair.generate();
-    
-    // Get associated token account for author
-    const tokenAccount = await getAssociatedTokenAddress(
-      mint.publicKey,
-      this.wallet.publicKey
-    );
-    
-    // Metaplex metadata PDA
-    const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
-    const [metadata] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('metadata'),
-        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-        mint.publicKey.toBuffer(),
-      ],
-      TOKEN_METADATA_PROGRAM_ID
-    );
-    
-    // Master edition PDA
-    const [masterEdition] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('metadata'),
-        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-        mint.publicKey.toBuffer(),
-        Buffer.from('edition'),
-      ],
-      TOKEN_METADATA_PROGRAM_ID
-    );
-    
-    const [platformConfig] = PDAs.getPlatformConfig();
-
-    const tx = await (this.program.methods as any)
-      .createPost(title, uri)
-      .accounts({
-        post,
-        mint: mint.publicKey,
-        tokenAccount,
-        metadata,
-        masterEdition,
-        author: this.wallet.publicKey,
-        platformConfig,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-        tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
-        rent: SYSVAR_RENT_PUBKEY,
-      } as any)
-      .signers([mint])
-      .rpc();
-
-    return { signature: tx, post, mint: mint.publicKey };
   }
 }
 
