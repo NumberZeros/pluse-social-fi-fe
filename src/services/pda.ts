@@ -236,4 +236,18 @@ export class PDAs {
       PROGRAM_ID
     );
   }
+
+  /**
+   * Get Post PDA
+   */
+  static getPost(author: PublicKey, uri: string): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('post'),
+        author.toBuffer(),
+        Buffer.from(uri)
+      ],
+      PROGRAM_ID
+    );
+  }
 }

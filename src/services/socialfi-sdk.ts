@@ -989,11 +989,31 @@ export class SocialFiSDK {
   /**
    * Delist username from marketplace
    */
-  async delistUsername(_listingPubkey: PublicKey) {
-    // Note: delistUsername instruction may not be available in current contract
-    // Use accept_offer rejection or similar instead
-    throw new Error('Delist username not yet implemented in contract');
+  /**
+   * Cancel listing (delist username)
+   */
+  async cancelListing(listingPubkey: PublicKey) {
+    // Fetch listing to get username for PDA
+    const listingAccount = await this.program.account.listing.fetch(listingPubkey);
+    const [usernameNft] = PDAs.getUsernameNFT(listingAccount.username);
+
+    const tx = await (this.program.methods as any)
+      .cancelListing()
+      .accounts({
+        usernameNft,
+        listing: listingPubkey,
+        seller: this.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    return tx;
   }
+
+  /**
+   * Alias for cancelListing
+   */
+
 
   /**
    * Make offer on username listing
@@ -1155,6 +1175,70 @@ export class SocialFiSDK {
   async isUserBanned(_userPubkey: PublicKey): Promise<boolean> {
     // Note: Ban system not yet implemented
     return false;
+  }
+  // ==================== POSTS ====================
+
+  /**
+   * Mint a post as NFT
+   * @param title - Post title
+   * @param uri - Metadata URI
+   */
+  async createPost(title: string, uri: string) {
+    const [post] = PDAs.getPost(this.wallet.publicKey, uri);
+    
+    // Generate new mint keypair
+    const mint = Keypair.generate();
+    
+    // Get associated token account for author
+    const tokenAccount = await getAssociatedTokenAddress(
+      mint.publicKey,
+      this.wallet.publicKey
+    );
+    
+    // Metaplex metadata PDA
+    const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+    const [metadata] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('metadata'),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mint.publicKey.toBuffer(),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    );
+    
+    // Master edition PDA
+    const [masterEdition] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('metadata'),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mint.publicKey.toBuffer(),
+        Buffer.from('edition'),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    );
+    
+    const [platformConfig] = PDAs.getPlatformConfig();
+
+    const tx = await (this.program.methods as any)
+      .createPost(title, uri)
+      .accounts({
+        post,
+        mint: mint.publicKey,
+        tokenAccount,
+        metadata,
+        masterEdition,
+        author: this.wallet.publicKey,
+        platformConfig,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+        rent: SYSVAR_RENT_PUBKEY,
+      } as any)
+      .signers([mint])
+      .rpc();
+
+    return { signature: tx, post, mint: mint.publicKey };
   }
 }
 

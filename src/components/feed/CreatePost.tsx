@@ -4,8 +4,9 @@ import { useWallet } from '../../lib/wallet-adapter';
 import { useUserStore } from '../../stores/useUserStore';
 import { useAirdropStore } from '../../stores/useAirdropStore';
 import useSubscriptionStore from '../../stores/useSubscriptionStore';
+import { useMintPost } from '../../hooks/usePost';
 import { toast } from 'react-hot-toast';
-import { Crown } from 'lucide-react';
+import { Crown, Sparkles } from 'lucide-react';
 
 interface CreatePostProps {
   onPost?: (
@@ -26,6 +27,8 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSubscriberOnly, setIsSubscriberOnly] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string>('');
+  const [mintAsNft, setMintAsNft] = useState(false);
+  const mintPostMutation = useMintPost();
   const incrementPostsCount = useUserStore((state) => state.incrementPostsCount);
   const updateAirdropProgress = useAirdropStore((state) => state.updateProgress);
   const markDayActive = useUserStore((state) => state.markDayActive);
@@ -37,8 +40,20 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
   const myTiers = publicKey ? getTiersByCreator(publicKey.toBase58()) : [];
   const selectedTierData = myTiers.find((t) => t.id === selectedTier);
 
-  const handlePost = () => {
+  const handlePost = async () => {
     if (content.trim()) {
+      if (mintAsNft) {
+        try {
+            await mintPostMutation.mutateAsync({
+                title: content.slice(0, 32),
+                uri: "https://arweave.net/placeholder", // In a real app, upload content to Arweave here
+            });
+        } catch (e) {
+            console.error("Minting failed", e);
+            return;
+        }
+      }
+
       onPost?.(content, images, isSubscriberOnly, selectedTierData?.name, groupId);
 
       // Update stores
@@ -255,6 +270,20 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
                     )}
                   </div>
                 )}
+
+                {/* Mint as NFT Toggle */}
+                <button
+                  onClick={() => setMintAsNft(!mintAsNft)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                    mintAsNft
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                      : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                  }`}
+                  aria-label={`Toggle mint as NFT (currently ${mintAsNft ? 'ON' : 'OFF'})`}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {mintAsNft ? 'Minting NFT' : 'Mint NFT'}
+                </button>
 
                 {images.length > 0 && (
                   <span className="px-3 py-2 text-sm text-gray-400" aria-live="polite">

@@ -2,16 +2,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { useWallet } from '../lib/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
-import { useQuery } from '@tanstack/react-query';
+
 import { AppLayout } from '../components/layout/AppLayout';
-import { useMintUsername, useListUsername, useBuyUsername } from '../hooks/useMarketplace';
+import { useUIStore } from '../stores/useUIStore';
+import { useListUsername, useBuyUsername, useListings, useCancelListing } from '../hooks/useMarketplace';
+import { useUserNFTs } from '../hooks/useUserNFTs';
+import { PDAs } from '../services/pda';
 import { useSocialFi } from '../hooks/useSocialFi';
-import { Search, TrendingUp, Tag, Plus, CheckCircle2, AlertCircle, X, Sparkles, ShoppingBag } from 'lucide-react';
+import { Search, TrendingUp, Tag, Plus, CheckCircle2, Sparkles, ShoppingBag } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export function UsernameMarketplace() {
   const { publicKey, connected } = useWallet();
-  useSocialFi();
+  const { sdk } = useSocialFi();
   
   const [activeTab, setActiveTab] = useState<'buy' | 'sell' | 'my-listings'>(
     'buy',
@@ -21,26 +24,25 @@ export function UsernameMarketplace() {
   const [priceSort, setPriceSort] = useState<'asc' | 'desc'>('asc');
 
   // Blockchain hooks
-  const mintUsernameMutation = useMintUsername();
+  const { openMintUsernameModal } = useUIStore();
+  
+  // Blockchain hooks
+  // Blockchain hooks
   const listUsernameMutation = useListUsername();
   const buyUsernameMutation = useBuyUsername();
+  const cancelListingMutation = useCancelListing();
 
-  // Fetch listings from blockchain (placeholder - would query contract accounts)
-  const { data: blockchainListings = [] } = useQuery({
-    queryKey: ['marketplace_listings'],
-    queryFn: async () => {
-      // TODO: Query all username_listing PDAs from blockchain
-      // For now, return empty array
-      return [];
-    },
-  });
+  // Fetch my wallet NFTs
+  const { data: userNFTs = [], isLoading: isLoadingNFTs } = useUserNFTs(publicKey || undefined);
 
-  const [newListingUsername, setNewListingUsername] = useState('');
+  // Fetch listings from blockchain
+  const { data: blockchainListings = [] } = useListings();
+
+  const [listingUsernameInput, setListingUsernameInput] = useState('');
   const [newListingPrice, setNewListingPrice] = useState('');
   const [newListingCategory, setNewListingCategory] = useState<
     'premium' | 'short' | 'rare' | 'custom'
   >('premium');
-  const [showMintModal, setShowMintModal] = useState(false);
 
   const filteredListings = blockchainListings
     .filter((l: any) => {
@@ -55,60 +57,60 @@ export function UsernameMarketplace() {
     ? blockchainListings.filter((l: any) => l.seller === publicKey.toBase58())
     : [];
 
-  const handleMintUsername = () => {
-    if (!connected) {
+  const handleCreateListing = async () => {
+    if (!connected || !sdk) {
       toast.error('Please connect your wallet');
       return;
     }
-    if (!newListingUsername) {
+    if (!listingUsernameInput) {
       toast.error('Please enter a username');
       return;
     }
 
-    mintUsernameMutation.mutate(
-      { username: newListingUsername, metadataUri: '' },
+    if (!newListingPrice || isNaN(parseFloat(newListingPrice))) {
+      toast.error('Please enter a valid price');
+      return;
+    }
+     
+     // Derive PDA to get the NFT address
+    const [usernameNft] = PDAs.getUsernameNFT(listingUsernameInput);
+    
+    // We need the mint address. The NFT account stores it.
+    // Fetch the NFT account to get the mint
+    let mintPubkey: PublicKey;
+    try {
+        console.log('Fetching NFT account for:', listingUsernameInput);
+        console.log('PDA:', usernameNft.toBase58());
+        const nftAccount = await sdk.program.account.usernameNft.fetch(usernameNft);
+        console.log('Token Mint:', nftAccount.mint.toBase58());
+        mintPubkey = nftAccount.mint;
+    } catch (e: any) {
+        console.error('Failed to fetch UsernameNFT account:', e);
+        if (e.message?.includes('Account does not exist')) {
+             toast.error(`You don't own the username "@${listingUsernameInput}" or it hasn't been minted properly.`);
+        } else {
+             toast.error(`Error fetching NFT: ${e.message}`);
+        }
+        return;
+    }
+
+    listUsernameMutation.mutate(
+      { 
+        nftPubkey: usernameNft, 
+        mintPubkey: mintPubkey,
+        priceInSol: parseFloat(newListingPrice) 
+      },
       {
         onSuccess: () => {
-          toast.success('Username minted successfully!');
-          setNewListingUsername('');
-          setShowMintModal(false);
+          setListingUsernameInput('');
+          setNewListingPrice('');
+          setActiveTab('buy');
         },
         onError: (error: any) => {
-        toast.error(error.message || 'Failed to mint username');
-      },
-    });
-  };
-
-  const handleCreateListing = () => {
-    if (!connected) {
-      toast.error('Please connect your wallet');
-      return;
-    }
-    if (!newListingUsername || !newListingPrice) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
-    // TODO: In reality, resolve username to NFT mint address
-    // For now, just update blockchain
-    try {
-      const usernameNft = new PublicKey(newListingUsername); // Placeholder
-      listUsernameMutation.mutate(
-        { nftPubkey: usernameNft, mintPubkey: usernameNft, priceInSol: parseFloat(newListingPrice) },
-        {
-          onSuccess: () => {
-            toast.success('Username listed for sale!');
-            setNewListingUsername('');
-            setNewListingPrice('');
-          },
-          onError: (error: any) => {
-            toast.error(error.message || 'Failed to list username');
-          },
+          toast.error(error.message || 'Failed to list username');
         },
-      );
-    } catch {
-      toast.error('Invalid username NFT');
-    }
+      }
+    );
   };
 
   const handlePurchase = (listing: any) => {
@@ -145,9 +147,7 @@ export function UsernameMarketplace() {
     }
   };
 
-  const handleMakeOffer = (_listingId: string, _username: string) => {
-    toast.error('Offers are not yet implemented in the contract');
-  };
+
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -167,30 +167,27 @@ export function UsernameMarketplace() {
       <div className="max-w-[1400px] mx-auto pb-12">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-12 relative overflow-hidden glass-card rounded-[2.5rem] p-10 md:p-14 border border-white/10"
+          className="mb-8 relative overflow-hidden glass-card rounded-3xl p-8 md:p-10 border border-white/10"
         >
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--color-solana-green)]/10 blur-[120px] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[var(--color-solana-green)]/10 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none" />
           
           <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">
-                IDENTITY <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-solana-green)] to-[#14C58E]">
-                   MARKETPLACE
-                </span>
+              <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tight">
+                IDENTITY <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-solana-green)] to-[#14C58E]">MARKET</span>
               </h1>
-              <p className="text-xl text-gray-400 max-w-2xl leading-relaxed">
-                Secure your unique decentralized identity. Buy, sell, and trade premium usernames on the Solana blockchain.
+              <p className="text-lg text-gray-400 max-w-xl leading-relaxed">
+                Secure your decentralized identity. Trade premium usernames on Solana.
               </p>
             </div>
             
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowMintModal(true)}
-              className="px-8 py-4 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-2xl font-bold transition-all shadow-xl shadow-[var(--color-solana-green)]/10 flex items-center gap-3 text-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={openMintUsernameModal}
+              className="px-6 py-3 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-xl font-bold transition-all shadow-lg shadow-[var(--color-solana-green)]/10 flex items-center gap-2 text-base"
             >
               <Sparkles className="w-5 h-5" />
               Mint Username
@@ -199,7 +196,7 @@ export function UsernameMarketplace() {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { label: 'Total Listings', value: blockchainListings.length, icon: Tag },
             {
@@ -212,37 +209,36 @@ export function UsernameMarketplace() {
           ].map((stat, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              whileHover={{ y: -5 }}
-              className="glass-card rounded-[2rem] p-6 border border-white/10 bg-white/5"
+              transition={{ delay: i * 0.05 }}
+              className="glass-card rounded-xl p-4 border border-white/10 bg-white/5 flex flex-col justify-between h-full"
             >
-              <div className="flex items-center gap-4 mb-3">
-                <div className="p-3 bg-white/5 rounded-xl text-[var(--color-solana-green)]">
-                   <stat.icon className="w-6 h-6" />
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-white/5 rounded-lg text-[var(--color-solana-green)]">
+                   <stat.icon className="w-5 h-5" />
                 </div>
-                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-xl font-bold font-mono">{stat.value}</div>
               </div>
-              <div className="text-sm text-gray-400 font-medium pl-1">{stat.label}</div>
+              <div className="text-xs text-gray-400 font-bold uppercase tracking-wider pl-1">{stat.label}</div>
             </motion.div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="flex justify-center mb-12">
-          <div className="glass-card p-2 rounded-full border border-white/10 flex items-center gap-2">
+        <div className="flex justify-center mb-8">
+          <div className="glass-card p-1.5 rounded-full border border-white/10 flex items-center gap-1 bg-black/40">
             {[
-              { id: 'buy', label: 'Browse Listings', icon: Search },
-              { id: 'sell', label: 'List Username', icon: Plus },
-              { id: 'my-listings', label: 'My Listings', icon: Tag },
+              { id: 'buy', label: 'Browse', icon: Search },
+              { id: 'sell', label: 'List', icon: Plus },
+              { id: 'my-listings', label: 'Portfolio', icon: Tag },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`relative px-8 py-3 rounded-full font-bold transition-all flex items-center gap-2 ${
+                className={`relative px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
                   activeTab === tab.id 
-                    ? 'bg-white text-black shadow-lg shadow-white/10' 
+                    ? 'bg-white text-black shadow-lg shadow-white/5' 
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -258,134 +254,122 @@ export function UsernameMarketplace() {
         {activeTab === 'buy' && (
           <motion.div 
              key="buy"
-             initial={{ opacity: 0, y: 20 }}
+             initial={{ opacity: 0, y: 10 }}
              animate={{ opacity: 1, y: 0 }}
-             exit={{ opacity: 0, y: -20 }}
-             className="space-y-8"
+             exit={{ opacity: 0, y: -10 }}
+             className="space-y-6"
           >
             {/* Filters */}
-            <div className="glass-card rounded-2xl p-6 border border-white/10">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-gray-400 text-sm font-bold mb-3 ml-1">
-                    Search Username
-                  </label>
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="relative flex-1 w-full group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[var(--color-solana-green)] transition-colors" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search..."
-                      className="w-full pl-12 pr-4 py-4 bg-[#0A0A0A] border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-[var(--color-solana-green)] transition-all"
+                      placeholder="Search usernames..."
+                      className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 outline-none focus:border-[var(--color-solana-green)] focus:bg-white/10 transition-all font-mono"
                     />
-                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-gray-400 text-sm font-bold mb-3 ml-1">Category</label>
-                  <div className="relative">
+                <div className="flex gap-3 w-full md:w-auto">
+                  <div className="relative w-1/2 md:w-40">
                     <select
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="w-full px-5 py-4 bg-[#0A0A0A] border border-white/10 rounded-xl text-white outline-none focus:border-[var(--color-solana-green)] transition-all appearance-none cursor-pointer"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[var(--color-solana-green)] focus:bg-white/10 transition-all appearance-none cursor-pointer font-medium"
                     >
-                      <option value="all">All Categories</option>
-                      <option value="short">Short (3-4 chars)</option>
+                      <option value="all">All Types</option>
+                      <option value="short">Short</option>
                       <option value="premium">Premium</option>
                       <option value="rare">Rare</option>
                       <option value="custom">Custom</option>
                     </select>
-                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                           <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                           </svg>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
                     </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-gray-400 text-sm font-bold mb-3 ml-1">Sort by Price</label>
-                  <div className="relative">
+                  <div className="relative w-1/2 md:w-40">
                     <select
                       value={priceSort}
                       onChange={(e) => setPriceSort(e.target.value as any)}
-                      className="w-full px-5 py-4 bg-[#0A0A0A] border border-white/10 rounded-xl text-white outline-none focus:border-[var(--color-solana-green)] transition-all appearance-none cursor-pointer"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[var(--color-solana-green)] focus:bg-white/10 transition-all appearance-none cursor-pointer font-medium"
                     >
-                      <option value="asc">Low to High</option>
-                      <option value="desc">High to Low</option>
+                      <option value="asc">Lowest Price</option>
+                      <option value="desc">Highest Price</option>
                     </select>
-                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                           <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                           </svg>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
                     </div>
                   </div>
                 </div>
-              </div>
             </div>
 
-            {/* Listings Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Listings Grid - More Compact */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {(filteredListings as any[]).map((listing: any) => (
                 <motion.div
                   key={listing.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ y: -5 }}
-                  className="glass-card rounded-[2rem] p-8 border border-white/10 hover:border-[var(--color-solana-green)]/30 transition-all group"
+                  whileHover={{ y: -4, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                  className="glass-card rounded-2xl p-5 border border-white/5 bg-white/5 hover:border-[var(--color-solana-green)]/30 transition-all group relative overflow-hidden"
                 >
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex-1">
-                      <div className="text-3xl font-black mb-2 group-hover:text-[var(--color-solana-green)] transition-colors tracking-tight">@{listing.username}</div>
-                      <span
-                        className={`inline-block px-3 py-1.5 rounded-lg text-xs font-bold border ${getCategoryColor(listing.category)}`}
+                  <div className="flex justify-between items-start mb-4">
+                     <span
+                        className={`inline-block px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider border ${getCategoryColor(listing.category || 'custom')}`}
                       >
-                        {listing.category.toUpperCase()}
+                        {listing.category || 'custom'}
                       </span>
+                      {listing.verified && (
+                          <div className="text-[var(--color-solana-green)]" title="Verified">
+                             <CheckCircle2 className="w-4 h-4" />
+                          </div>
+                      )}
+                  </div>
+                  
+                  <div className="mb-4">
+                    <div className="text-xl font-bold text-white group-hover:text-[var(--color-solana-green)] transition-colors truncate">
+                      @{listing.username}
                     </div>
-                    {listing.verified && (
-                      <div className="w-8 h-8 rounded-full bg-[var(--color-solana-green)] flex items-center justify-center shadow-lg shadow-green-500/20">
-                         <CheckCircle2 className="w-5 h-5 text-black" />
+                    <div className="text-xs text-gray-500 mt-1 truncate">
+                       Mint: {listing.nftPubkey?.toBase58().slice(0, 4)}...{listing.nftPubkey?.toBase58().slice(-4)}
+                    </div>
+                  </div>
+
+                  <div className="flex items-end justify-between mt-auto pt-4 border-t border-white/5">
+                    <div>
+                      <div className="text-xs text-gray-400 mb-0.5">Price</div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-lg font-bold text-white font-mono">{listing.price}</span>
+                        <span className="text-xs text-gray-500 font-bold">SOL</span>
                       </div>
-                    )}
-                  </div>
-
-                  <div className="mb-8 p-4 bg-white/5 rounded-2xl border border-white/5">
-                    <div className="text-sm text-gray-400 mb-1">Current Price</div>
-                    <div className="text-3xl font-mono font-bold text-white">
-                      {listing.price} <span className="text-lg text-gray-500">SOL</span>
                     </div>
-                    <div className="text-sm font-bold text-[var(--color-solana-green)] mt-1">
-                      ≈ ${(listing.price * 145).toFixed(2)} USD
+                    <div className="flex gap-2">
+                        <button
+                          onClick={() => handlePurchase(listing)}
+                          className="px-4 py-2 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black text-xs font-bold rounded-lg transition-all shadow-lg shadow-green-500/10 hover:shadow-green-500/20"
+                        >
+                          Buy
+                        </button>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => handlePurchase(listing)}
-                      className="px-4 py-3 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-xl font-bold transition-all shadow-lg shadow-green-500/10 hover:shadow-green-500/20"
-                    >
-                      Buy Now
-                    </button>
-                    <button
-                      onClick={() => handleMakeOffer(listing.id, listing.username)}
-                      className="px-4 py-3 bg-white/5 text-white rounded-xl font-bold hover:bg-white/10 transition-colors"
-                    >
-                      Make Offer
-                    </button>
                   </div>
                 </motion.div>
               ))}
             </div>
 
             {filteredListings.length === 0 && (
-              <div className="glass-card rounded-[3rem] p-20 text-center border border-white/10 dashed-border bg-gradient-to-br from-white/5 to-transparent">
-                <div className="w-24 h-24 mx-auto mb-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-                   <Search className="w-10 h-10 text-gray-500" />
+              <div className="glass-card rounded-2xl p-16 text-center border border-white/5 dashed-border bg-gradient-to-br from-white/5 to-transparent">
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                   <Search className="w-6 h-6 text-gray-500" />
                 </div>
-                <h3 className="text-3xl font-bold mb-4">No usernames found</h3>
-                <p className="text-gray-400 text-lg">Try adjusting your search criteria</p>
+                <h3 className="text-xl font-bold mb-2 text-white">No listings found</h3>
+                <p className="text-gray-400 text-sm">Target username not listed? Unlisted usernames cannot be bought.</p>
               </div>
             )}
           </motion.div>
@@ -397,195 +381,228 @@ export function UsernameMarketplace() {
         {activeTab === 'sell' && (
           <motion.div
               key="sell"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="max-w-2xl mx-auto"
+              exit={{ opacity: 0, y: -10 }}
+              className="max-w-4xl mx-auto"
             >
-              <div className="glass-card rounded-[2.5rem] p-10 border border-white/10 bg-gradient-to-br from-white/5 to-transparent relative overflow-hidden">
-                <div className="relative z-10">
-                <h2 className="text-3xl font-bold mb-8">List Username for Sale</h2>
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Left Column: Inventory Selection */}
+                <div className="w-full md:w-1/2">
+                   <div className="glass-card rounded-2xl p-6 border border-white/10 h-full flex flex-col">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-white font-bold text-lg">Your Wallet</h3>
+                         {isLoadingNFTs && <div className="text-xs text-[var(--color-solana-green)] animate-pulse">Syncing...</div>}
+                      </div>
 
-                <div className="space-y-8">
-                  <div>
-                    <label className="block text-gray-400 font-bold mb-3 ml-1">Username</label>
-                    <input
-                      type="text"
-                      value={newListingUsername}
-                      onChange={(e) => setNewListingUsername(e.target.value)}
-                      placeholder="Enter username"
-                      className="w-full px-6 py-4 bg-[#0A0A0A] border border-white/10 rounded-2xl text-white placeholder-gray-600 outline-none focus:border-[var(--color-solana-green)] transition-all text-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-400 font-bold mb-3 ml-1">Price (SOL)</label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={newListingPrice}
-                        onChange={(e) => setNewListingPrice(e.target.value)}
-                        placeholder="0.00"
-                        className="w-full px-6 py-4 pl-6 bg-[#0A0A0A] border border-white/10 rounded-2xl text-white placeholder-gray-600 outline-none focus:border-[var(--color-solana-green)] transition-all text-lg font-mono"
-                      />
-                      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-500 bg-white/5 px-2 py-1 rounded">SOL</div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-400 font-bold mb-3 ml-1">Category</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {(['short', 'premium', 'rare', 'custom'] as const).map((cat) => (
-                        <button
-                          key={cat}
-                          onClick={() => setNewListingCategory(cat)}
-                          className={`px-4 py-3 rounded-xl font-bold transition-all border ${
-                            newListingCategory === cat
-                              ? 'bg-[var(--color-solana-green)] text-black border-[var(--color-solana-green)] shadow-[0_0_20px_rgba(20,241,149,0.3)]'
-                              : 'bg-[#0A0A0A] border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
-                          }`}
-                        >
-                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleCreateListing}
-                    className="w-full py-5 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-2xl font-black text-xl transition-all shadow-xl shadow-[var(--color-solana-green)]/10 hover:shadow-[var(--color-solana-green)]/20 hover:scale-[1.01] active:scale-[0.99]"
-                  >
-                    List Username
-                  </button>
+                      {userNFTs.length === 0 ? (
+                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-white/5 rounded-xl">
+                            <ShoppingBag className="w-10 h-10 text-gray-600 mb-3" />
+                            <p className="text-gray-400 text-sm mb-4">No usernames found.</p>
+                            <button onClick={openMintUsernameModal} className="text-black bg-white/10 hover:bg-[var(--color-solana-green)] hover:text-black px-4 py-2 rounded-lg text-sm font-bold transition-all">
+                              Mint Username
+                            </button>
+                         </div>
+                      ) : (
+                        <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-2 max-h-[400px]">
+                          {userNFTs.map((nft) => (
+                            <button
+                              key={nft.mint}
+                              onClick={() => setListingUsernameInput(nft.username)}
+                              className={`w-full p-4 rounded-xl text-left transition-all border group relative overflow-hidden ${
+                                listingUsernameInput === nft.username
+                                  ? 'bg-[var(--color-solana-green)] border-[var(--color-solana-green)] shadow-[0_0_15px_rgba(20,241,149,0.2)]'
+                                  : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'
+                              }`}
+                            >
+                              <div className="relative z-10 flex justify-between items-center">
+                                <div>
+                                   <div className={`font-bold text-lg ${listingUsernameInput === nft.username ? 'text-black' : 'text-white'}`}>@{nft.username}</div>
+                                   <div className={`text-xs font-mono mt-0.5 ${listingUsernameInput === nft.username ? 'text-black/60' : 'text-gray-500'}`}>{nft.mint.slice(0, 4)}...{nft.mint.slice(-4)}</div>
+                                </div>
+                                {listingUsernameInput === nft.username && (
+                                   <div className="bg-black/10 p-1 rounded-full">
+                                     <CheckCircle2 className="w-5 h-5 text-black" />
+                                   </div>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                   </div>
                 </div>
+
+                {/* Right Column: Listing Form */}
+                <div className="w-full md:w-1/2">
+                  <div className="glass-card rounded-2xl p-8 border border-white/10 relative overflow-hidden h-full">
+                     <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-solana-green)]/5 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                     
+                     <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-2">
+                        List for Sale
+                     </h2>
+
+                     <div className="space-y-6">
+                        <div className="space-y-2">
+                          <label className="text-gray-400 text-xs font-bold uppercase tracking-wider ml-1">Selected Username</label>
+                          <div className={`w-full px-4 py-4 rounded-xl text-lg font-bold border transition-all ${
+                             listingUsernameInput 
+                               ? 'bg-black/40 border-[var(--color-solana-green)]/50 text-white' 
+                               : 'bg-black/20 border-white/5 text-gray-600'
+                          }`}>
+                             {listingUsernameInput ? `@${listingUsernameInput}` : 'Select a username ->'}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-gray-400 text-xs font-bold uppercase tracking-wider ml-1">Set Price (SOL)</label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={newListingPrice}
+                              onChange={(e) => setNewListingPrice(e.target.value)}
+                              placeholder="0.00"
+                              disabled={!listingUsernameInput}
+                              className="w-full px-4 py-4 pl-4 bg-black/40 border border-white/10 rounded-xl text-white outline-none focus:border-[var(--color-solana-green)] focus:bg-black/60 transition-all font-mono text-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-500">SOL</div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-gray-400 text-xs font-bold uppercase tracking-wider ml-1">Category</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {(['short', 'premium', 'rare', 'custom'] as const).map((cat) => (
+                              <button
+                                key={cat}
+                                onClick={() => setNewListingCategory(cat)}
+                                disabled={!listingUsernameInput}
+                                className={`py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${
+                                  newListingCategory === cat
+                                    ? 'bg-[var(--color-solana-green)] text-black border-[var(--color-solana-green)]'
+                                    : 'bg-black/20 border-white/10 text-gray-500 hover:border-white/20 hover:text-gray-300'
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                              >
+                                {cat}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={handleCreateListing}
+                          disabled={!listingUsernameInput || !newListingPrice}
+                          className="w-full py-4 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-xl font-bold text-lg transition-all shadow-lg shadow-green-500/10 hover:shadow-green-500/20 active:scale-[0.99] mt-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none bg-gradient-to-r from-[var(--color-solana-green)] to-[#14C58E]"
+                        >
+                          Confirm Listing
+                        </button>
+                     </div>
+                  </div>
                 </div>
               </div>
           </motion.div>
         )}
         </AnimatePresence>
 
-        {/* My Listings Tab */}
+        {/* Portfolio Tab */}
         <AnimatePresence mode="wait">
         {activeTab === 'my-listings' && (
           <motion.div 
              key="my-listings"
-             initial={{ opacity: 0, y: 20 }}
+             initial={{ opacity: 0, y: 10 }}
              animate={{ opacity: 1, y: 0 }}
-             exit={{ opacity: 0, y: -20 }}
-             className="space-y-4"
+             exit={{ opacity: 0, y: -10 }}
+             className="space-y-8"
           >
-            {(myListings as any[]).map((listing: any) => (
-              <motion.div
-                key={listing.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="glass-card rounded-[2rem] p-8 border border-white/10"
-              >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div>
-                    <div className="text-3xl font-black mb-3">@{listing.username}</div>
-                    <div className="flex items-center gap-4">
-                      <span
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${getCategoryColor(listing.category)}`}
-                      >
-                        {listing.category.toUpperCase()}
-                      </span>
-                      <div className="text-xl font-mono font-bold text-white">
-                        {listing.price} <span className="text-gray-500 text-base">SOL</span>
+            {/* Section 1: In Wallet */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-[var(--color-solana-green)]" />
+                In Your Wallet
+                <span className="text-xs bg-white/10 text-gray-400 px-2 py-1 rounded-full ml-2">{userNFTs.length}</span>
+              </h3>
+              
+              {userNFTs.length === 0 ? (
+                <div className="glass-card rounded-2xl p-8 text-center border border-white/5 bg-white/5">
+                  <p className="text-gray-400 text-sm">You don't have any usernames in your wallet.</p>
+                  <button onClick={openMintUsernameModal} className="mt-4 text-[var(--color-solana-green)] hover:text-white text-sm font-bold transition-colors">
+                    Mint a Username &rarr;
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {userNFTs.map((nft) => (
+                    <div key={nft.mint} className="glass-card rounded-2xl p-5 border border-white/10 bg-white/5">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-[var(--color-solana-green)]/10 text-[var(--color-solana-green)] border border-[var(--color-solana-green)]/20">
+                           Held
+                        </div>
                       </div>
+                      <div className="text-xl font-bold text-white truncate mb-1">@{nft.username}</div>
+                      <div className="text-xs text-gray-500 font-mono mb-4">{nft.mint.slice(0, 4)}...{nft.mint.slice(-4)}</div>
+                      
+                      <button 
+                        onClick={() => {
+                          setListingUsernameInput(nft.username);
+                          setActiveTab('sell');
+                        }}
+                        className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-bold transition-all"
+                      >
+                        List for Sale
+                      </button>
                     </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button className="px-6 py-3 bg-white/5 rounded-xl font-bold hover:bg-white/10 transition-colors border border-white/5">
-                      Edit Price
-                    </button>
-                    <button className="px-6 py-3 bg-red-500/10 text-red-500 rounded-xl font-bold hover:bg-red-500/20 transition-colors border border-red-500/20">
-                      Remove Listing
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              </motion.div>
-            ))}
+              )}
+            </div>
 
-            {myListings.length === 0 && (
-              <div className="glass-card rounded-[3rem] p-20 text-center border border-white/10 dashed-border">
-                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-                   <Tag className="w-10 h-10 text-gray-500" />
+            {/* Section 2: On Market */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Tag className="w-5 h-5 text-blue-400" />
+                Listed for Sale
+                <span className="text-xs bg-white/10 text-gray-400 px-2 py-1 rounded-full ml-2">{myListings.length}</span>
+              </h3>
+
+              {myListings.length === 0 ? (
+                <div className="glass-card rounded-2xl p-8 text-center border border-white/5 border-dashed">
+                  <p className="text-gray-400 text-sm">You haven't listed any items specifically.</p>
                 </div>
-                <h3 className="text-2xl font-bold mb-4">You don't have any listings yet</h3>
-                <button
-                  onClick={() => setActiveTab('sell')}
-                  className="px-8 py-4 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-xl font-bold transition-all shadow-lg"
-                >
-                  Create Listing
-                </button>
-              </div>
-            )}
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {(myListings as any[]).map((listing: any) => (
+                    <motion.div
+                      key={listing.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="glass-card rounded-2xl p-5 border border-white/10 bg-white/5"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                         <div className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                            On Sale
+                         </div>
+                         <div className="p-1.5 rounded-full bg-red-500/10 text-red-500 cursor-pointer hover:bg-red-500/20 transition-colors" title="Cancel Listing" onClick={() => cancelListingMutation.mutate(new PublicKey(listing.listingAddress || listing.id))}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                         </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <div className="text-xl font-bold text-white mb-1 truncate">@{listing.username}</div>
+                        <div className="text-lg font-bold text-[var(--color-solana-green)] font-mono">{listing.price} SOL</div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
         </AnimatePresence>
       </div>
-
-      {/* Mint Username Modal */}
       <AnimatePresence>
-      {showMintModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="glass-card rounded-[2.5rem] p-10 border border-white/10 max-w-lg w-full shadow-2xl shadow-black/50"
-          >
-            <div className="flex items-center justify-between mb-8">
-               <h2 className="text-3xl font-bold">Mint Username NFT</h2>
-               <button
-                  onClick={() => setShowMintModal(false)}
-                  className="p-3 hover:bg-white/10 rounded-xl transition-colors text-gray-400 hover:text-white"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-            </div>
-            
-            <div className="space-y-6 mb-8">
-              <div>
-                <label className="block text-gray-400 font-bold mb-3 ml-1">Desired Username</label>
-                <input
-                  type="text"
-                  value={newListingUsername}
-                  onChange={(e) => setNewListingUsername(e.target.value)}
-                  placeholder="e.g. satoshi"
-                  className="w-full px-6 py-4 bg-[#0A0A0A] border border-white/10 rounded-2xl text-white placeholder-gray-600 outline-none focus:border-[var(--color-solana-green)] transition-all text-lg font-bold"
-                />
-              </div>
-
-              <div className="p-6 bg-[var(--color-value-amber)]/10 border border-[var(--color-value-amber)]/20 rounded-2xl flex gap-4">
-                <AlertCircle className="w-6 h-6 text-[var(--color-value-amber)] shrink-0" />
-                <p className="text-sm font-medium text-[var(--color-value-amber)]/90 leading-relaxed">
-                  Minting a username NFT will create a unique on-chain asset that represents ownership of this identity. This action cannot be undone.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => setShowMintModal(false)}
-                className="flex-1 px-6 py-4 bg-white/5 rounded-xl font-bold hover:bg-white/10 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleMintUsername}
-                disabled={!newListingUsername || mintUsernameMutation.isPending}
-                className="flex-[2] px-6 py-4 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[var(--color-solana-green)]/20"
-              >
-                {mintUsernameMutation.isPending ? 'Minting...' : 'Mint Identity'}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+        {/* Modal removed/globalized */}
       </AnimatePresence>
+
     </AppLayout>
   );
 }
