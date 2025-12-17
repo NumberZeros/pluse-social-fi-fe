@@ -1,12 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="g" x1="12" y1="56" x2="52" y2="8" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#D4AF37"/>
-      <stop offset="0.52" stop-color="#8B5CF6"/>
-      <stop offset="1" stop-color="#5EEAD4"/>
+    <!-- Premium Gradient: Deep Depth to Neon Pop -->
+    <linearGradient id="ribbonMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14F195" /> <!-- Green light -->
+      <stop offset="50%" stop-color="#9945FF" /> <!-- Purple depth -->
+      <stop offset="100%" stop-color="#7A2CCD" /> <!-- Deep Purple -->
     </linearGradient>
+    
+    <!-- Highlight Gradient for the "Fold" -->
+    <linearGradient id="ribbonHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
   </defs>
-  <circle cx="32" cy="32" r="24" stroke="url(#g)" stroke-width="2.8" opacity="0.95"/>
-  <circle cx="32" cy="32" r="19" stroke="url(#g)" stroke-width="1.4" opacity="0.22"/>
-  <path d="M14 32h9l3.2-8.5L31 41l4.2-16.5 2.8 7h15" stroke="url(#g)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- The "Premium P" - Folded Ribbon Concept -->
+  <!-- A continuous loop that looks like 3D folded glass/light -->
+
+  <!-- The Back Stem (Shadowed) -->
+  <path d="M20 12 L20 56 L32 48 L32 20 Z" fill="#9945FF" opacity="0.6" />
+
+  <!-- The Main Loop (Ribbon) -->
+  <path d="M20 12 H40 C 52 12, 58 24, 50 36 C 44 44, 32 48, 20 56 V 12 Z" 
+        fill="url(#ribbonMain)" 
+        stroke="white" stroke-width="0.5" stroke-opacity="0.3" 
+        filter="url(#glow)" />
+        
+  <!-- The "Fold" Highlight -->
+  <path d="M20 12 L40 12 C 45 12, 48 16, 46 20 L 20 36 V 12 Z" 
+        fill="url(#ribbonHighlight)" opacity="0.4" />
+
+  <!-- Central Pulse Dot (The Heart) -->
+  <circle cx="34" cy="28" r="4" fill="#14F195" filter="url(#glow)" />
+  <circle cx="34" cy="28" r="2" fill="white" />
+
 </svg>

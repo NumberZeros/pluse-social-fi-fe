@@ -5,7 +5,7 @@ import useGroupStore, {
   type GroupPrivacy,
   type EntryRequirement,
 } from '../../stores/useGroupStore';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '../../lib/wallet-adapter';
 import toast from 'react-hot-toast';
 
 interface CreateGroupModalProps {

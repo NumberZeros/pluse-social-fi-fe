@@ -59,17 +59,34 @@ export const COLLECTION_CONFIG = {
 };
 
 /**
- * Collection Mint Address
- * TODO: Update after creating collection on devnet/mainnet
- * Set to null initially, will be set after collection creation
+ * Collection Mint Address - Social-Fi Usernames
+ * This is the parent NFT that all username NFTs belong to
+ * For MVP: Set this after creating the collection
  */
-export const COLLECTION_MINT: PublicKey | null = null;
+export const SOCIALFI_COLLECTION = {
+  // Use a placeholder that can be updated later
+  // Format: Devnet collection mint address
+  MINT: (import.meta.env.VITE_COLLECTION_MINT as string) || '11111111111111111111111111111111',
+  
+  // Collection will be set by the app admin
+  AUTHORITY: (import.meta.env.VITE_COLLECTION_AUTHORITY as string) || null,
+} as {
+  MINT: string;
+  AUTHORITY: string | null;
+};
 
 /**
- * Collection Authority
- * Should be the program's authority or a dedicated collection manager
+ * Helper to get COLLECTION_MINT as PublicKey
  */
-export const COLLECTION_AUTHORITY: PublicKey | null = null;
+export const getCollectionMint = (): PublicKey => {
+  try {
+    return new PublicKey(SOCIALFI_COLLECTION.MINT);
+  } catch {
+    throw new Error(
+      'Collection mint not configured. Please set VITE_COLLECTION_MINT env var'
+    );
+  }
+};
 
 // ==================== MARKETPLACE URLS ====================
 

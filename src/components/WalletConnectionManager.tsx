@@ -1,7 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '../lib/wallet-adapter';
 import { useUserStore } from '../stores/useUserStore';
 
+/**
+ * Syncs wallet connection state with global store
+ * Updated to use our custom wallet adapter
+ */
 export function WalletConnectionManager() {
   const { publicKey, connected } = useWallet();
   const setWalletAddress = useUserStore((state) => state.setWalletAddress);

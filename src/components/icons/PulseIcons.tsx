@@ -6,49 +6,45 @@ type IconProps = SVGProps<SVGSVGElement> & {
 };
 
 export function PulseMark({ title = 'Pulse', ...props }: IconProps) {
-  const gradientId = useId();
+  const ribbonGradId = useId();
+  const highlightGradId = useId();
 
   return (
-    <svg viewBox="0 0 48 48" fill="none" aria-label={title} role="img" {...props}>
+    <svg viewBox="0 0 64 64" fill="none" aria-label={title} role="img" {...props}>
       <defs>
-        <linearGradient
-          id={gradientId}
-          x1="8"
-          y1="40"
-          x2="40"
-          y2="8"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#14F195" />
-          <stop offset="0.52" stopColor="#9945FF" />
-          <stop offset="1" stopColor="#ABFE2C" />
+        <linearGradient id={ribbonGradId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#14F195" />
+          <stop offset="50%" stopColor="#9945FF" />
+          <stop offset="100%" stopColor="#7A2CCD" />
+        </linearGradient>
+        <linearGradient id={highlightGradId} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity={0.9} />
+          <stop offset="100%" stopColor="#FFFFFF" stopOpacity={0} />
         </linearGradient>
       </defs>
 
-      <circle
-        cx="24"
-        cy="24"
-        r="18"
-        stroke={`url(#${gradientId})`}
-        strokeWidth="2"
-        opacity="0.95"
-      />
-      <circle
-        cx="24"
-        cy="24"
-        r="14"
-        stroke={`url(#${gradientId})`}
-        strokeWidth="1"
-        opacity="0.25"
+      {/* Back Stem */}
+      <path d="M20 12 L20 56 L32 48 L32 20 Z" fill="#9945FF" opacity={0.6} />
+
+      {/* Main Loop */}
+      <path 
+        d="M20 12 H40 C 52 12, 58 24, 50 36 C 44 44, 32 48, 20 56 V 12 Z" 
+        fill={`url(#${ribbonGradId})`}
+        stroke="white" 
+        strokeWidth="0.5" 
+        strokeOpacity="0.3" 
       />
 
-      <path
-        d="M10 24h6l2.3-6.2L22 31l3.2-12 2.1 5h10.7"
-        stroke={`url(#${gradientId})`}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      {/* Fold Highlight */}
+      <path 
+        d="M20 12 L40 12 C 45 12, 48 16, 46 20 L 20 36 V 12 Z" 
+        fill={`url(#${highlightGradId})`} 
+        opacity={0.4} 
       />
+
+      {/* Heart/Pulse Dot */}
+      <circle cx="34" cy="28" r="4" fill="#14F195" />
+      <circle cx="34" cy="28" r="2" fill="white" />
     </svg>
   );
 }

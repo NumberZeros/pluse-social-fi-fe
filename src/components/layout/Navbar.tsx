@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '../../lib/wallet-adapter';
+import { SafeWalletButton } from '../wallet/SafeWalletButton';
 import { useState } from 'react';
 import { IconExplore, IconFeed, IconHome, PulseMark } from '../icons/PulseIcons';
 
@@ -207,7 +207,7 @@ export function Navbar() {
               ) : null}
             </AnimatePresence>
 
-            <WalletMultiButton className="!bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[var(--color-solana-green)] !transition-colors" />
+            <SafeWalletButton className="!bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[var(--color-solana-green)] !transition-colors" />
 
             {/* Mobile Menu Button */}
             <button

@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from '@solana/web3.js';
-import type { AnchorWallet } from '@solana/wallet-adapter-react';
+import type { AnchorWallet } from '../lib/wallet-adapter';
 import { RPC_ENDPOINTS, NETWORK, PROGRAM_ID } from '../utils/constants';
 
 /**

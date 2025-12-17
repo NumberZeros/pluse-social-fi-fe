@@ -1,4 +1,4 @@
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '../lib/wallet-adapter';
 import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toast } from 'react-hot-toast';
 
@@ -28,7 +28,7 @@ export function useSolanaTipping() {
         }),
       );
 
-      const signature = await sendTransaction(transaction, connection);
+      const signature = await sendTransaction(transaction);
 
       toast.success(`Tip sent! Transaction: ${signature.slice(0, 8)}...`);
 

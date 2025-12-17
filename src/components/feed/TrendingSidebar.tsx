@@ -130,10 +130,10 @@ export function TrendingSidebar() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleFollowClick(user.username)}
-                  className={`mt-2 px-4 py-1.5 rounded-full text-sm font-bold transition-colors ${
+                  className={`mt-2 px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
                     isFollowing(user.username)
-                      ? 'bg-white/10 text-white border border-white/20 hover:bg-red-500/20'
-                      : 'bg-white text-black hover:bg-[#ABFE2C]'
+                      ? 'bg-white/10 text-white border border-white/20 hover:bg-red-500/20 hover:border-red-500/30'
+                      : 'bg-[#ABFE2C] text-black hover:bg-[#9FE51C] hover:shadow-[0_0_15px_rgba(171,254,44,0.4)]'
                   }`}
                 >
                   {isFollowing(user.username) ? 'Following' : 'Follow'}

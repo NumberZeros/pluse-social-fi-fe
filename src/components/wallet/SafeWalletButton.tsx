@@ -1,9 +1,10 @@
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '../../lib/wallet-adapter';
+import { WalletButton } from '../../lib/wallet-adapter/components';
 import { useEffect, useState } from 'react';
 
 /**
  * Safe wallet button that handles connection errors gracefully
+ * Updated to use our custom RainbowKit-inspired wallet adapter
  */
 export function SafeWalletButton({ className }: { className?: string }) {
   const { connecting, connected } = useWallet();
@@ -32,7 +33,7 @@ export function SafeWalletButton({ className }: { className?: string }) {
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <WalletMultiButton className={className} />
+      <WalletButton className={className} />
       {error && !connected && (
         <div className="text-xs text-amber-400 bg-amber-500/10 px-3 py-1 rounded-md max-w-xs text-center">
           {error}

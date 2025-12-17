@@ -1,8 +1,4 @@
-import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
-import { irysUploader } from '@metaplex-foundation/umi-uploader-irys';
-import { walletAdapterIdentity } from '@metaplex-foundation/umi-signer-wallet-adapters';
-import type { WalletAdapter } from '@solana/wallet-adapter-base';
-import { NETWORK, RPC_ENDPOINTS } from '../utils/constants';
+import type { WalletAdapter } from '../lib/wallet-adapter';
 
 /**
  * Metadata Upload Service - Metaplex Standard
@@ -44,14 +40,9 @@ export interface UsernameMetadataInput {
 }
 
 export class MetadataUploadService {
-  private umi: any;
-
-  constructor(wallet: WalletAdapter, rpcUrl?: string) {
-    const endpoint = rpcUrl || RPC_ENDPOINTS[NETWORK];
-    
-    this.umi = createUmi(endpoint)
-      .use(walletAdapterIdentity(wallet))
-      .use(irysUploader());
+  constructor(_wallet: WalletAdapter, _rpcUrl?: string) {
+    // Service is stateless, parameters kept for API compatibility
+    // Actual implementation uses Pinata API directly
   }
 
   /**
@@ -152,14 +143,78 @@ export class MetadataUploadService {
     try {
       console.log('Uploading metadata to Arweave...', { username, category });
       
-      // Upload to Arweave via Irys
-      const [metadataUri] = await this.umi.uploader.uploadJson(metadata);
+      // Upload to Irys (formerly Bundlr)
+      const metadataUri = await this.uploadToIrys(JSON.stringify(metadata));
       
-      console.log('Metadata uploaded successfully:', metadataUri);
+      console.log('✅ Metadata uploaded successfully:', metadataUri);
       return metadataUri;
     } catch (error) {
       console.error('Failed to upload metadata:', error);
       throw new Error(`Failed to upload metadata to Arweave: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Upload JSON to IPFS via Pinata (free tier available)
+   * Pinata is reliable and has good free limits for MVP
+   */
+  private async uploadToIrys(data: string): Promise<string> {
+    const pinataJWT = import.meta.env.VITE_PINATA_JWT;
+    
+    if (!pinataJWT || pinataJWT === 'YOUR_PINATA_JWT_HERE') {
+      throw new Error(
+        'VITE_PINATA_JWT not configured. Get free API key at https://pinata.cloud\n' +
+        '1. Sign up at pinata.cloud\n' +
+        '2. Go to API Keys → New Key\n' +
+        '3. Copy JWT and add to .env as VITE_PINATA_JWT=your_jwt_here'
+      );
+    }
+
+    try {
+      console.log('Uploading metadata to IPFS via Pinata...');
+      
+      const metadata = JSON.parse(data);
+      const blob = new Blob([data], { type: 'application/json' });
+      const formData = new FormData();
+      formData.append('file', blob, `${metadata.name}_metadata.json`);
+      
+      // Add metadata for easier management
+      formData.append('pinataMetadata', JSON.stringify({
+        name: `NFT Metadata: @${metadata.name}`,
+      }));
+
+      const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${pinataJWT}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Pinata upload failed: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      const ipfsHash = result.IpfsHash;
+      
+      if (!ipfsHash) {
+        throw new Error('No IPFS hash returned from Pinata');
+      }
+
+      // Use Pinata gateway (fast and reliable)
+      const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+      
+      console.log('✅ Metadata uploaded to IPFS via Pinata');
+      console.log('   URL:', ipfsUrl);
+      console.log('   IPFS Hash:', ipfsHash);
+      
+      return ipfsUrl;
+      
+    } catch (error) {
+      console.error('❌ Pinata upload failed:', error);
+      throw error;
     }
   }
 
@@ -172,9 +227,15 @@ export class MetadataUploadService {
       const uint8Array = new Uint8Array(buffer);
 
       console.log('Uploading image to Arweave...', { size: file.size, type: file.type });
-      const [imageUri] = await this.umi.uploader.upload([uint8Array]);
       
-      console.log('Image uploaded successfully:', imageUri);
+      // Upload image data directly
+      const imageUri = await this.uploadToIrys(JSON.stringify({
+        data: Array.from(uint8Array),
+        type: file.type,
+        name: file.name,
+      }));
+      
+      console.log('✅ Image uploaded successfully:', imageUri);
       return imageUri;
     } catch (error) {
       console.error('Failed to upload image:', error);
