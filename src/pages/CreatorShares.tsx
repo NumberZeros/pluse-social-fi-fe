@@ -1,16 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useWallet } from '../lib/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
-
-import { Navbar } from '../components/layout/Navbar';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AppLayout } from '../components/layout/AppLayout';
 import { BuySharesModal } from '../components/shares/BuySharesModal';
 import { SellSharesModal } from '../components/shares/SellSharesModal';
+import { TrendingUp, Wallet, Users, Activity, Search, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 export const CreatorShares = () => {
   const { publicKey } = useWallet();
-  const [activeTab, setActiveTab] = useState<'market' | 'portfolio' | 'activity'>(
-    'market',
-  );
+  const [activeTab, setActiveTab] = useState<'market' | 'portfolio' | 'activity'>('market');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'price' | 'volume' | 'holders'>('volume');
   const [selectedCreator, setSelectedCreator] = useState<{pubkey: PublicKey, username: string} | null>(null);
@@ -18,8 +17,6 @@ export const CreatorShares = () => {
   const [selectedSellCreator, setSelectedSellCreator] = useState<{pubkey: PublicKey, username: string} | null>(null);
   const [showSellModal, setShowSellModal] = useState(false);
 
-
-  
   // Holdings and portfolio from blockchain
   const myHoldings: any[] = []; // TODO: Query all share_holding PDAs for user
   const portfolioValue = 0; // TODO: Calculate from holdings
@@ -66,91 +63,117 @@ export const CreatorShares = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] text-white">
-      <Navbar />
-      <div className="max-w-7xl mx-auto px-4 py-8 pt-24">
+    <AppLayout>
+      <div className="max-w-7xl mx-auto pb-12">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Creator Shares</h1>
-          <p className="text-gray-400">Trade shares of your favorite creators</p>
-        </div>
+        <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           className="mb-12 text-center"
+        >
+          <h1 className="text-5xl md:text-6xl font-black mb-4 tracking-tight">
+            Creator <span className="text-gradient-lens">Shares</span>
+          </h1>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            Invest in the reputation of your favorite creators. Buy early, earn as they grow.
+          </p>
+        </motion.div>
 
         {/* Stats */}
         {publicKey && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="glass-card rounded-xl p-6 border border-white/10">
-              <div className="text-gray-400 text-sm mb-1">Portfolio Value</div>
-              <div className="text-3xl font-bold text-white">
-                {formatSOL(portfolioValue)} SOL
+          <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.1 }}
+             className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12"
+          >
+            <div className="glass-card rounded-2xl p-6 border border-white/10 relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Wallet className="w-16 h-16 text-[var(--color-solana-green)]" />
+               </div>
+              <div className="text-gray-400 text-sm mb-2 font-medium uppercase tracking-wider">Portfolio Value</div>
+              <div className="text-3xl font-bold text-white flex items-end gap-2">
+                {formatSOL(portfolioValue)} <span className="text-lg text-[var(--color-solana-green)] mb-1">SOL</span>
               </div>
             </div>
-            <div className="glass-card rounded-xl p-6 border border-white/10">
-              <div className="text-gray-400 text-sm mb-1">Holdings</div>
+            
+            <div className="glass-card rounded-2xl p-6 border border-white/10 relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Activity className="w-16 h-16 text-blue-400" />
+               </div>
+              <div className="text-gray-400 text-sm mb-2 font-medium uppercase tracking-wider">Holdings</div>
               <div className="text-3xl font-bold text-white">{myHoldings.length}</div>
             </div>
-            <div className="glass-card rounded-xl p-6 border border-white/10">
-              <div className="text-gray-400 text-sm mb-1">Total Creators</div>
+            
+            <div className="glass-card rounded-2xl p-6 border border-white/10 relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Users className="w-16 h-16 text-purple-400" />
+               </div>
+              <div className="text-gray-400 text-sm mb-2 font-medium uppercase tracking-wider">Total Creators</div>
               <div className="text-3xl font-bold text-white">{creators.length}</div>
             </div>
-            <div className="glass-card rounded-xl p-6 border border-white/10">
-              <div className="text-gray-400 text-sm mb-1">24h Volume</div>
-              <div className="text-3xl font-bold text-white">
-                {formatSOL(creators.reduce((sum, c) => sum + c.volume24h, 0))} SOL
+            
+            <div className="glass-card rounded-2xl p-6 border border-white/10 relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <TrendingUp className="w-16 h-16 text-orange-400" />
+               </div>
+              <div className="text-gray-400 text-sm mb-2 font-medium uppercase tracking-wider">24h Volume</div>
+              <div className="text-3xl font-bold text-white flex items-end gap-2">
+                {formatSOL(creators.reduce((sum, c) => sum + c.volume24h, 0))} <span className="text-lg text-orange-400 mb-1">SOL</span>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => setActiveTab('market')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              activeTab === 'market'
-                ? 'bg-[var(--color-solana-green)] text-black'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
-            }`}
-          >
-            Market
-          </button>
-          <button
-            onClick={() => setActiveTab('portfolio')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              activeTab === 'portfolio'
-                ? 'bg-[var(--color-solana-green)] text-black'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
-            }`}
-          >
-            My Portfolio
-          </button>
-          <button
-            onClick={() => setActiveTab('activity')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              activeTab === 'activity'
-                ? 'bg-[var(--color-solana-green)] text-black'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
-            }`}
-          >
-            Activity
-          </button>
+        <div className="flex justify-center mb-8">
+           <div className="flex gap-2 p-1 bg-white/5 rounded-full border border-white/10 backdrop-blur-md">
+            {[
+              { id: 'market', label: 'Market', icon: <TrendingUp className="w-4 h-4" /> },
+              { id: 'portfolio', label: 'Portfolio', icon: <Wallet className="w-4 h-4" /> },
+              { id: 'activity', label: 'Activity', icon: <Activity className="w-4 h-4" /> }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-[var(--color-solana-green)] text-black shadow-lg shadow-[var(--color-solana-green)]/20'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+           </div>
         </div>
 
         {/* Market Tab */}
+        <AnimatePresence mode="wait">
         {activeTab === 'market' && (
-          <div>
+          <motion.div
+             key="market"
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             exit={{ opacity: 0, y: -20 }}
+          >
             {/* Filters */}
-            <div className="flex gap-4 mb-6">
-              <input
-                type="text"
-                placeholder="Search creators..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-solana-green)]"
-              />
+            <div className="flex flex-col md:flex-row gap-4 mb-8">
+               <div className="flex-1 relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Search creators..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-[var(--color-solana-green)] transition-all"
+                  />
+               </div>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[var(--color-solana-green)]"
+                className="bg-black/40 border border-white/10 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-[var(--color-solana-green)] transition-all cursor-pointer font-medium"
               >
                 <option value="volume">Sort by Volume</option>
                 <option value="price">Sort by Price</option>
@@ -159,28 +182,36 @@ export const CreatorShares = () => {
             </div>
 
             {/* Creator Cards */}
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredCreators.length === 0 ? (
-                <div className="glass-card rounded-xl p-12 text-center border border-white/10">
-                  <div className="text-gray-400 mb-2">No creators found</div>
-                  <p className="text-gray-500 text-sm">
-                    Buy shares in your favorite creators to get started
+                <div className="col-span-full glass-card rounded-2xl p-20 text-center border border-white/10 border-dashed">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/5 mb-6">
+                     <Users className="w-10 h-10 text-gray-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-300 mb-2">No creators found</h3>
+                  <p className="text-gray-500 max-w-md mx-auto">
+                    Buy shares in your favorite creators to build your portfolio. New creators are joining every day!
                   </p>
                 </div>
               ) : (
                 filteredCreators.map((creator) => (
-                  <div
+                  <motion.div
+                    layout
                     key={creator.creatorAddress}
-                    className="glass-card rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all"
+                    className="glass-card rounded-2xl p-6 border border-white/10 hover:border-[var(--color-solana-green)]/30 hover:bg-white/5 transition-all group"
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-xl font-bold text-white mb-1">
-                          @{creator.creatorUsername}
-                        </h3>
-                        <div className="text-sm text-gray-400">
-                          {creator.creatorAddress.slice(0, 8)}...
-                          {creator.creatorAddress.slice(-6)}
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-solana-green)] to-[#14C58E] flex items-center justify-center text-xl font-bold text-black shadow-lg shadow-[var(--color-solana-green)]/20">
+                          {creator.creatorUsername.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-white">
+                            @{creator.creatorUsername}
+                          </h3>
+                          <div className="text-sm text-gray-400 font-mono">
+                            {creator.creatorAddress.slice(0, 4)}...{creator.creatorAddress.slice(-4)}
+                          </div>
                         </div>
                       </div>
                       <div className="text-right">
@@ -188,71 +219,81 @@ export const CreatorShares = () => {
                           {formatSOL(creator.price)} SOL
                         </div>
                         <div
-                          className={`text-sm font-semibold ${
+                          className={`text-sm font-bold flex items-center justify-end gap-1 ${
                             creator.priceChange24h >= 0
-                              ? 'text-green-400'
+                              ? 'text-[var(--color-solana-green)]'
                               : 'text-red-400'
                           }`}
                         >
+                          {creator.priceChange24h >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
                           {formatPercent(creator.priceChange24h)}
                         </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-white/5 rounded-xl border border-white/5">
                       <div>
-                        <div className="text-gray-400 text-xs mb-1">Supply</div>
-                        <div className="text-white font-semibold">{creator.supply}</div>
+                        <div className="text-gray-500 text-xs mb-1 uppercase tracking-wider font-semibold">Supply</div>
+                        <div className="text-white font-bold">{creator.supply}</div>
                       </div>
                       <div>
-                        <div className="text-gray-400 text-xs mb-1">Holders</div>
-                        <div className="text-white font-semibold">{creator.holders}</div>
+                        <div className="text-gray-500 text-xs mb-1 uppercase tracking-wider font-semibold">Holders</div>
+                        <div className="text-white font-bold">{creator.holders}</div>
                       </div>
                       <div>
-                        <div className="text-gray-400 text-xs mb-1">24h Volume</div>
-                        <div className="text-white font-semibold">
-                          {formatSOL(creator.volume24h)} SOL
+                        <div className="text-gray-500 text-xs mb-1 uppercase tracking-wider font-semibold">Volume</div>
+                        <div className="text-white font-bold">
+                          {formatSOL(creator.volume24h)}
                         </div>
                       </div>
                     </div>
 
                     {publicKey && (
-                      <div className="flex gap-4">
-                        <button
-                          onClick={() =>
-                            handleBuy(creator.creatorAddress, creator.creatorUsername)
-                          }
-                          className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition-all"
-                        >
-                          Buy Shares
-                        </button>
-                      </div>
+                      <button
+                        onClick={() =>
+                          handleBuy(creator.creatorAddress, creator.creatorUsername)
+                        }
+                        className="w-full bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-[var(--color-solana-green)]/10 hover:shadow-[var(--color-solana-green)]/20"
+                      >
+                        Buy Shares
+                      </button>
                     )}
-                  </div>
+                  </motion.div>
                 ))
               )}
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
 
         {/* Portfolio Tab */}
+        <AnimatePresence mode="wait">
         {activeTab === 'portfolio' && (
-          <div className="space-y-4">
+          <motion.div
+             key="portfolio"
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             exit={{ opacity: 0, y: -20 }}
+             className="space-y-4"
+          >
             {!publicKey ? (
-              <div className="glass-card rounded-xl p-12 text-center border border-white/10">
-                <div className="text-gray-400 mb-2">Connect your wallet</div>
-                <p className="text-gray-500 text-sm">
-                  Connect your wallet to view your portfolio
+              <div className="glass-card rounded-2xl p-20 text-center border border-white/10 border-dashed">
+                <Wallet className="w-16 h-16 text-gray-600 mx-auto mb-6" />
+                <h3 className="text-2xl font-bold text-gray-300 mb-2">Connect your wallet</h3>
+                <p className="text-gray-500 max-w-md mx-auto mb-8">
+                  Connect your Solana wallet to view your portfolio and start trading creator shares.
                 </p>
               </div>
             ) : myHoldings.length === 0 ? (
-              <div className="glass-card rounded-xl p-12 text-center border border-white/10">
-                <div className="text-gray-400 mb-2">No holdings yet</div>
-                <p className="text-gray-500 text-sm">
-                  Buy shares in creators to build your portfolio
+              <div className="glass-card rounded-2xl p-20 text-center border border-white/10 border-dashed">
+                <Activity className="w-16 h-16 text-gray-600 mx-auto mb-6" />
+                <h3 className="text-2xl font-bold text-gray-300 mb-2">No holdings yet</h3>
+                <p className="text-gray-500 max-w-md mx-auto">
+                  You haven't purchased any creator shares yet. Head to the Market tab to find creators to invest in!
                 </p>
               </div>
             ) : (
+              // TODO: Implement cleaner grid layout for holdings similar to Market tab
               myHoldings.map((holding: any) => {
                 // Query creator data from blockchain
                 const creator = null; // TODO: Fetch creator_pool PDA
@@ -265,16 +306,17 @@ export const CreatorShares = () => {
                   (profit / (holding.amount * holding.purchasePrice)) * 100;
 
                 return (
-                  <div
+                  <motion.div
+                    layout
                     key={holding.id}
-                    className="glass-card rounded-xl p-6 border border-white/10"
+                    className="glass-card rounded-2xl p-6 border border-white/10 hover:bg-white/5 transition-all"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="text-xl font-bold text-white mb-1">
                           @{holding.creatorUsername}
                         </h3>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-gray-400 font-mono">
                           {holding.amount} shares
                         </div>
                       </div>
@@ -283,8 +325,8 @@ export const CreatorShares = () => {
                           {formatSOL(currentValue)} SOL
                         </div>
                         <div
-                          className={`text-sm font-semibold ${
-                            profit >= 0 ? 'text-green-400' : 'text-red-400'
+                          className={`text-sm font-bold ${
+                            profit >= 0 ? 'text-[var(--color-solana-green)]' : 'text-red-400'
                           }`}
                         >
                           {profit >= 0 ? '+' : ''}
@@ -293,104 +335,113 @@ export const CreatorShares = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-white/5 rounded-xl border border-white/5">
                       <div>
-                        <div className="text-gray-400 text-xs mb-1">Purchase Price</div>
-                        <div className="text-white font-semibold">
-                          {formatSOL(holding.purchasePrice)} SOL
+                        <div className="text-gray-500 text-xs mb-1 uppercase tracking-wider font-semibold">Avg Price</div>
+                        <div className="text-white font-bold font-mono">
+                          {formatSOL(holding.purchasePrice)}
                         </div>
                       </div>
                       <div>
-                        <div className="text-gray-400 text-xs mb-1">Current Price</div>
-                        <div className="text-white font-semibold">
+                        <div className="text-gray-500 text-xs mb-1 uppercase tracking-wider font-semibold">Cur Price</div>
+                        <div className="text-white font-bold font-mono">
                           N/A
                         </div>
                       </div>
                       <div>
-                        <div className="text-gray-400 text-xs mb-1">Total Value</div>
-                        <div className="text-white font-semibold">
-                          {formatSOL(currentValue)} SOL
+                        <div className="text-gray-500 text-xs mb-1 uppercase tracking-wider font-semibold">Value</div>
+                        <div className="text-white font-bold font-mono">
+                          {formatSOL(currentValue)}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleSell(holding.creatorAddress, holding.creatorAddress)}
-                        className="flex-1 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold py-2 px-4 rounded-lg transition-all"
-                      >
-                        Sell Shares
-                      </button>
-                    </div>
-                  </div>
+                    <button
+                      onClick={() => handleSell(holding.creatorAddress, holding.creatorAddress)}
+                      className="w-full bg-white/5 hover:bg-red-500/20 text-white hover:text-red-400 border border-white/10 hover:border-red-500/50 font-bold py-3 px-4 rounded-xl transition-all"
+                    >
+                      Sell Shares
+                    </button>
+                  </motion.div>
                 );
               })
             )}
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
 
         {/* Activity Tab */}
+        <AnimatePresence mode="wait">
         {activeTab === 'activity' && (
-          <div className="glass-card rounded-xl overflow-hidden border border-white/10">
+          <motion.div
+             key="activity"
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             exit={{ opacity: 0, y: -20 }}
+             className="glass-card rounded-3xl overflow-hidden border border-white/10"
+          >
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-white/5">
+                <thead className="bg-white/5 border-b border-white/10">
                   <tr>
-                    <th className="text-left px-6 py-4 text-gray-400 font-semibold">
+                    <th className="text-left px-8 py-6 text-gray-400 font-bold uppercase text-xs tracking-wider">
                       Type
                     </th>
-                    <th className="text-left px-6 py-4 text-gray-400 font-semibold">
+                    <th className="text-left px-8 py-6 text-gray-400 font-bold uppercase text-xs tracking-wider">
                       Creator
                     </th>
-                    <th className="text-left px-6 py-4 text-gray-400 font-semibold">
+                    <th className="text-left px-8 py-6 text-gray-400 font-bold uppercase text-xs tracking-wider">
                       Amount
                     </th>
-                    <th className="text-left px-6 py-4 text-gray-400 font-semibold">
+                    <th className="text-left px-8 py-6 text-gray-400 font-bold uppercase text-xs tracking-wider">
                       Price
                     </th>
-                    <th className="text-left px-6 py-4 text-gray-400 font-semibold">
+                    <th className="text-left px-8 py-6 text-gray-400 font-bold uppercase text-xs tracking-wider">
                       Total
                     </th>
-                    <th className="text-left px-6 py-4 text-gray-400 font-semibold">
+                    <th className="text-left px-8 py-6 text-gray-400 font-bold uppercase text-xs tracking-wider">
                       Time
                     </th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-white/5">
                   {recentTransactions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
-                        No transactions yet
+                      <td colSpan={6} className="px-6 py-20 text-center text-gray-500">
+                        <div className="flex flex-col items-center gap-4">
+                           <Activity className="w-12 h-12 opacity-20" />
+                           <p>No transactions yet</p>
+                        </div>
                       </td>
                     </tr>
                   ) : (
                     recentTransactions.map((tx) => (
                       <tr
                         key={tx.id}
-                        className="border-t border-white/5 hover:bg-white/5"
+                        className="hover:bg-white/5 transition-colors"
                       >
-                        <td className="px-6 py-4">
+                        <td className="px-8 py-6">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${
                               tx.type === 'buy'
-                                ? 'bg-green-500/20 text-green-400'
-                                : 'bg-red-500/20 text-red-400'
+                                ? 'bg-[var(--color-solana-green)]/10 text-[var(--color-solana-green)] border border-[var(--color-solana-green)]/20'
+                                : 'bg-red-500/10 text-red-500 border border-red-500/20'
                             }`}
                           >
-                            {tx.type.toUpperCase()}
+                            {tx.type}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-white">
+                        <td className="px-8 py-6 text-white font-medium">
                           {(tx.creatorAddress || '').slice(0, 8)}...
                         </td>
-                        <td className="px-6 py-4 text-white">{tx.amount}</td>
-                        <td className="px-6 py-4 text-white">
+                        <td className="px-8 py-6 text-white font-mono">{tx.amount}</td>
+                        <td className="px-8 py-6 text-white font-mono">
                           {formatSOL(tx.price)} SOL
                         </td>
-                        <td className="px-6 py-4 text-white">
+                        <td className="px-8 py-6 text-white font-mono">
                           {formatSOL(tx.total)} SOL
                         </td>
-                        <td className="px-6 py-4 text-gray-400">
+                        <td className="px-8 py-6 text-gray-400 text-sm">
                           {new Date(tx.timestamp).toLocaleString()}
                         </td>
                       </tr>
@@ -399,8 +450,9 @@ export const CreatorShares = () => {
                 </tbody>
               </table>
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
 
       {showBuyModal && selectedCreator && (
@@ -419,6 +471,6 @@ export const CreatorShares = () => {
           onClose={() => setShowSellModal(false)}
         />
       )}
-    </div>
+    </AppLayout>
   );
 };

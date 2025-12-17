@@ -122,7 +122,7 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
             onChange={(e) => setContent(e.target.value)}
             onFocus={() => setIsExpanded(true)}
             placeholder={placeholder || "What's happening on Solana?"}
-            className="w-full bg-transparent text-white placeholder-gray-500 text-lg resize-none outline-none min-h-[60px]"
+            className="w-full bg-transparent text-white placeholder-gray-500 text-lg resize-none outline-none min-h-[60px] focus:placeholder-gray-400 transition-colors"
             rows={isExpanded ? 4 : 2}
             aria-label="Post content"
             aria-describedby="char-count"

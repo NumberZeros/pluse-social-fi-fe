@@ -28,7 +28,7 @@ export function useSolanaTipping() {
         }),
       );
 
-      const signature = await sendTransaction(transaction, connection);
+      const signature = await sendTransaction(transaction);
 
       toast.success(`Tip sent! Transaction: ${signature.slice(0, 8)}...`);
 

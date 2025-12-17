@@ -1,7 +1,6 @@
-import { Link } from 'react-router-dom';
-import { WalletButton } from '../lib/wallet-adapter/components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { AppLayout } from '../components/layout/AppLayout';
 import {
   User,
   TrendingUp,
@@ -19,8 +18,6 @@ import {
   HelpCircle,
   Hash,
 } from 'lucide-react';
-import { PulseMark } from '../components/icons/PulseIcons';
-import Footer from '../components/layout/Footer';
 
 const GuideSection = ({
   id,
@@ -42,24 +39,24 @@ const GuideSection = ({
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
-    className="glass-card rounded-2xl p-8 border border-white/10 hover:border-[var(--color-solana-green)]/30 transition-all scroll-mt-24"
+    className="glass-card rounded-2xl p-8 border border-white/10 hover:border-[var(--color-solana-green)]/30 transition-all scroll-mt-24 group"
   >
-    <div className="flex items-start gap-4 mb-6">
-      <div className="w-14 h-14 rounded-xl bg-[var(--color-solana-green)]/10 flex items-center justify-center flex-shrink-0 text-[var(--color-solana-green)]">
+    <div className="flex items-start gap-5 mb-8">
+      <div className="w-16 h-16 rounded-2xl bg-[var(--color-solana-green)]/10 flex items-center justify-center flex-shrink-0 text-[var(--color-solana-green)] group-hover:scale-110 transition-transform duration-300">
         {icon}
       </div>
       <div>
-        <h3 className="text-2xl font-display font-bold mb-2">{title}</h3>
-        <p className="text-gray-400">{description}</p>
+        <h3 className="text-2xl font-bold mb-2 text-white group-hover:text-[var(--color-solana-green)] transition-colors">{title}</h3>
+        <p className="text-gray-400 text-lg leading-relaxed">{description}</p>
       </div>
     </div>
-    <div className="space-y-3">
+    <div className="space-y-4 pl-4 border-l-2 border-white/5">
       {steps.map((step, index) => (
-        <div key={index} className="flex items-start gap-3">
-          <div className="w-6 h-6 rounded-full bg-[var(--color-solana-green)]/20 flex items-center justify-center flex-shrink-0 text-xs font-bold text-[var(--color-solana-green)]">
+        <div key={index} className="flex items-start gap-4">
+          <div className="w-6 h-6 rounded-full bg-[var(--color-solana-green)]/20 flex items-center justify-center flex-shrink-0 text-xs font-bold text-[var(--color-solana-green)] mt-0.5">
             {index + 1}
           </div>
-          <p className="text-gray-300 leading-relaxed pt-0.5">{step}</p>
+          <p className="text-gray-300 leading-relaxed">{step}</p>
         </div>
       ))}
     </div>
@@ -71,12 +68,12 @@ const QuickTip = ({ text, delay }: { text: string; delay: number }) => (
     initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
     transition={{ duration: 0.5, delay }}
-    className="flex items-start gap-3 p-4 rounded-xl bg-[var(--color-solana-green)]/5 border border-[var(--color-solana-green)]/20"
+    className="flex items-start gap-4 p-5 rounded-2xl bg-[var(--color-solana-green)]/5 border border-[var(--color-solana-green)]/20 hover:bg-[var(--color-solana-green)]/10 transition-colors"
   >
-    <div className="w-5 h-5 rounded-full bg-[var(--color-solana-green)] flex items-center justify-center flex-shrink-0">
+    <div className="w-6 h-6 rounded-full bg-[var(--color-solana-green)] flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-[var(--color-solana-green)]/20">
       <ArrowRight className="w-3 h-3 text-black" />
     </div>
-    <p className="text-sm text-gray-300 leading-relaxed">{text}</p>
+    <p className="text-gray-300 leading-relaxed font-medium">{text}</p>
   </motion.div>
 );
 
@@ -84,7 +81,7 @@ const QuickTip = ({ text, delay }: { text: string; delay: number }) => (
 const guides = [
   {
     id: 'username-nft',
-    icon: <User className="w-7 h-7" />,
+    icon: <User className="w-8 h-8" />,
     title: 'Username NFT - Own Your Identity',
     description: 'Mint your unique @username as an on-chain NFT. Portable across all Solana apps.',
     keywords: ['username', 'nft', 'identity', 'mint', 'handle', 'marketplace'],
@@ -98,7 +95,7 @@ const guides = [
     },
     {
       id: 'creator-shares',
-      icon: <TrendingUp className="w-7 h-7" />,
+      icon: <TrendingUp className="w-8 h-8" />,
       title: 'Creator Shares - Invest in Creators',
       description: 'Buy and sell creator shares with algorithmic pricing. Early supporters get the best deals.',
       keywords: ['shares', 'creator', 'invest', 'buy', 'sell', 'bonding curve', 'trading'],
@@ -113,7 +110,7 @@ const guides = [
     },
     {
       id: 'social-feed',
-      icon: <MessageSquare className="w-7 h-7" />,
+      icon: <MessageSquare className="w-8 h-8" />,
       title: 'Social Feed - Post & Engage',
       description: 'Create posts, like, repost, and tip other users. Build your on-chain social presence.',
       keywords: ['feed', 'post', 'like', 'repost', 'engage', 'social', 'create'],
@@ -128,7 +125,7 @@ const guides = [
     },
     {
       id: 'subscriptions',
-      icon: <Crown className="w-7 h-7" />,
+      icon: <Crown className="w-8 h-8" />,
       title: 'Subscriptions - Monetize Your Content',
       description: 'Create subscription tiers for exclusive content. Fans pay monthly for special access.',
       keywords: ['subscription', 'tier', 'monetize', 'exclusive', 'subscriber', 'creator dashboard'],
@@ -144,7 +141,7 @@ const guides = [
     },
     {
       id: 'groups',
-      icon: <Users className="w-7 h-7" />,
+      icon: <Users className="w-8 h-8" />,
       title: 'Groups - Build Communities',
       description: 'Create or join groups. Share posts within communities. Moderate your own space.',
       keywords: ['groups', 'community', 'create', 'join', 'moderate', 'members'],
@@ -160,7 +157,7 @@ const guides = [
     },
     {
       id: 'governance',
-      icon: <Vote className="w-7 h-7" />,
+      icon: <Vote className="w-8 h-8" />,
       title: 'Governance - Vote on Decisions',
       description: 'Stake $PULSE tokens to gain voting power. Create proposals and shape the platform.',
       keywords: ['governance', 'vote', 'stake', 'proposal', 'voting power', 'pulse token'],
@@ -176,7 +173,7 @@ const guides = [
     },
     {
       id: 'tipping',
-      icon: <DollarSign className="w-7 h-7" />,
+      icon: <DollarSign className="w-8 h-8" />,
       title: 'Tipping - Support Creators',
       description: 'Send SOL directly to creators you love. Instant, on-chain, no middleman.',
       keywords: ['tip', 'tipping', 'support', 'creator', 'sol', 'send'],
@@ -191,7 +188,7 @@ const guides = [
     },
     {
       id: 'airdrop',
-      icon: <Gift className="w-7 h-7" />,
+      icon: <Gift className="w-8 h-8" />,
       title: 'Airdrop - Earn $PULSE Tokens',
       description: 'Complete daily tasks to earn airdrop points. Refer friends for bonus rewards.',
       keywords: ['airdrop', 'earn', 'rewards', 'tasks', 'referral', 'points'],
@@ -207,7 +204,7 @@ const guides = [
     },
     {
       id: 'marketplace',
-      icon: <Tag className="w-7 h-7" />,
+      icon: <Tag className="w-8 h-8" />,
       title: 'Marketplace - Trade Usernames',
       description: 'List your username NFTs for sale or buy premium handles from others.',
       keywords: ['marketplace', 'trade', 'buy', 'sell', 'list', 'username', 'nft'],
@@ -266,13 +263,13 @@ export default function UserGuide() {
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   // Handle scroll for back to top button
-  useState(() => {
+  useEffect(() => {
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 500);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  });
+  }, []); // Added dependency array for safety
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -292,90 +289,49 @@ export default function UserGuide() {
   }, [searchQuery]);
 
   return (
-    <div className="bg-[#000000] text-white min-h-screen font-sans">
-      {/* Background */}
-      <div className="fixed inset-0 z-0 mesh-gradient-lens opacity-60 pointer-events-none" />
-
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-6 flex justify-between items-center max-w-[1400px] mx-auto w-full bg-black/50 backdrop-blur-lg border-b border-white/5">
-        <Link
-          to="/"
-          className="text-2xl font-display font-bold tracking-tighter flex items-center gap-2 hover:opacity-80 transition-opacity"
-        >
-          <PulseMark className="w-7 h-7" />
-          Pulse
-        </Link>
-        <div className="hidden md:flex gap-8 text-sm font-medium text-gray-300">
-          <Link
-            to="/"
-            className="hover:text-[var(--color-solana-green)] transition-colors"
-          >
-            Home
-          </Link>
-          <Link
-            to="/what"
-            className="hover:text-[var(--color-solana-green)] transition-colors"
-          >
-            What
-          </Link>
-          <Link
-            to="/why"
-            className="hover:text-[var(--color-solana-green)] transition-colors"
-          >
-            Why
-          </Link>
-          <Link to="/guide" className="text-[var(--color-solana-green)]">
-            Guide
-          </Link>
-          <Link
-            to="/airdrop"
-            className="hover:text-[var(--color-solana-green)] transition-colors"
-          >
-            Airdrop
-          </Link>
-        </div>
-        <WalletButton className="!px-6 !py-3 !bg-white !text-black !rounded-full !font-bold !text-sm hover:!bg-[var(--color-solana-green)] !transition-colors" />
-      </nav>
-
+    <AppLayout>
       {/* Content */}
-      <main className="relative z-10 pt-32 pb-20 px-6 max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto pb-20">
         {/* Hero */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-20"
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ duration: 0.6 }}
+           className="text-center mb-20 relative"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm mb-8">
             <BookOpen className="w-4 h-4 text-[var(--color-solana-green)]" />
-            <span className="text-sm font-medium text-[var(--color-solana-green)]">
-              User Guide
+            <span className="text-sm font-bold text-[var(--color-solana-green)] uppercase tracking-wider">
+              Knowledge Base
             </span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tight mb-8">
+          <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-8">
             Welcome to <br />
             <span className="text-gradient-lens">Pulse Social</span>
           </h1>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-8">
-            Learn how to mint usernames, trade creator shares, govern the platform, and build your community.
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed mb-12">
+            Your comprehensive guide to minting usernames, trading shares, and building communities on Solana's most social platform.
           </p>
 
           {/* Search Box */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="max-w-xl mx-auto"
+             initial={{ opacity: 0, y: 10 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.3 }}
+             className="max-w-xl mx-auto"
           >
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search guides... (e.g., 'username', 'tip', 'vote')"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-solana-green)]/50 transition-colors"
-              />
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-[var(--color-solana-green)] to-[#14C58E] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+              <div className="relative">
+                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400 group-hover:text-[var(--color-solana-green)] transition-colors" />
+                 <input
+                   type="text"
+                   placeholder="How do I..."
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                   className="w-full pl-16 pr-6 py-5 bg-[#0A0A0A] border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-solana-green)] transition-all text-lg shadow-xl"
+                 />
+              </div>
             </div>
           </motion.div>
         </motion.div>
@@ -387,19 +343,19 @@ export default function UserGuide() {
           transition={{ delay: 0.4 }}
           className="mb-16"
         >
-          <div className="glass-card rounded-2xl p-6 border border-white/10">
-            <div className="flex items-center gap-2 mb-4">
-              <Hash className="w-5 h-5 text-[var(--color-solana-green)]" />
-              <h2 className="text-xl font-display font-bold">Quick Navigation</h2>
+          <div className="glass-card rounded-3xl p-8 border border-white/10">
+            <div className="flex items-center gap-3 mb-6">
+              <Hash className="w-6 h-6 text-[var(--color-solana-green)]" />
+              <h2 className="text-2xl font-bold">Quick Navigation</h2>
             </div>
-            <div className="grid md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {guides.map((guide) => (
                 <a
                   key={guide.id}
                   href={`#${guide.id}`}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-[var(--color-solana-green)]/10 hover:border-[var(--color-solana-green)]/30 border border-transparent transition-all text-sm text-gray-300 hover:text-white"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 hover:bg-[var(--color-solana-green)]/10 hover:border-[var(--color-solana-green)]/30 border border-white/5 transition-all text-sm font-medium text-gray-300 hover:text-white group"
                 >
-                  {guide.icon}
+                  <span className="text-gray-500 group-hover:text-[var(--color-solana-green)] transition-colors">{guide.icon}</span>
                   <span>{guide.title.split(' - ')[0]}</span>
                 </a>
               ))}
@@ -408,75 +364,65 @@ export default function UserGuide() {
         </motion.div>
 
         {/* Getting Started */}
-        <div className="mb-16">
+        <div className="mb-20">
           <motion.h2
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-3xl md:text-4xl font-display font-bold mb-8"
+            className="text-3xl md:text-4xl font-bold mb-8 flex items-center gap-4"
           >
-            Getting Started
+             Getting Started
+             <div className="h-px flex-1 bg-white/10"></div>
           </motion.h2>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="glass-card rounded-2xl p-8 border border-[var(--color-solana-green)]/20 bg-[var(--color-solana-green)]/5"
+            className="glass-card rounded-3xl p-8 border border-[var(--color-solana-green)]/20 bg-[var(--color-solana-green)]/5 relative overflow-hidden"
           >
-            <h3 className="text-2xl font-display font-bold mb-4 text-[var(--color-solana-green)]">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-solana-green)]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            
+            <h3 className="text-2xl font-bold mb-6 text-white relative z-10">
               First Time Setup
             </h3>
-            <ol className="space-y-3 text-gray-300">
-              <li className="flex gap-3">
-                <span className="font-bold text-[var(--color-solana-green)]">1.</span>
-                <span>
-                  Install a Solana wallet like Phantom, Solflare, or Backpack from their
-                  official websites
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-bold text-[var(--color-solana-green)]">2.</span>
-                <span>Fund your wallet with SOL (you can buy on exchanges or use a faucet for devnet)</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-bold text-[var(--color-solana-green)]">3.</span>
-                <span>
-                  Click "Select Wallet" in the top right corner of Pulse and connect your
-                  wallet
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-bold text-[var(--color-solana-green)]">4.</span>
-                <span>Approve the connection in your wallet popup</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-bold text-[var(--color-solana-green)]">5.</span>
-                <span>
-                  You're ready to go! Your wallet address is now your Pulse identity
-                </span>
-              </li>
-            </ol>
+            <div className="grid gap-6 relative z-10">
+              {[
+                  'Install a Solana wallet like Phantom, Solflare, or Backpack from their official websites',
+                  'Fund your wallet with SOL (you can buy on exchanges or use a faucet for devnet)',
+                  'Click "Select Wallet" in the top right corner of Pulse and connect your wallet',
+                  'Approve the connection in your wallet popup',
+                  'You\'re ready to go! Your wallet address is now your Pulse identity'
+              ].map((text, i) => (
+                 <div key={i} className="flex gap-4 items-center bg-black/20 p-4 rounded-xl border border-white/5">
+                    <div className="w-8 h-8 rounded-full bg-[var(--color-solana-green)] text-black font-bold flex items-center justify-center flex-shrink-0">
+                       {i + 1}
+                    </div>
+                    <p className="text-gray-200 font-medium">{text}</p>
+                 </div>
+              ))}
+            </div>
           </motion.div>
         </div>
 
         {/* Feature Guides */}
-        <div className="mb-16">
+        <div className="mb-20">
           <motion.h2
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-3xl md:text-4xl font-display font-bold mb-8"
+            className="text-3xl md:text-4xl font-bold mb-8 flex items-center gap-4"
           >
             Feature Guides
             {searchQuery && (
-              <span className="text-lg text-gray-400 font-normal ml-3">
+              <span className="text-lg text-gray-400 font-normal">
                 ({filteredGuides.length} result{filteredGuides.length !== 1 ? 's' : ''})
               </span>
             )}
+            <div className="h-px flex-1 bg-white/10"></div>
           </motion.h2>
           
           {filteredGuides.length > 0 ? (
-            <div className="space-y-6">
+            <div className="space-y-8">
               {filteredGuides.map((guide, index) => (
                 <GuideSection
                   key={guide.id}
@@ -493,13 +439,13 @@ export default function UserGuide() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="glass-card rounded-2xl p-12 border border-white/10 text-center"
+              className="glass-card rounded-2xl p-16 border border-white/10 text-center border-dashed"
             >
-              <Search className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">
+              <Search className="w-16 h-16 text-gray-600 mx-auto mb-6" />
+              <p className="text-gray-300 text-xl font-bold">
                 No guides found for "{searchQuery}"
               </p>
-              <p className="text-gray-500 text-sm mt-2">
+              <p className="text-gray-500 mt-2">
                 Try different keywords like "username", "tip", "vote", or "share"
               </p>
             </motion.div>
@@ -507,16 +453,17 @@ export default function UserGuide() {
         </div>
 
         {/* Quick Tips */}
-        <div className="mb-16">
+        <div className="mb-20">
           <motion.h2
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="text-3xl md:text-4xl font-display font-bold mb-8"
+            className="text-3xl md:text-4xl font-bold mb-8 flex items-center gap-4"
           >
             Quick Tips & Best Practices
+            <div className="h-px flex-1 bg-white/10"></div>
           </motion.h2>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-6">
             {quickTips.map((tip, index) => (
               <QuickTip key={index} text={tip} delay={0.1 * index + 0.7} />
             ))}
@@ -524,29 +471,32 @@ export default function UserGuide() {
         </div>
 
         {/* FAQ Section */}
-        <div className="mb-16">
+        <div className="mb-10">
           <motion.h2
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="text-3xl md:text-4xl font-display font-bold mb-8"
+            className="text-3xl md:text-4xl font-bold mb-8 flex items-center gap-4"
           >
             Frequently Asked Questions
+            <div className="h-px flex-1 bg-white/10"></div>
           </motion.h2>
-          <div className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-6">
             {faqs.map((faq, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index + 0.8 }}
-                className="glass-card rounded-xl p-6 border border-white/10"
+                className="glass-card rounded-2xl p-8 border border-white/10 hover:bg-white/5 transition-colors"
               >
-                <div className="flex items-start gap-3">
-                  <HelpCircle className="w-5 h-5 text-[var(--color-solana-green)] flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-white/5 flex-shrink-0">
+                     <HelpCircle className="w-6 h-6 text-[var(--color-solana-green)]" />
+                  </div>
                   <div>
-                    <h3 className="text-lg font-bold mb-2">{faq.q}</h3>
-                    <p className="text-gray-400 leading-relaxed">{faq.a}</p>
+                    <h3 className="text-lg font-bold mb-3 text-white">{faq.q}</h3>
+                    <p className="text-gray-400 leading-relaxed text-sm">{faq.a}</p>
                   </div>
                 </div>
               </motion.div>
@@ -559,19 +509,19 @@ export default function UserGuide() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.9 }}
-          className="glass-card rounded-2xl p-8 border border-white/10 text-center"
+          className="glass-card rounded-3xl p-12 border border-white/10 text-center bg-gradient-to-b from-white/5 to-transparent"
         >
-          <h2 className="text-3xl font-display font-bold mb-4">Need More Help?</h2>
-          <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">Need More Help?</h2>
+          <p className="text-gray-400 mb-8 max-w-2xl mx-auto text-lg">
             Join our community channels for support, feature requests, and discussions with
-            other Pulse users.
+            other Pulse users. We are here to help!
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a
               href="https://discord.gg/pulse"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-3 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-full font-bold transition-colors"
+              className="px-8 py-4 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-full font-bold transition-all shadow-lg hover:shadow-[#5865F2]/50 hover:-translate-y-1"
             >
               Join Discord
             </a>
@@ -579,21 +529,21 @@ export default function UserGuide() {
               href="https://twitter.com/pulsesocial"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full font-bold transition-colors border border-white/10"
+              className="px-8 py-4 bg-black hover:bg-gray-900 text-white rounded-full font-bold transition-all border border-white/10 hover:border-white/30 hover:-translate-y-1 flex items-center gap-2"
             >
-              Follow on Twitter
+              Follow on X
             </a>
             <a
               href="https://t.me/pulsesocial"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full font-bold transition-colors border border-white/10"
+              className="px-8 py-4 bg-[#229ED9] hover:bg-[#1b8bc2] text-white rounded-full font-bold transition-all shadow-lg hover:shadow-[#229ED9]/50 hover:-translate-y-1"
             >
               Join Telegram
             </a>
           </div>
         </motion.div>
-      </main>
+      </div>
 
       {/* Back to Top Button */}
       <AnimatePresence>
@@ -603,16 +553,14 @@ export default function UserGuide() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-40 w-12 h-12 rounded-full bg-[var(--color-solana-green)] text-black flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all"
+            className="fixed bottom-8 right-8 z-40 w-14 h-14 rounded-full bg-[var(--color-solana-green)] text-black flex items-center justify-center shadow-[0_0_20px_rgba(20,241,149,0.4)] hover:shadow-[0_0_30px_rgba(20,241,149,0.6)] hover:scale-110 transition-all"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
           >
-            <ArrowUp className="w-6 h-6" />
+            <ArrowUp className="w-8 h-8" />
           </motion.button>
         )}
       </AnimatePresence>
-
-      <Footer />
-    </div>
+    </AppLayout>
   );
 }

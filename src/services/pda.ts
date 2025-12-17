@@ -60,7 +60,8 @@ export class PDAs {
    */
   static getSubscriptionTier(creator: PublicKey, tierId: number): [PublicKey, number] {
     const tierIdBuffer = Buffer.alloc(8);
-    tierIdBuffer.writeBigUInt64LE(BigInt(tierId));
+    // @ts-ignore
+    tierIdBuffer.writeBigUInt64LE(BigInt(tierId), 0);
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from('subscription_tier'),
@@ -93,7 +94,8 @@ export class PDAs {
     tierId: number
   ): [PublicKey, number] {
     const tierIdBuffer = Buffer.alloc(8);
-    tierIdBuffer.writeBigUInt64LE(BigInt(tierId));
+    // @ts-ignore
+    tierIdBuffer.writeBigUInt64LE(BigInt(tierId), 0);
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from('subscription'),
