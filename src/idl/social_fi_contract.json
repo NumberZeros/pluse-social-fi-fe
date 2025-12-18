@@ -1,850 +1,28 @@
 {
-  "accounts": [
-    {
-      "discriminator": [
-        150,
-        135,
-        96,
-        244,
-        55,
-        199,
-        50,
-        65
-      ],
-      "name": "Comment"
-    },
-    {
-      "discriminator": [
-        9,
-        145,
-        89,
-        211,
-        0,
-        62,
-        114,
-        107
-      ],
-      "name": "CreatorPool"
-    },
-    {
-      "discriminator": [
-        222,
-        247,
-        253,
-        60,
-        70,
-        4,
-        164,
-        51
-      ],
-      "name": "Follow"
-    },
-    {
-      "discriminator": [
-        209,
-        249,
-        208,
-        63,
-        182,
-        89,
-        186,
-        254
-      ],
-      "name": "Group"
-    },
-    {
-      "discriminator": [
-        100,
-        200,
-        88,
-        143,
-        83,
-        227,
-        165,
-        166
-      ],
-      "name": "GroupMember"
-    },
-    {
-      "discriminator": [
-        10,
-        133,
-        129,
-        201,
-        87,
-        218,
-        203,
-        222
-      ],
-      "name": "Like"
-    },
-    {
-      "discriminator": [
-        218,
-        32,
-        50,
-        73,
-        43,
-        134,
-        26,
-        58
-      ],
-      "name": "Listing"
-    },
-    {
-      "discriminator": [
-        215,
-        88,
-        60,
-        71,
-        170,
-        162,
-        73,
-        229
-      ],
-      "name": "Offer"
-    },
-    {
-      "discriminator": [
-        160,
-        78,
-        128,
-        0,
-        248,
-        83,
-        230,
-        160
-      ],
-      "name": "PlatformConfig"
-    },
-    {
-      "discriminator": [
-        8,
-        147,
-        90,
-        186,
-        185,
-        56,
-        192,
-        150
-      ],
-      "name": "Post"
-    },
-    {
-      "discriminator": [
-        26,
-        94,
-        189,
-        187,
-        116,
-        136,
-        53,
-        33
-      ],
-      "name": "Proposal"
-    },
-    {
-      "discriminator": [
-        142,
-        238,
-        149,
-        128,
-        159,
-        219,
-        224,
-        195
-      ],
-      "name": "Repost"
-    },
-    {
-      "discriminator": [
-        164,
-        112,
-        99,
-        229,
-        217,
-        98,
-        136,
-        78
-      ],
-      "name": "ShareHolding"
-    },
-    {
-      "discriminator": [
-        78,
-        165,
-        30,
-        111,
-        171,
-        125,
-        11,
-        220
-      ],
-      "name": "StakePosition"
-    },
-    {
-      "discriminator": [
-        64,
-        7,
-        26,
-        135,
-        102,
-        132,
-        98,
-        33
-      ],
-      "name": "Subscription"
-    },
-    {
-      "discriminator": [
-        137,
-        112,
-        75,
-        38,
-        237,
-        16,
-        69,
-        210
-      ],
-      "name": "SubscriptionTier"
-    },
-    {
-      "discriminator": [
-        32,
-        37,
-        119,
-        205,
-        179,
-        180,
-        13,
-        194
-      ],
-      "name": "UserProfile"
-    },
-    {
-      "discriminator": [
-        0,
-        7,
-        31,
-        42,
-        164,
-        183,
-        85,
-        74
-      ],
-      "name": "UsernameNFT"
-    },
-    {
-      "discriminator": [
-        96,
-        91,
-        104,
-        57,
-        145,
-        35,
-        172,
-        155
-      ],
-      "name": "Vote"
-    }
-  ],
-  "address": "8dU8UsnavCaqmm4JTgMHCtjzcfcu4D4iKYW71MXE1mDP",
-  "errors": [
-    {
-      "code": 6000,
-      "msg": "Username too long (max 20 characters)",
-      "name": "UsernameTooLong"
-    },
-    {
-      "code": 6001,
-      "msg": "Username already taken",
-      "name": "UsernameAlreadyTaken"
-    },
-    {
-      "code": 6002,
-      "msg": "Invalid username format",
-      "name": "InvalidUsername"
-    },
-    {
-      "code": 6003,
-      "msg": "Insufficient balance for this operation",
-      "name": "InsufficientBalance"
-    },
-    {
-      "code": 6004,
-      "msg": "Amount must be greater than zero",
-      "name": "InvalidAmount"
-    },
-    {
-      "code": 6005,
-      "msg": "Cannot tip yourself",
-      "name": "CannotTipSelf"
-    },
-    {
-      "code": 6006,
-      "msg": "Bonding curve calculation overflow",
-      "name": "BondingCurveOverflow"
-    },
-    {
-      "code": 6007,
-      "msg": "Not enough shares to sell",
-      "name": "InsufficientShares"
-    },
-    {
-      "code": 6008,
-      "msg": "Subscription tier not found",
-      "name": "SubscriptionTierNotFound"
-    },
-    {
-      "code": 6009,
-      "msg": "Subscription already active",
-      "name": "SubscriptionAlreadyActive"
-    },
-    {
-      "code": 6010,
-      "msg": "Subscription expired or cancelled",
-      "name": "SubscriptionInactive"
-    },
-    {
-      "code": 6011,
-      "msg": "Group name too long",
-      "name": "GroupNameTooLong"
-    },
-    {
-      "code": 6012,
-      "msg": "Invalid group privacy setting",
-      "name": "InvalidGroupPrivacy"
-    },
-    {
-      "code": 6013,
-      "msg": "Invalid entry requirement",
-      "name": "InvalidEntryRequirement"
-    },
-    {
-      "code": 6014,
-      "msg": "Insufficient tokens to join group",
-      "name": "InsufficientTokensForGroup"
-    },
-    {
-      "code": 6015,
-      "msg": "Not a member of this group",
-      "name": "NotGroupMember"
-    },
-    {
-      "code": 6016,
-      "msg": "Insufficient permissions",
-      "name": "InsufficientPermissions"
-    },
-    {
-      "code": 6017,
-      "msg": "Cannot perform action on yourself",
-      "name": "CannotActOnSelf"
-    },
-    {
-      "code": 6018,
-      "msg": "Member already in group",
-      "name": "MemberAlreadyInGroup"
-    },
-    {
-      "code": 6019,
-      "msg": "Member is banned from this group",
-      "name": "MemberBanned"
-    },
-    {
-      "code": 6020,
-      "msg": "Invalid lock period",
-      "name": "InvalidLockPeriod"
-    },
-    {
-      "code": 6021,
-      "msg": "Tokens are still locked",
-      "name": "TokensLocked"
-    },
-    {
-      "code": 6022,
-      "msg": "Insufficient voting power to create proposal",
-      "name": "InsufficientVotingPower"
-    },
-    {
-      "code": 6023,
-      "msg": "Proposal title too long",
-      "name": "ProposalTitleTooLong"
-    },
-    {
-      "code": 6024,
-      "msg": "Proposal description too long",
-      "name": "ProposalDescriptionTooLong"
-    },
-    {
-      "code": 6025,
-      "msg": "Invalid proposal category",
-      "name": "InvalidProposalCategory"
-    },
-    {
-      "code": 6026,
-      "msg": "Voting period has ended",
-      "name": "VotingPeriodEnded"
-    },
-    {
-      "code": 6027,
-      "msg": "Voting period still active",
-      "name": "VotingPeriodActive"
-    },
-    {
-      "code": 6028,
-      "msg": "Already voted on this proposal",
-      "name": "AlreadyVoted"
-    },
-    {
-      "code": 6029,
-      "msg": "Quorum not reached",
-      "name": "QuorumNotReached"
-    },
-    {
-      "code": 6030,
-      "msg": "Proposal did not pass",
-      "name": "ProposalNotPassed"
-    },
-    {
-      "code": 6031,
-      "msg": "Execution delay not met",
-      "name": "ExecutionDelayNotMet"
-    },
-    {
-      "code": 6032,
-      "msg": "Proposal already executed",
-      "name": "ProposalAlreadyExecuted"
-    },
-    {
-      "code": 6033,
-      "msg": "Username NFT already minted",
-      "name": "UsernameAlreadyMinted"
-    },
-    {
-      "code": 6034,
-      "msg": "Not the owner of this username NFT",
-      "name": "NotUsernameOwner"
-    },
-    {
-      "code": 6035,
-      "msg": "Metadata URI too long (max 200 characters)",
-      "name": "MetadataUriTooLong"
-    },
-    {
-      "code": 6036,
-      "msg": "Username listing not found",
-      "name": "ListingNotFound"
-    },
-    {
-      "code": 6037,
-      "msg": "Listing price must be greater than zero",
-      "name": "InvalidListingPrice"
-    },
-    {
-      "code": 6038,
-      "msg": "Offer amount must be greater than zero",
-      "name": "InvalidOfferAmount"
-    },
-    {
-      "code": 6039,
-      "msg": "Offer not found or expired",
-      "name": "OfferNotFound"
-    },
-    {
-      "code": 6040,
-      "msg": "Not the listing seller",
-      "name": "NotListingSeller"
-    },
-    {
-      "code": 6041,
-      "msg": "Arithmetic overflow",
-      "name": "ArithmeticOverflow"
-    },
-    {
-      "code": 6042,
-      "msg": "Arithmetic underflow",
-      "name": "ArithmeticUnderflow"
-    },
-    {
-      "code": 6043,
-      "msg": "Invalid timestamp",
-      "name": "InvalidTimestamp"
-    },
-    {
-      "code": 6044,
-      "msg": "Supply exceeds maximum limit",
-      "name": "SupplyTooHigh"
-    },
-    {
-      "code": 6045,
-      "msg": "Price exceeds maximum limit",
-      "name": "PriceTooHigh"
-    },
-    {
-      "code": 6046,
-      "msg": "Slippage tolerance exceeded",
-      "name": "SlippageExceeded"
-    },
-    {
-      "code": 6047,
-      "msg": "Contract is paused",
-      "name": "ContractPaused"
-    },
-    {
-      "code": 6048,
-      "msg": "Unauthorized: admin only",
-      "name": "Unauthorized"
-    },
-    {
-      "code": 6049,
-      "msg": "Reentrancy detected",
-      "name": "Reentrancy"
-    },
-    {
-      "code": 6050,
-      "msg": "Minimum liquidity requirement not met",
-      "name": "MinimumLiquidityRequired"
-    },
-    {
-      "code": 6051,
-      "msg": "Insufficient liquidity in pool",
-      "name": "InsufficientLiquidity"
-    },
-    {
-      "code": 6052,
-      "msg": "Post already has an NFT minted",
-      "name": "PostAlreadyMinted"
-    },
-    {
-      "code": 6053,
-      "msg": "Comment content too long (max 280 characters)",
-      "name": "CommentTooLong"
-    },
-    {
-      "code": 6054,
-      "msg": "Content cannot be empty",
-      "name": "EmptyContent"
-    }
-  ],
-  "events": [
-    {
-      "discriminator": [
-        132,
-        94,
-        184,
-        198,
-        77,
-        165,
-        13,
-        26
-      ],
-      "name": "GroupCreated"
-    },
-    {
-      "discriminator": [
-        11,
-        46,
-        163,
-        10,
-        103,
-        80,
-        139,
-        194
-      ],
-      "name": "ListingCancelled"
-    },
-    {
-      "discriminator": [
-        156,
-        199,
-        149,
-        88,
-        193,
-        203,
-        191,
-        210
-      ],
-      "name": "MemberJoined"
-    },
-    {
-      "discriminator": [
-        180,
-        175,
-        142,
-        172,
-        180,
-        217,
-        45,
-        179
-      ],
-      "name": "MemberKicked"
-    },
-    {
-      "discriminator": [
-        162,
-        132,
-        201,
-        37,
-        97,
-        246,
-        98,
-        117
-      ],
-      "name": "MemberRoleUpdated"
-    },
-    {
-      "discriminator": [
-        81,
-        238,
-        238,
-        115,
-        140,
-        18,
-        8,
-        20
-      ],
-      "name": "OfferAccepted"
-    },
-    {
-      "discriminator": [
-        45,
-        42,
-        175,
-        214,
-        51,
-        192,
-        154,
-        9
-      ],
-      "name": "OfferCancelled"
-    },
-    {
-      "discriminator": [
-        11,
-        5,
-        86,
-        210,
-        3,
-        4,
-        25,
-        154
-      ],
-      "name": "OfferMade"
-    },
-    {
-      "discriminator": [
-        32,
-        161,
-        226,
-        238,
-        159,
-        240,
-        49,
-        243
-      ],
-      "name": "PostMinted"
-    },
-    {
-      "discriminator": [
-        186,
-        8,
-        160,
-        108,
-        81,
-        13,
-        51,
-        206
-      ],
-      "name": "ProposalCreated"
-    },
-    {
-      "discriminator": [
-        92,
-        213,
-        189,
-        201,
-        101,
-        83,
-        111,
-        83
-      ],
-      "name": "ProposalExecuted"
-    },
-    {
-      "discriminator": [
-        24,
-        220,
-        223,
-        28,
-        213,
-        182,
-        47,
-        22
-      ],
-      "name": "SharesPurchased"
-    },
-    {
-      "discriminator": [
-        35,
-        231,
-        5,
-        53,
-        228,
-        158,
-        113,
-        251
-      ],
-      "name": "SharesSold"
-    },
-    {
-      "discriminator": [
-        158,
-        216,
-        233,
-        205,
-        138,
-        62,
-        176,
-        239
-      ],
-      "name": "SubscriptionCancelled"
-    },
-    {
-      "discriminator": [
-        135,
-        182,
-        109,
-        182,
-        216,
-        225,
-        173,
-        248
-      ],
-      "name": "SubscriptionTierCreated"
-    },
-    {
-      "discriminator": [
-        124,
-        3,
-        185,
-        130,
-        232,
-        65,
-        132,
-        235
-      ],
-      "name": "TipSent"
-    },
-    {
-      "discriminator": [
-        220,
-        130,
-        145,
-        142,
-        109,
-        123,
-        38,
-        100
-      ],
-      "name": "TokensStaked"
-    },
-    {
-      "discriminator": [
-        137,
-        203,
-        131,
-        80,
-        135,
-        107,
-        181,
-        150
-      ],
-      "name": "TokensUnstaked"
-    },
-    {
-      "discriminator": [
-        66,
-        195,
-        5,
-        223,
-        42,
-        84,
-        135,
-        60
-      ],
-      "name": "UserInitialized"
-    },
-    {
-      "discriminator": [
-        248,
-        188,
-        188,
-        101,
-        240,
-        150,
-        66,
-        234
-      ],
-      "name": "UserSubscribed"
-    },
-    {
-      "discriminator": [
-        57,
-        217,
-        234,
-        81,
-        32,
-        162,
-        97,
-        126
-      ],
-      "name": "UsernameListed"
-    },
-    {
-      "discriminator": [
-        188,
-        77,
-        165,
-        247,
-        12,
-        212,
-        227,
-        126
-      ],
-      "name": "UsernameMinted"
-    },
-    {
-      "discriminator": [
-        85,
-        117,
-        47,
-        42,
-        18,
-        246,
-        133,
-        68
-      ],
-      "name": "UsernameSold"
-    },
-    {
-      "discriminator": [
-        39,
-        53,
-        195,
-        104,
-        188,
-        17,
-        225,
-        213
-      ],
-      "name": "VoteCast"
-    }
-  ],
+  "address": "FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL",
+  "metadata": {
+    "name": "social_fi_contract",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
   "instructions": [
     {
+      "name": "accept_offer",
+      "discriminator": [
+        227,
+        82,
+        234,
+        131,
+        1,
+        18,
+        48,
+        2
+      ],
       "accounts": [
         {
           "name": "username_nft",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -865,16 +43,16 @@
                 ]
               },
               {
-                "account": "UsernameNFT",
                 "kind": "account",
-                "path": "username_nft.username"
+                "path": "username_nft.username",
+                "account": "UsernameNFT"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "listing",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -894,11 +72,11 @@
                 "path": "username_nft"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "offer",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -920,65 +98,28 @@
                 "path": "buyer"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
+          "name": "mint",
           "docs": [
             "SPL Token mint account for the NFT"
-          ],
-          "name": "mint"
+          ]
         },
         {
+          "name": "seller_token_account",
           "docs": [
             "Seller's token account holding the NFT"
           ],
-          "name": "seller_token_account",
           "writable": true
         },
         {
+          "name": "buyer_token_account",
           "docs": [
             "Buyer's token account to receive the NFT"
           ],
-          "name": "buyer_token_account",
+          "writable": true,
           "pda": {
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            },
             "seeds": [
               {
                 "kind": "account",
@@ -1025,14 +166,50 @@
                 "kind": "account",
                 "path": "mint"
               }
-            ]
-          },
-          "writable": true
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
         },
         {
           "name": "seller",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "buyer",
@@ -1066,35 +243,36 @@
           }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         },
         {
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-          "name": "token_program"
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
-          "name": "associated_token_program"
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         }
       ],
-      "args": [],
-      "discriminator": [
-        227,
-        82,
-        234,
-        131,
-        1,
-        18,
-        48,
-        2
-      ],
-      "name": "accept_offer"
+      "args": []
     },
     {
+      "name": "buy_listing",
+      "discriminator": [
+        115,
+        149,
+        42,
+        108,
+        44,
+        49,
+        140,
+        153
+      ],
       "accounts": [
         {
           "name": "username_nft",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1115,16 +293,16 @@
                 ]
               },
               {
-                "account": "UsernameNFT",
                 "kind": "account",
-                "path": "username_nft.username"
+                "path": "username_nft.username",
+                "account": "UsernameNFT"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "listing",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1144,65 +322,28 @@
                 "path": "username_nft"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
+          "name": "mint",
           "docs": [
             "SPL Token mint account for the NFT"
-          ],
-          "name": "mint"
+          ]
         },
         {
+          "name": "seller_token_account",
           "docs": [
             "Seller's token account holding the NFT"
           ],
-          "name": "seller_token_account",
           "writable": true
         },
         {
+          "name": "buyer_token_account",
           "docs": [
             "Buyer's token account to receive the NFT"
           ],
-          "name": "buyer_token_account",
+          "writable": true,
           "pda": {
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            },
             "seeds": [
               {
                 "kind": "account",
@@ -1249,14 +390,50 @@
                 "kind": "account",
                 "path": "mint"
               }
-            ]
-          },
-          "writable": true
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
         },
         {
           "name": "buyer",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "seller",
@@ -1290,35 +467,36 @@
           }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         },
         {
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-          "name": "token_program"
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
-          "name": "associated_token_program"
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         }
       ],
-      "args": [],
-      "discriminator": [
-        115,
-        149,
-        42,
-        108,
-        44,
-        49,
-        140,
-        153
-      ],
-      "name": "buy_listing"
+      "args": []
     },
     {
+      "name": "buy_shares",
+      "discriminator": [
+        40,
+        239,
+        138,
+        154,
+        8,
+        37,
+        106,
+        108
+      ],
       "accounts": [
         {
           "name": "creator_pool",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1343,11 +521,11 @@
                 "path": "creator"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "share_holding",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1377,11 +555,11 @@
                 "path": "creator"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "pool_vault",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1404,13 +582,12 @@
                 "path": "creator"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "buyer",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "creator"
@@ -1443,8 +620,8 @@
           }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -1456,23 +633,24 @@
           "name": "max_price_per_share",
           "type": "u64"
         }
-      ],
-      "discriminator": [
-        40,
-        239,
-        138,
-        154,
-        8,
-        37,
-        106,
-        108
-      ],
-      "name": "buy_shares"
+      ]
     },
     {
+      "name": "cancel_listing",
+      "discriminator": [
+        41,
+        183,
+        50,
+        232,
+        230,
+        233,
+        157,
+        70
+      ],
       "accounts": [
         {
           "name": "username_nft",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1493,16 +671,16 @@
                 ]
               },
               {
-                "account": "UsernameNFT",
                 "kind": "account",
-                "path": "username_nft.username"
+                "path": "username_nft.username",
+                "account": "UsernameNFT"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "listing",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1522,36 +700,36 @@
                 "path": "username_nft"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "seller",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [],
-      "discriminator": [
-        41,
-        183,
-        50,
-        232,
-        230,
-        233,
-        157,
-        70
-      ],
-      "name": "cancel_listing"
+      "args": []
     },
     {
+      "name": "cancel_offer",
+      "discriminator": [
+        92,
+        203,
+        223,
+        40,
+        92,
+        89,
+        53,
+        119
+      ],
       "accounts": [
         {
           "name": "offer",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1565,45 +743,45 @@
                 ]
               },
               {
-                "account": "Offer",
                 "kind": "account",
-                "path": "offer.listing"
+                "path": "offer.listing",
+                "account": "Offer"
               },
               {
                 "kind": "account",
                 "path": "buyer"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "buyer",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [],
-      "discriminator": [
-        92,
-        203,
-        223,
-        40,
-        92,
-        89,
-        53,
-        119
-      ],
-      "name": "cancel_offer"
+      "args": []
     },
     {
+      "name": "cancel_subscription",
+      "discriminator": [
+        60,
+        139,
+        189,
+        242,
+        191,
+        208,
+        143,
+        18
+      ],
       "accounts": [
         {
           "name": "subscription",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1628,42 +806,42 @@
                 "path": "subscriber"
               },
               {
-                "account": "Subscription",
                 "kind": "account",
-                "path": "subscription.creator"
+                "path": "subscription.creator",
+                "account": "Subscription"
               },
               {
-                "account": "Subscription",
                 "kind": "account",
-                "path": "subscription.tier_id"
+                "path": "subscription.tier_id",
+                "account": "Subscription"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "subscriber",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         }
       ],
-      "args": [],
-      "discriminator": [
-        60,
-        139,
-        189,
-        242,
-        191,
-        208,
-        143,
-        18
-      ],
-      "name": "cancel_subscription"
+      "args": []
     },
     {
+      "name": "cast_vote",
+      "discriminator": [
+        20,
+        212,
+        15,
+        189,
+        69,
+        180,
+        69,
+        151
+      ],
       "accounts": [
         {
           "name": "proposal",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1680,21 +858,21 @@
                 ]
               },
               {
-                "account": "Proposal",
                 "kind": "account",
-                "path": "proposal.proposer"
+                "path": "proposal.proposer",
+                "account": "Proposal"
               },
               {
-                "account": "Proposal",
                 "kind": "account",
-                "path": "proposal.title"
+                "path": "proposal.title",
+                "account": "Proposal"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "vote",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1715,8 +893,7 @@
                 "path": "voter"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "stake_position",
@@ -1750,8 +927,8 @@
         },
         {
           "name": "voter",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "platform_config",
@@ -1781,8 +958,8 @@
           }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -1790,23 +967,24 @@
           "name": "vote_type",
           "type": "u8"
         }
-      ],
-      "discriminator": [
-        20,
-        212,
-        15,
-        189,
-        69,
-        180,
-        69,
-        151
-      ],
-      "name": "cast_vote"
+      ]
     },
     {
+      "name": "create_comment",
+      "discriminator": [
+        236,
+        232,
+        11,
+        180,
+        70,
+        206,
+        73,
+        145
+      ],
       "accounts": [
         {
           "name": "comment",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1834,23 +1012,22 @@
                 "path": "nonce"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "author",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
+          "name": "post",
           "docs": [
             "The post being commented on"
-          ],
-          "name": "post"
+          ]
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -1862,23 +1039,24 @@
           "name": "content",
           "type": "string"
         }
-      ],
-      "discriminator": [
-        236,
-        232,
-        11,
-        180,
-        70,
-        206,
-        73,
-        145
-      ],
-      "name": "create_comment"
+      ]
     },
     {
+      "name": "create_group",
+      "discriminator": [
+        79,
+        60,
+        158,
+        134,
+        61,
+        199,
+        56,
+        248
+      ],
       "accounts": [
         {
           "name": "group",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1900,11 +1078,11 @@
                 "path": "name"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "group_member",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1933,17 +1111,16 @@
                 "path": "creator"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "creator",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -1969,23 +1146,24 @@
             "option": "u64"
           }
         }
-      ],
-      "discriminator": [
-        79,
-        60,
-        158,
-        134,
-        61,
-        199,
-        56,
-        248
-      ],
-      "name": "create_group"
+      ]
     },
     {
+      "name": "create_post",
+      "discriminator": [
+        123,
+        92,
+        184,
+        29,
+        231,
+        24,
+        15,
+        202
+      ],
       "accounts": [
         {
           "name": "post",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2006,13 +1184,12 @@
                 "path": "nonce"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "author",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "platform_config",
@@ -2042,8 +1219,8 @@
           }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -2055,23 +1232,24 @@
           "name": "uri",
           "type": "string"
         }
-      ],
-      "discriminator": [
-        123,
-        92,
-        184,
-        29,
-        231,
-        24,
-        15,
-        202
-      ],
-      "name": "create_post"
+      ]
     },
     {
+      "name": "create_proposal",
+      "discriminator": [
+        132,
+        116,
+        68,
+        174,
+        216,
+        160,
+        198,
+        22
+      ],
       "accounts": [
         {
           "name": "proposal",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2096,8 +1274,7 @@
                 "path": "title"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "stake_position",
@@ -2131,8 +1308,8 @@
         },
         {
           "name": "proposer",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "platform_config",
@@ -2162,8 +1339,8 @@
           }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -2183,23 +1360,24 @@
           "name": "execution_delay",
           "type": "i64"
         }
-      ],
-      "discriminator": [
-        132,
-        116,
-        68,
-        174,
-        216,
-        160,
-        198,
-        22
-      ],
-      "name": "create_proposal"
+      ]
     },
     {
+      "name": "create_repost",
+      "discriminator": [
+        242,
+        236,
+        246,
+        245,
+        209,
+        27,
+        193,
+        169
+      ],
       "accounts": [
         {
           "name": "repost",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2222,42 +1400,42 @@
                 "path": "original_post"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "user",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
+          "name": "original_post",
           "docs": [
             "The post being reposted"
-          ],
-          "name": "original_post"
+          ]
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [],
-      "discriminator": [
-        242,
-        236,
-        246,
-        245,
-        209,
-        27,
-        193,
-        169
-      ],
-      "name": "create_repost"
+      "args": []
     },
     {
+      "name": "create_subscription_tier",
+      "discriminator": [
+        17,
+        201,
+        236,
+        180,
+        89,
+        127,
+        237,
+        102
+      ],
       "accounts": [
         {
           "name": "subscription_tier",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2300,17 +1478,16 @@
                 ]
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "creator",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -2330,23 +1507,24 @@
           "name": "duration_days",
           "type": "u64"
         }
-      ],
-      "discriminator": [
-        17,
-        201,
-        236,
-        180,
-        89,
-        127,
-        237,
-        102
-      ],
-      "name": "create_subscription_tier"
+      ]
     },
     {
+      "name": "execute_proposal",
+      "discriminator": [
+        186,
+        60,
+        116,
+        133,
+        108,
+        128,
+        111,
+        28
+      ],
       "accounts": [
         {
           "name": "proposal",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2363,41 +1541,41 @@
                 ]
               },
               {
-                "account": "Proposal",
                 "kind": "account",
-                "path": "proposal.proposer"
+                "path": "proposal.proposer",
+                "account": "Proposal"
               },
               {
-                "account": "Proposal",
                 "kind": "account",
-                "path": "proposal.title"
+                "path": "proposal.title",
+                "account": "Proposal"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "executor",
           "signer": true
         }
       ],
-      "args": [],
-      "discriminator": [
-        186,
-        60,
-        116,
-        133,
-        108,
-        128,
-        111,
-        28
-      ],
-      "name": "execute_proposal"
+      "args": []
     },
     {
+      "name": "follow_user",
+      "discriminator": [
+        126,
+        176,
+        97,
+        36,
+        63,
+        145,
+        4,
+        134
+      ],
       "accounts": [
         {
           "name": "follow",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2420,22 +1598,22 @@
                 "path": "following"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "follower",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "following"
         },
         {
+          "name": "follower_profile",
           "docs": [
             "Follower's profile (optional - to update count)"
           ],
-          "name": "follower_profile",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2460,14 +1638,14 @@
                 "path": "follower"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
+          "name": "following_profile",
           "docs": [
             "Following's profile (optional - to update count)"
           ],
-          "name": "following_profile",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2492,31 +1670,31 @@
                 "path": "following"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [],
-      "discriminator": [
-        126,
-        176,
-        97,
-        36,
-        63,
-        145,
-        4,
-        134
-      ],
-      "name": "follow_user"
+      "args": []
     },
     {
+      "name": "initialize_creator_pool",
+      "discriminator": [
+        60,
+        170,
+        63,
+        129,
+        229,
+        100,
+        8,
+        105
+      ],
       "accounts": [
         {
           "name": "creator_pool",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2541,36 +1719,36 @@
                 "path": "creator"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "creator",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [],
-      "discriminator": [
-        60,
-        170,
-        63,
-        129,
-        229,
-        100,
-        8,
-        105
-      ],
-      "name": "initialize_creator_pool"
+      "args": []
     },
     {
+      "name": "initialize_platform",
+      "discriminator": [
+        119,
+        201,
+        101,
+        45,
+        75,
+        122,
+        89,
+        3
+      ],
       "accounts": [
         {
           "name": "platform_config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2594,17 +1772,16 @@
                 ]
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "admin",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -2612,23 +1789,24 @@
           "name": "fee_collector",
           "type": "pubkey"
         }
-      ],
-      "discriminator": [
-        119,
-        201,
-        101,
-        45,
-        75,
-        122,
-        89,
-        3
-      ],
-      "name": "initialize_platform"
+      ]
     },
     {
+      "name": "initialize_user",
+      "discriminator": [
+        111,
+        17,
+        185,
+        250,
+        60,
+        122,
+        38,
+        254
+      ],
       "accounts": [
         {
           "name": "user_profile",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2653,17 +1831,16 @@
                 "path": "user"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "user",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -2671,23 +1848,24 @@
           "name": "username",
           "type": "string"
         }
-      ],
-      "discriminator": [
-        111,
-        17,
-        185,
-        250,
-        60,
-        122,
-        38,
-        254
-      ],
-      "name": "initialize_user"
+      ]
     },
     {
+      "name": "join_group",
+      "discriminator": [
+        121,
+        56,
+        199,
+        19,
+        250,
+        70,
+        44,
+        184
+      ],
       "accounts": [
         {
           "name": "group",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2701,21 +1879,21 @@
                 ]
               },
               {
-                "account": "Group",
                 "kind": "account",
-                "path": "group.creator"
+                "path": "group.creator",
+                "account": "Group"
               },
               {
-                "account": "Group",
                 "kind": "account",
-                "path": "group.name"
+                "path": "group.name",
+                "account": "Group"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "group_member",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2744,40 +1922,40 @@
                 "path": "member"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "member",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "group_creator",
           "writable": true
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [],
-      "discriminator": [
-        121,
-        56,
-        199,
-        19,
-        250,
-        70,
-        44,
-        184
-      ],
-      "name": "join_group"
+      "args": []
     },
     {
+      "name": "kick_member",
+      "discriminator": [
+        78,
+        65,
+        215,
+        244,
+        103,
+        202,
+        228,
+        27
+      ],
       "accounts": [
         {
           "name": "group",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2791,18 +1969,17 @@
                 ]
               },
               {
-                "account": "Group",
                 "kind": "account",
-                "path": "group.creator"
+                "path": "group.creator",
+                "account": "Group"
               },
               {
-                "account": "Group",
                 "kind": "account",
-                "path": "group.name"
+                "path": "group.name",
+                "account": "Group"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "admin_member",
@@ -2838,6 +2015,7 @@
         },
         {
           "name": "target_member",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2862,37 +2040,37 @@
                 "path": "group"
               },
               {
-                "account": "GroupMember",
                 "kind": "account",
-                "path": "target_member.wallet"
+                "path": "target_member.wallet",
+                "account": "GroupMember"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "admin",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         }
       ],
-      "args": [],
-      "discriminator": [
-        78,
-        65,
-        215,
-        244,
-        103,
-        202,
-        228,
-        27
-      ],
-      "name": "kick_member"
+      "args": []
     },
     {
+      "name": "like_post",
+      "discriminator": [
+        45,
+        242,
+        154,
+        71,
+        63,
+        133,
+        54,
+        186
+      ],
       "accounts": [
         {
           "name": "like",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2913,40 +2091,39 @@
                 "path": "post"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "user",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
+          "name": "post",
           "docs": [
             "The post being liked"
           ],
-          "name": "post",
           "writable": true
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [],
-      "discriminator": [
-        45,
-        242,
-        154,
-        71,
-        63,
-        133,
-        54,
-        186
-      ],
-      "name": "like_post"
+      "args": []
     },
     {
+      "name": "list_username",
+      "discriminator": [
+        239,
+        211,
+        152,
+        104,
+        105,
+        21,
+        227,
+        11
+      ],
       "accounts": [
         {
           "name": "username_nft",
@@ -2970,21 +2147,22 @@
                 ]
               },
               {
-                "account": "UsernameNFT",
                 "kind": "account",
-                "path": "username_nft.username"
+                "path": "username_nft.username",
+                "account": "UsernameNFT"
               }
             ]
           }
         },
         {
+          "name": "seller_token_account",
           "docs": [
             "Seller's token account - must hold the NFT to list"
-          ],
-          "name": "seller_token_account"
+          ]
         },
         {
           "name": "listing",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3004,13 +2182,12 @@
                 "path": "username_nft"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "seller",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "platform_config",
@@ -3040,12 +2217,12 @@
           }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         },
         {
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-          "name": "token_program"
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": [
@@ -3053,20 +2230,20 @@
           "name": "price",
           "type": "u64"
         }
-      ],
-      "discriminator": [
-        239,
-        211,
-        152,
-        104,
-        105,
-        21,
-        227,
-        11
-      ],
-      "name": "list_username"
+      ]
     },
     {
+      "name": "make_offer",
+      "discriminator": [
+        214,
+        98,
+        97,
+        35,
+        59,
+        12,
+        44,
+        178
+      ],
       "accounts": [
         {
           "name": "username_nft",
@@ -3090,9 +2267,9 @@
                 ]
               },
               {
-                "account": "UsernameNFT",
                 "kind": "account",
-                "path": "username_nft.username"
+                "path": "username_nft.username",
+                "account": "UsernameNFT"
               }
             ]
           }
@@ -3122,6 +2299,7 @@
         },
         {
           "name": "offer",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3143,13 +2321,12 @@
                 "path": "buyer"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "buyer",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "platform_config",
@@ -3179,8 +2356,8 @@
           }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -3188,76 +2365,40 @@
           "name": "amount",
           "type": "u64"
         }
-      ],
-      "discriminator": [
-        214,
-        98,
-        97,
-        35,
-        59,
-        12,
-        44,
-        178
-      ],
-      "name": "make_offer"
+      ]
     },
     {
+      "name": "mint_post",
+      "discriminator": [
+        163,
+        124,
+        118,
+        66,
+        202,
+        98,
+        88,
+        244
+      ],
       "accounts": [
         {
           "name": "post",
           "writable": true
         },
         {
+          "name": "mint",
           "docs": [
             "SPL Token mint for the NFT"
           ],
-          "name": "mint",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
+          "name": "token_account",
           "docs": [
             "Owner's associated token account to receive the NFT"
           ],
-          "name": "token_account",
+          "writable": true,
           "pda": {
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            },
             "seeds": [
               {
                 "kind": "account",
@@ -3304,116 +2445,7 @@
                 "kind": "account",
                 "path": "mint"
               }
-            ]
-          },
-          "writable": true
-        },
-        {
-          "docs": [
-            "Metaplex metadata account"
-          ],
-          "name": "metadata",
-          "writable": true
-        },
-        {
-          "docs": [
-            "Metaplex master edition account"
-          ],
-          "name": "master_edition",
-          "writable": true
-        },
-        {
-          "name": "author",
-          "relations": [
-            "post"
-          ],
-          "signer": true,
-          "writable": true
-        },
-        {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
-        },
-        {
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-          "name": "token_program"
-        },
-        {
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
-          "name": "associated_token_program"
-        },
-        {
-          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s",
-          "name": "token_metadata_program"
-        },
-        {
-          "address": "SysvarRent111111111111111111111111111111111",
-          "name": "rent"
-        }
-      ],
-      "args": [
-        {
-          "name": "title",
-          "type": "string"
-        }
-      ],
-      "discriminator": [
-        163,
-        124,
-        118,
-        66,
-        202,
-        98,
-        88,
-        244
-      ],
-      "name": "mint_post"
-    },
-    {
-      "accounts": [
-        {
-          "name": "username_nft",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  110,
-                  97,
-                  109,
-                  101,
-                  95,
-                  110,
-                  102,
-                  116
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "username"
-              }
-            ]
-          },
-          "writable": true
-        },
-        {
-          "docs": [
-            "SPL Token mint for the NFT"
-          ],
-          "name": "mint",
-          "signer": true,
-          "writable": true
-        },
-        {
-          "docs": [
-            "Owner's associated token account to receive the NFT"
-          ],
-          "name": "token_account",
-          "pda": {
+            ],
             "program": {
               "kind": "const",
               "value": [
@@ -3450,7 +2482,120 @@
                 248,
                 89
               ]
-            },
+            }
+          }
+        },
+        {
+          "name": "metadata",
+          "docs": [
+            "Metaplex metadata account"
+          ],
+          "writable": true
+        },
+        {
+          "name": "master_edition",
+          "docs": [
+            "Metaplex master edition account"
+          ],
+          "writable": true
+        },
+        {
+          "name": "author",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "post"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "token_metadata_program",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "nft_metadata_uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "mint_username",
+      "discriminator": [
+        180,
+        22,
+        121,
+        59,
+        184,
+        238,
+        125,
+        38
+      ],
+      "accounts": [
+        {
+          "name": "username_nft",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  110,
+                  97,
+                  109,
+                  101,
+                  95,
+                  110,
+                  102,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "username"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "docs": [
+            "SPL Token mint for the NFT"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_account",
+          "docs": [
+            "Owner's associated token account to receive the NFT"
+          ],
+          "writable": true,
+          "pda": {
             "seeds": [
               {
                 "kind": "account",
@@ -3497,28 +2642,64 @@
                 "kind": "account",
                 "path": "mint"
               }
-            ]
-          },
-          "writable": true
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
         },
         {
+          "name": "metadata",
           "docs": [
             "Metaplex metadata account"
           ],
-          "name": "metadata",
           "writable": true
         },
         {
+          "name": "master_edition",
           "docs": [
             "Metaplex master edition account"
           ],
-          "name": "master_edition",
           "writable": true
         },
         {
           "name": "owner",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "platform_config",
@@ -3548,24 +2729,24 @@
           }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         },
         {
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-          "name": "token_program"
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
-          "name": "associated_token_program"
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
-          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s",
-          "name": "token_metadata_program"
+          "name": "token_metadata_program",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
         },
         {
-          "address": "SysvarRent111111111111111111111111111111111",
-          "name": "rent"
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
       "args": [
@@ -3577,23 +2758,24 @@
           "name": "metadata_uri",
           "type": "string"
         }
-      ],
-      "discriminator": [
-        180,
-        22,
-        121,
-        59,
-        184,
-        238,
-        125,
-        38
-      ],
-      "name": "mint_username"
+      ]
     },
     {
+      "name": "pause_platform",
+      "discriminator": [
+        232,
+        46,
+        204,
+        130,
+        181,
+        0,
+        172,
+        57
+      ],
       "accounts": [
         {
           "name": "platform_config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3617,31 +2799,31 @@
                 ]
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "admin",
           "signer": true
         }
       ],
-      "args": [],
-      "discriminator": [
-        232,
-        46,
-        204,
-        130,
-        181,
-        0,
-        172,
-        57
-      ],
-      "name": "pause_platform"
+      "args": []
     },
     {
+      "name": "sell_shares",
+      "discriminator": [
+        184,
+        164,
+        169,
+        16,
+        231,
+        158,
+        199,
+        196
+      ],
       "accounts": [
         {
           "name": "creator_pool",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3666,11 +2848,11 @@
                 "path": "creator"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "share_holding",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3700,11 +2882,11 @@
                 "path": "creator"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "pool_vault",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3727,13 +2909,12 @@
                 "path": "creator"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "seller",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "creator"
@@ -3766,8 +2947,8 @@
           }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -3779,23 +2960,24 @@
           "name": "min_price_per_share",
           "type": "u64"
         }
-      ],
-      "discriminator": [
-        184,
-        164,
-        169,
-        16,
-        231,
-        158,
-        199,
-        196
-      ],
-      "name": "sell_shares"
+      ]
     },
     {
+      "name": "send_tip",
+      "discriminator": [
+        231,
+        88,
+        56,
+        242,
+        241,
+        6,
+        31,
+        59
+      ],
       "accounts": [
         {
           "name": "sender_profile",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3820,11 +3002,11 @@
                 "path": "sender"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "recipient_profile",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3849,21 +3031,20 @@
                 "path": "recipient"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "sender",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "recipient",
           "writable": true
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -3871,23 +3052,24 @@
           "name": "amount",
           "type": "u64"
         }
-      ],
-      "discriminator": [
-        231,
-        88,
-        56,
-        242,
-        241,
-        6,
-        31,
-        59
-      ],
-      "name": "send_tip"
+      ]
     },
     {
+      "name": "stake_tokens",
+      "discriminator": [
+        136,
+        126,
+        91,
+        162,
+        40,
+        131,
+        13,
+        127
+      ],
       "accounts": [
         {
           "name": "stake_position",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3914,13 +3096,12 @@
                 "path": "staker"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "staker",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "platform_config",
@@ -3950,8 +3131,8 @@
           }
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -3963,20 +3144,20 @@
           "name": "lock_period",
           "type": "u64"
         }
-      ],
-      "discriminator": [
-        136,
-        126,
-        91,
-        162,
-        40,
-        131,
-        13,
-        127
-      ],
-      "name": "stake_tokens"
+      ]
     },
     {
+      "name": "subscribe",
+      "discriminator": [
+        254,
+        28,
+        191,
+        138,
+        156,
+        179,
+        183,
+        53
+      ],
       "accounts": [
         {
           "name": "subscription_tier",
@@ -4009,15 +3190,16 @@
                 "path": "creator"
               },
               {
-                "account": "SubscriptionTier",
                 "kind": "account",
-                "path": "subscription_tier.tier_id"
+                "path": "subscription_tier.tier_id",
+                "account": "SubscriptionTier"
               }
             ]
           }
         },
         {
           "name": "subscription",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -4046,45 +3228,45 @@
                 "path": "creator"
               },
               {
-                "account": "SubscriptionTier",
                 "kind": "account",
-                "path": "subscription_tier.tier_id"
+                "path": "subscription_tier.tier_id",
+                "account": "SubscriptionTier"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "subscriber",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "creator",
           "writable": true
         },
         {
-          "address": "11111111111111111111111111111111",
-          "name": "system_program"
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [],
-      "discriminator": [
-        254,
-        28,
-        191,
-        138,
-        156,
-        179,
-        183,
-        53
-      ],
-      "name": "subscribe"
+      "args": []
     },
     {
+      "name": "unfollow_user",
+      "discriminator": [
+        204,
+        183,
+        196,
+        110,
+        97,
+        165,
+        226,
+        213
+      ],
       "accounts": [
         {
           "name": "follow",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -4107,22 +3289,22 @@
                 "path": "following"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "follower",
+          "writable": true,
+          "signer": true,
           "relations": [
             "follow"
-          ],
-          "signer": true,
-          "writable": true
+          ]
         },
         {
           "name": "following"
         },
         {
           "name": "follower_profile",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -4147,11 +3329,11 @@
                 "path": "follower"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "following_profile",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -4176,27 +3358,27 @@
                 "path": "following"
               }
             ]
-          },
-          "writable": true
+          }
         }
       ],
-      "args": [],
-      "discriminator": [
-        204,
-        183,
-        196,
-        110,
-        97,
-        165,
-        226,
-        213
-      ],
-      "name": "unfollow_user"
+      "args": []
     },
     {
+      "name": "unlike_post",
+      "discriminator": [
+        236,
+        63,
+        6,
+        34,
+        128,
+        3,
+        114,
+        174
+      ],
       "accounts": [
         {
           "name": "like",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -4217,16 +3399,15 @@
                 "path": "post"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "user",
+          "writable": true,
+          "signer": true,
           "relations": [
             "like"
-          ],
-          "signer": true,
-          "writable": true
+          ]
         },
         {
           "name": "post",
@@ -4235,23 +3416,24 @@
           ]
         }
       ],
-      "args": [],
-      "discriminator": [
-        236,
-        63,
-        6,
-        34,
-        128,
-        3,
-        114,
-        174
-      ],
-      "name": "unlike_post"
+      "args": []
     },
     {
+      "name": "unpause_platform",
+      "discriminator": [
+        167,
+        253,
+        251,
+        188,
+        221,
+        230,
+        32,
+        165
+      ],
       "accounts": [
         {
           "name": "platform_config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -4275,31 +3457,31 @@
                 ]
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "admin",
           "signer": true
         }
       ],
-      "args": [],
-      "discriminator": [
-        167,
-        253,
-        251,
-        188,
-        221,
-        230,
-        32,
-        165
-      ],
-      "name": "unpause_platform"
+      "args": []
     },
     {
+      "name": "unstake_tokens",
+      "discriminator": [
+        58,
+        119,
+        215,
+        143,
+        203,
+        223,
+        32,
+        86
+      ],
       "accounts": [
         {
           "name": "stake_position",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -4326,13 +3508,12 @@
                 "path": "staker"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "staker",
-          "signer": true,
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "platform_config",
@@ -4362,23 +3543,24 @@
           }
         }
       ],
-      "args": [],
-      "discriminator": [
-        58,
-        119,
-        215,
-        143,
-        203,
-        223,
-        32,
-        86
-      ],
-      "name": "unstake_tokens"
+      "args": []
     },
     {
+      "name": "update_admin",
+      "discriminator": [
+        161,
+        176,
+        40,
+        213,
+        60,
+        184,
+        179,
+        228
+      ],
       "accounts": [
         {
           "name": "platform_config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -4402,8 +3584,7 @@
                 ]
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "admin",
@@ -4415,23 +3596,24 @@
           "name": "new_admin",
           "type": "pubkey"
         }
-      ],
-      "discriminator": [
-        161,
-        176,
-        40,
-        213,
-        60,
-        184,
-        179,
-        228
-      ],
-      "name": "update_admin"
+      ]
     },
     {
+      "name": "update_fee_collector",
+      "discriminator": [
+        132,
+        54,
+        153,
+        82,
+        79,
+        118,
+        79,
+        212
+      ],
       "accounts": [
         {
           "name": "platform_config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -4455,8 +3637,7 @@
                 ]
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "admin",
@@ -4468,20 +3649,20 @@
           "name": "new_fee_collector",
           "type": "pubkey"
         }
-      ],
-      "discriminator": [
-        132,
-        54,
-        153,
-        82,
-        79,
-        118,
-        79,
-        212
-      ],
-      "name": "update_fee_collector"
+      ]
     },
     {
+      "name": "update_member_role",
+      "discriminator": [
+        252,
+        36,
+        202,
+        222,
+        22,
+        168,
+        39,
+        69
+      ],
       "accounts": [
         {
           "name": "group",
@@ -4498,14 +3679,14 @@
                 ]
               },
               {
-                "account": "Group",
                 "kind": "account",
-                "path": "group.creator"
+                "path": "group.creator",
+                "account": "Group"
               },
               {
-                "account": "Group",
                 "kind": "account",
-                "path": "group.name"
+                "path": "group.name",
+                "account": "Group"
               }
             ]
           }
@@ -4544,6 +3725,7 @@
         },
         {
           "name": "target_member",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -4568,13 +3750,12 @@
                 "path": "group"
               },
               {
-                "account": "GroupMember",
                 "kind": "account",
-                "path": "target_member.wallet"
+                "path": "target_member.wallet",
+                "account": "GroupMember"
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "admin",
@@ -4586,23 +3767,24 @@
           "name": "new_role",
           "type": "u8"
         }
-      ],
-      "discriminator": [
-        252,
-        36,
-        202,
-        222,
-        22,
-        168,
-        39,
-        69
-      ],
-      "name": "update_member_role"
+      ]
     },
     {
+      "name": "update_min_liquidity",
+      "discriminator": [
+        152,
+        87,
+        61,
+        58,
+        110,
+        31,
+        202,
+        173
+      ],
       "accounts": [
         {
           "name": "platform_config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -4626,8 +3808,7 @@
                 ]
               }
             ]
-          },
-          "writable": true
+          }
         },
         {
           "name": "admin",
@@ -4639,30 +3820,854 @@
           "name": "new_min_liquidity_bps",
           "type": "u64"
         }
-      ],
-      "discriminator": [
-        152,
-        87,
-        61,
-        58,
-        110,
-        31,
-        202,
-        173
-      ],
-      "name": "update_min_liquidity"
+      ]
     }
   ],
-  "metadata": {
-    "description": "Created with Anchor",
-    "name": "social_fi_contract",
-    "spec": "0.1.0",
-    "version": "0.1.0"
-  },
+  "accounts": [
+    {
+      "name": "Comment",
+      "discriminator": [
+        150,
+        135,
+        96,
+        244,
+        55,
+        199,
+        50,
+        65
+      ]
+    },
+    {
+      "name": "CreatorPool",
+      "discriminator": [
+        9,
+        145,
+        89,
+        211,
+        0,
+        62,
+        114,
+        107
+      ]
+    },
+    {
+      "name": "Follow",
+      "discriminator": [
+        222,
+        247,
+        253,
+        60,
+        70,
+        4,
+        164,
+        51
+      ]
+    },
+    {
+      "name": "Group",
+      "discriminator": [
+        209,
+        249,
+        208,
+        63,
+        182,
+        89,
+        186,
+        254
+      ]
+    },
+    {
+      "name": "GroupMember",
+      "discriminator": [
+        100,
+        200,
+        88,
+        143,
+        83,
+        227,
+        165,
+        166
+      ]
+    },
+    {
+      "name": "Like",
+      "discriminator": [
+        10,
+        133,
+        129,
+        201,
+        87,
+        218,
+        203,
+        222
+      ]
+    },
+    {
+      "name": "Listing",
+      "discriminator": [
+        218,
+        32,
+        50,
+        73,
+        43,
+        134,
+        26,
+        58
+      ]
+    },
+    {
+      "name": "Offer",
+      "discriminator": [
+        215,
+        88,
+        60,
+        71,
+        170,
+        162,
+        73,
+        229
+      ]
+    },
+    {
+      "name": "PlatformConfig",
+      "discriminator": [
+        160,
+        78,
+        128,
+        0,
+        248,
+        83,
+        230,
+        160
+      ]
+    },
+    {
+      "name": "Post",
+      "discriminator": [
+        8,
+        147,
+        90,
+        186,
+        185,
+        56,
+        192,
+        150
+      ]
+    },
+    {
+      "name": "Proposal",
+      "discriminator": [
+        26,
+        94,
+        189,
+        187,
+        116,
+        136,
+        53,
+        33
+      ]
+    },
+    {
+      "name": "Repost",
+      "discriminator": [
+        142,
+        238,
+        149,
+        128,
+        159,
+        219,
+        224,
+        195
+      ]
+    },
+    {
+      "name": "ShareHolding",
+      "discriminator": [
+        164,
+        112,
+        99,
+        229,
+        217,
+        98,
+        136,
+        78
+      ]
+    },
+    {
+      "name": "StakePosition",
+      "discriminator": [
+        78,
+        165,
+        30,
+        111,
+        171,
+        125,
+        11,
+        220
+      ]
+    },
+    {
+      "name": "Subscription",
+      "discriminator": [
+        64,
+        7,
+        26,
+        135,
+        102,
+        132,
+        98,
+        33
+      ]
+    },
+    {
+      "name": "SubscriptionTier",
+      "discriminator": [
+        137,
+        112,
+        75,
+        38,
+        237,
+        16,
+        69,
+        210
+      ]
+    },
+    {
+      "name": "UserProfile",
+      "discriminator": [
+        32,
+        37,
+        119,
+        205,
+        179,
+        180,
+        13,
+        194
+      ]
+    },
+    {
+      "name": "UsernameNFT",
+      "discriminator": [
+        0,
+        7,
+        31,
+        42,
+        164,
+        183,
+        85,
+        74
+      ]
+    },
+    {
+      "name": "Vote",
+      "discriminator": [
+        96,
+        91,
+        104,
+        57,
+        145,
+        35,
+        172,
+        155
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "GroupCreated",
+      "discriminator": [
+        132,
+        94,
+        184,
+        198,
+        77,
+        165,
+        13,
+        26
+      ]
+    },
+    {
+      "name": "ListingCancelled",
+      "discriminator": [
+        11,
+        46,
+        163,
+        10,
+        103,
+        80,
+        139,
+        194
+      ]
+    },
+    {
+      "name": "MemberJoined",
+      "discriminator": [
+        156,
+        199,
+        149,
+        88,
+        193,
+        203,
+        191,
+        210
+      ]
+    },
+    {
+      "name": "MemberKicked",
+      "discriminator": [
+        180,
+        175,
+        142,
+        172,
+        180,
+        217,
+        45,
+        179
+      ]
+    },
+    {
+      "name": "MemberRoleUpdated",
+      "discriminator": [
+        162,
+        132,
+        201,
+        37,
+        97,
+        246,
+        98,
+        117
+      ]
+    },
+    {
+      "name": "OfferAccepted",
+      "discriminator": [
+        81,
+        238,
+        238,
+        115,
+        140,
+        18,
+        8,
+        20
+      ]
+    },
+    {
+      "name": "OfferCancelled",
+      "discriminator": [
+        45,
+        42,
+        175,
+        214,
+        51,
+        192,
+        154,
+        9
+      ]
+    },
+    {
+      "name": "OfferMade",
+      "discriminator": [
+        11,
+        5,
+        86,
+        210,
+        3,
+        4,
+        25,
+        154
+      ]
+    },
+    {
+      "name": "PostMinted",
+      "discriminator": [
+        32,
+        161,
+        226,
+        238,
+        159,
+        240,
+        49,
+        243
+      ]
+    },
+    {
+      "name": "ProposalCreated",
+      "discriminator": [
+        186,
+        8,
+        160,
+        108,
+        81,
+        13,
+        51,
+        206
+      ]
+    },
+    {
+      "name": "ProposalExecuted",
+      "discriminator": [
+        92,
+        213,
+        189,
+        201,
+        101,
+        83,
+        111,
+        83
+      ]
+    },
+    {
+      "name": "SharesPurchased",
+      "discriminator": [
+        24,
+        220,
+        223,
+        28,
+        213,
+        182,
+        47,
+        22
+      ]
+    },
+    {
+      "name": "SharesSold",
+      "discriminator": [
+        35,
+        231,
+        5,
+        53,
+        228,
+        158,
+        113,
+        251
+      ]
+    },
+    {
+      "name": "SubscriptionCancelled",
+      "discriminator": [
+        158,
+        216,
+        233,
+        205,
+        138,
+        62,
+        176,
+        239
+      ]
+    },
+    {
+      "name": "SubscriptionTierCreated",
+      "discriminator": [
+        135,
+        182,
+        109,
+        182,
+        216,
+        225,
+        173,
+        248
+      ]
+    },
+    {
+      "name": "TipSent",
+      "discriminator": [
+        124,
+        3,
+        185,
+        130,
+        232,
+        65,
+        132,
+        235
+      ]
+    },
+    {
+      "name": "TokensStaked",
+      "discriminator": [
+        220,
+        130,
+        145,
+        142,
+        109,
+        123,
+        38,
+        100
+      ]
+    },
+    {
+      "name": "TokensUnstaked",
+      "discriminator": [
+        137,
+        203,
+        131,
+        80,
+        135,
+        107,
+        181,
+        150
+      ]
+    },
+    {
+      "name": "UserInitialized",
+      "discriminator": [
+        66,
+        195,
+        5,
+        223,
+        42,
+        84,
+        135,
+        60
+      ]
+    },
+    {
+      "name": "UserSubscribed",
+      "discriminator": [
+        248,
+        188,
+        188,
+        101,
+        240,
+        150,
+        66,
+        234
+      ]
+    },
+    {
+      "name": "UsernameListed",
+      "discriminator": [
+        57,
+        217,
+        234,
+        81,
+        32,
+        162,
+        97,
+        126
+      ]
+    },
+    {
+      "name": "UsernameMinted",
+      "discriminator": [
+        188,
+        77,
+        165,
+        247,
+        12,
+        212,
+        227,
+        126
+      ]
+    },
+    {
+      "name": "UsernameSold",
+      "discriminator": [
+        85,
+        117,
+        47,
+        42,
+        18,
+        246,
+        133,
+        68
+      ]
+    },
+    {
+      "name": "VoteCast",
+      "discriminator": [
+        39,
+        53,
+        195,
+        104,
+        188,
+        17,
+        225,
+        213
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "UsernameTooLong",
+      "msg": "Username too long (max 20 characters)"
+    },
+    {
+      "code": 6001,
+      "name": "UsernameAlreadyTaken",
+      "msg": "Username already taken"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidUsername",
+      "msg": "Invalid username format"
+    },
+    {
+      "code": 6003,
+      "name": "InsufficientBalance",
+      "msg": "Insufficient balance for this operation"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidAmount",
+      "msg": "Amount must be greater than zero"
+    },
+    {
+      "code": 6005,
+      "name": "CannotTipSelf",
+      "msg": "Cannot tip yourself"
+    },
+    {
+      "code": 6006,
+      "name": "BondingCurveOverflow",
+      "msg": "Bonding curve calculation overflow"
+    },
+    {
+      "code": 6007,
+      "name": "InsufficientShares",
+      "msg": "Not enough shares to sell"
+    },
+    {
+      "code": 6008,
+      "name": "SubscriptionTierNotFound",
+      "msg": "Subscription tier not found"
+    },
+    {
+      "code": 6009,
+      "name": "SubscriptionAlreadyActive",
+      "msg": "Subscription already active"
+    },
+    {
+      "code": 6010,
+      "name": "SubscriptionInactive",
+      "msg": "Subscription expired or cancelled"
+    },
+    {
+      "code": 6011,
+      "name": "GroupNameTooLong",
+      "msg": "Group name too long"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidGroupPrivacy",
+      "msg": "Invalid group privacy setting"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidEntryRequirement",
+      "msg": "Invalid entry requirement"
+    },
+    {
+      "code": 6014,
+      "name": "InsufficientTokensForGroup",
+      "msg": "Insufficient tokens to join group"
+    },
+    {
+      "code": 6015,
+      "name": "NotGroupMember",
+      "msg": "Not a member of this group"
+    },
+    {
+      "code": 6016,
+      "name": "InsufficientPermissions",
+      "msg": "Insufficient permissions"
+    },
+    {
+      "code": 6017,
+      "name": "CannotActOnSelf",
+      "msg": "Cannot perform action on yourself"
+    },
+    {
+      "code": 6018,
+      "name": "MemberAlreadyInGroup",
+      "msg": "Member already in group"
+    },
+    {
+      "code": 6019,
+      "name": "MemberBanned",
+      "msg": "Member is banned from this group"
+    },
+    {
+      "code": 6020,
+      "name": "InvalidLockPeriod",
+      "msg": "Invalid lock period"
+    },
+    {
+      "code": 6021,
+      "name": "TokensLocked",
+      "msg": "Tokens are still locked"
+    },
+    {
+      "code": 6022,
+      "name": "InsufficientVotingPower",
+      "msg": "Insufficient voting power to create proposal"
+    },
+    {
+      "code": 6023,
+      "name": "ProposalTitleTooLong",
+      "msg": "Proposal title too long"
+    },
+    {
+      "code": 6024,
+      "name": "ProposalDescriptionTooLong",
+      "msg": "Proposal description too long"
+    },
+    {
+      "code": 6025,
+      "name": "InvalidProposalCategory",
+      "msg": "Invalid proposal category"
+    },
+    {
+      "code": 6026,
+      "name": "VotingPeriodEnded",
+      "msg": "Voting period has ended"
+    },
+    {
+      "code": 6027,
+      "name": "VotingPeriodActive",
+      "msg": "Voting period still active"
+    },
+    {
+      "code": 6028,
+      "name": "AlreadyVoted",
+      "msg": "Already voted on this proposal"
+    },
+    {
+      "code": 6029,
+      "name": "QuorumNotReached",
+      "msg": "Quorum not reached"
+    },
+    {
+      "code": 6030,
+      "name": "ProposalNotPassed",
+      "msg": "Proposal did not pass"
+    },
+    {
+      "code": 6031,
+      "name": "ExecutionDelayNotMet",
+      "msg": "Execution delay not met"
+    },
+    {
+      "code": 6032,
+      "name": "ProposalAlreadyExecuted",
+      "msg": "Proposal already executed"
+    },
+    {
+      "code": 6033,
+      "name": "UsernameAlreadyMinted",
+      "msg": "Username NFT already minted"
+    },
+    {
+      "code": 6034,
+      "name": "NotUsernameOwner",
+      "msg": "Not the owner of this username NFT"
+    },
+    {
+      "code": 6035,
+      "name": "MetadataUriTooLong",
+      "msg": "Metadata URI too long (max 200 characters)"
+    },
+    {
+      "code": 6036,
+      "name": "ListingNotFound",
+      "msg": "Username listing not found"
+    },
+    {
+      "code": 6037,
+      "name": "InvalidListingPrice",
+      "msg": "Listing price must be greater than zero"
+    },
+    {
+      "code": 6038,
+      "name": "InvalidOfferAmount",
+      "msg": "Offer amount must be greater than zero"
+    },
+    {
+      "code": 6039,
+      "name": "OfferNotFound",
+      "msg": "Offer not found or expired"
+    },
+    {
+      "code": 6040,
+      "name": "NotListingSeller",
+      "msg": "Not the listing seller"
+    },
+    {
+      "code": 6041,
+      "name": "ArithmeticOverflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6042,
+      "name": "ArithmeticUnderflow",
+      "msg": "Arithmetic underflow"
+    },
+    {
+      "code": 6043,
+      "name": "InvalidTimestamp",
+      "msg": "Invalid timestamp"
+    },
+    {
+      "code": 6044,
+      "name": "SupplyTooHigh",
+      "msg": "Supply exceeds maximum limit"
+    },
+    {
+      "code": 6045,
+      "name": "PriceTooHigh",
+      "msg": "Price exceeds maximum limit"
+    },
+    {
+      "code": 6046,
+      "name": "SlippageExceeded",
+      "msg": "Slippage tolerance exceeded"
+    },
+    {
+      "code": 6047,
+      "name": "ContractPaused",
+      "msg": "Contract is paused"
+    },
+    {
+      "code": 6048,
+      "name": "Unauthorized",
+      "msg": "Unauthorized: admin only"
+    },
+    {
+      "code": 6049,
+      "name": "Reentrancy",
+      "msg": "Reentrancy detected"
+    },
+    {
+      "code": 6050,
+      "name": "MinimumLiquidityRequired",
+      "msg": "Minimum liquidity requirement not met"
+    },
+    {
+      "code": 6051,
+      "name": "InsufficientLiquidity",
+      "msg": "Insufficient liquidity in pool"
+    },
+    {
+      "code": 6052,
+      "name": "PostAlreadyMinted",
+      "msg": "Post already has an NFT minted"
+    },
+    {
+      "code": 6053,
+      "name": "CommentTooLong",
+      "msg": "Comment content too long (max 280 characters)"
+    },
+    {
+      "code": 6054,
+      "name": "EmptyContent",
+      "msg": "Content cannot be empty"
+    }
+  ],
   "types": [
     {
       "name": "Comment",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "author",
@@ -4684,13 +4689,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "CreatorPool",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "creator",
@@ -4720,13 +4725,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "Follow",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "follower",
@@ -4744,13 +4749,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "Group",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "id",
@@ -4810,13 +4815,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "GroupCreated",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "group",
@@ -4838,13 +4843,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "GroupMember",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "group",
@@ -4870,13 +4875,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "Like",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "user",
@@ -4894,13 +4899,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "Listing",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "seller",
@@ -4932,13 +4937,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "ListingCancelled",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "seller",
@@ -4956,13 +4961,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "MemberJoined",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "group",
@@ -4980,13 +4985,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "MemberKicked",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "group",
@@ -5004,13 +5009,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "MemberRoleUpdated",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "group",
@@ -5036,13 +5041,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "Offer",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "listing",
@@ -5068,13 +5073,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "OfferAccepted",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "seller",
@@ -5096,13 +5101,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "OfferCancelled",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "buyer",
@@ -5120,13 +5125,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "OfferMade",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "buyer",
@@ -5152,13 +5157,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "PlatformConfig",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "admin",
@@ -5180,13 +5185,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "Post",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "author",
@@ -5194,6 +5199,10 @@
           },
           {
             "name": "uri",
+            "type": "string"
+          },
+          {
+            "name": "nonce",
             "type": "string"
           },
           {
@@ -5210,13 +5219,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "PostMinted",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "author",
@@ -5238,13 +5247,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "Proposal",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "id",
@@ -5308,13 +5317,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "ProposalCreated",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "proposal",
@@ -5340,13 +5349,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "ProposalExecuted",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "proposal",
@@ -5368,13 +5377,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "Repost",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "user",
@@ -5392,13 +5401,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "ShareHolding",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "holder",
@@ -5424,13 +5433,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "SharesPurchased",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "buyer",
@@ -5456,13 +5465,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "SharesSold",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "seller",
@@ -5492,13 +5501,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "StakePosition",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "staker",
@@ -5532,13 +5541,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "Subscription",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "subscriber",
@@ -5576,13 +5585,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "SubscriptionCancelled",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "subscriber",
@@ -5600,13 +5609,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "SubscriptionTier",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "creator",
@@ -5644,13 +5653,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "SubscriptionTierCreated",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "creator",
@@ -5672,13 +5681,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "TipSent",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "sender",
@@ -5696,13 +5705,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "TokensStaked",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "staker",
@@ -5728,13 +5737,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "TokensUnstaked",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "staker",
@@ -5752,13 +5761,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "UserInitialized",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "user",
@@ -5772,13 +5781,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "UserProfile",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "owner",
@@ -5830,13 +5839,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "UserSubscribed",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "subscriber",
@@ -5862,13 +5871,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "UsernameListed",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "seller",
@@ -5890,13 +5899,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "UsernameMinted",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "owner",
@@ -5922,13 +5931,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "UsernameNFT",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "owner",
@@ -5958,13 +5967,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "UsernameSold",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "seller",
@@ -5986,13 +5995,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "Vote",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "proposal",
@@ -6018,13 +6027,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     },
     {
       "name": "VoteCast",
       "type": {
+        "kind": "struct",
         "fields": [
           {
             "name": "proposal",
@@ -6046,8 +6055,7 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ],
-        "kind": "struct"
+        ]
       }
     }
   ]

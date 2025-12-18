@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
 import { CacheManager, isOnline } from '../services/storage';
+import { toast } from 'react-hot-toast';
 
 export interface Post {
   id: string; // PublicKey string
@@ -278,26 +279,95 @@ export const useCreateComment = () => {
 
 /**
  * Tip post mutation (on-chain via sendTip)
+ * Fetches post to get author, then sends tip to author
  */
 export const useTipPost = () => {
   const queryClient = useQueryClient();
   const { sdk } = useSocialFi();
 
   return useMutation({
-    mutationFn: async ({ postId, amount }: { postId: string; amount: number }) => {
+    mutationFn: async ({ authorAddress, amount }: { postId: string; authorAddress: string; amount: number }) => {
       if (!sdk) throw new Error('SDK not initialized');
-      // Need to fetch post author first
-      // This is a bit inefficient, ideally passed from UI
-      // For now, let's assume UI passes author address or we fetch it
-      // But sendTip needs recipient address.
-      // We will fetch the post account to get the author
-      // Implementation pending: fetch post -> get author -> sendTip
-      console.log(`Tip ${amount} SOL to post ${postId}`);
-      return { signature: 'placeholder' };
+      if (amount <= 0) throw new Error('Tip amount must be greater than 0');
+      if (amount > 65) throw new Error('Maximum tip is 65 SOL');
+      
+      const authorPubkey = new PublicKey(authorAddress);
+      const amountInLamports = Math.floor(amount * 1e9); // Convert SOL to lamports
+      
+      return await sdk.sendTip(authorPubkey, amountInLamports);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
+      toast.success('Tip sent successfully! 🎉');
     },
+    onError: (error) => {
+      console.error('❌ Tip error:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to send tip'
+      );
+    },
+  });
+};
+
+/**
+ * Get all reposts of a post
+ */
+export const usePostReposts = (postId?: string) => {
+  const { sdk } = useSocialFi();
+
+  return useQuery({
+    queryKey: ['post_reposts', postId],
+    queryFn: async () => {
+      if (!sdk || !postId) return [];
+      const cacheKey = `post_reposts:${postId}`;
+      try {
+        const reposts = await sdk.getPostReposts(new PublicKey(postId));
+        if (reposts && reposts.length > 0) {
+          await CacheManager.setCachedMetadata(cacheKey, reposts);
+        }
+        return reposts || [];
+      } catch (error) {
+        console.error('Error fetching post reposts:', error);
+        const cached = await CacheManager.getCachedMetadata(cacheKey);
+        if (cached) {
+          console.log('📱 Using cached post reposts (error fallback)');
+          return cached as any;
+        }
+        return [];
+      }
+    },
+    enabled: !!sdk && !!postId,
+  });
+};
+
+/**
+ * Get a specific post by ID
+ */
+export const useGetPost = (postId?: string) => {
+  const { sdk } = useSocialFi();
+
+  return useQuery({
+    queryKey: ['post_details', postId],
+    queryFn: async () => {
+      if (!sdk || !postId) return null;
+      const cacheKey = `post_details:${postId}`;
+      try {
+        const post = await sdk.getPost(new PublicKey(postId));
+        if (post) {
+          await CacheManager.setCachedMetadata(cacheKey, post);
+        }
+        return post;
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        const cached = await CacheManager.getCachedMetadata(cacheKey);
+        if (cached) {
+          console.log('📱 Using cached post details (error fallback)');
+          return cached;
+        }
+        return null;
+      }
+    },
+    enabled: !!sdk && !!postId,
   });
 };
 

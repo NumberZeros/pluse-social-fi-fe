@@ -1,13 +1,16 @@
 import { useState, useCallback, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAnchorWallet, useConnection } from '../lib/wallet-adapter';
 import { SocialFiSDK } from '../services/socialfi-sdk';
 import { toast } from 'react-hot-toast';
 import { withAnchorToast } from '../utils/error-handler';
 import { PublicKey } from '@solana/web3.js';
+import { CacheManager } from '../services/storage';
 
 export const useMintPost = () => {
   const wallet = useAnchorWallet();
   const { connection } = useConnection();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   // Memoize SDK instance
@@ -25,9 +28,14 @@ export const useMintPost = () => {
    * Mint a post as an NFT
    * @param postPubkey - Post account public key
    * @param title - NFT title
+   * @param metadata - Optional metadata including description and images
    * @returns NFT mint details or null on error
    */
-  const mintPost = useCallback(async (postPubkey: string | PublicKey, title: string) => {
+  const mintPost = useCallback(async (
+    postPubkey: string | PublicKey,
+    title: string,
+    metadata?: { description?: string; images?: string[] }
+  ) => {
     if (!sdk) {
       toast.error('Wallet not connected');
       return null;
@@ -35,6 +43,12 @@ export const useMintPost = () => {
 
     if (!title.trim()) {
       toast.error('Please enter a title for the NFT');
+      return null;
+    }
+
+    // Metaplex NFT name limit is 32 bytes
+    if (title.length > 32) {
+      toast.error('NFT title must be 32 characters or less');
       return null;
     }
 
@@ -46,16 +60,24 @@ export const useMintPost = () => {
         ? new PublicKey(postPubkey) 
         : postPubkey;
 
+      // Prepare NFT metadata with images
+      const nftMetadata = {
+        title,
+        description: metadata?.description || '',
+        images: metadata?.images || [],
+      };
 
       const result = await withAnchorToast(
-        () => sdk.mintPost(pubkey, title),
+        () => sdk.mintPost(pubkey, title, nftMetadata),
         {
           loading: 'Minting NFT...',
           success: 'Post minted as NFT! 🎉',
         }
       );
 
-    
+      // Clear cache and invalidate queries to refetch fresh data from blockchain
+      await CacheManager.clearCache();
+      queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
 
       return result;
     } catch (error) {

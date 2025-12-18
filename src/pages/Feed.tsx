@@ -30,6 +30,11 @@ export function Feed() {
   const tipPostMutation = useTipPost();
   
   const handleOpenMintModal = (post: any) => {
+    // Check if post already has an NFT
+    if (post.mint) {
+      toast.error('This post has already been minted as an NFT');
+      return;
+    }
     setSelectedPostForMint(post);
     setMintModalOpen(true);
   };
@@ -44,17 +49,39 @@ export function Feed() {
   const isFetchingNextPage = false;
   const fetchNextPage = () => {};
 
-  const posts = (rawPosts || []).map((post) => ({
-    ...post,
-    author: {
-      username: post.authorUsername || post.author.slice(0, 8), // Fallback if username missing
-      address: post.author, // SDK returns author address as 'author' field
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author}`,
-      verified: false,
-    },
-    timestamp: post.createdAt, // SDK returns milliseconds or seconds? SDK uses Date.now() usually, let's check sdk.ts. It returns .toNumber().
-    images: post.imageUrls || [], // Check if SDK returns imageUrls. sdk.ts: getAllPosts maps to { publicKey, author, uri, mint, createdAt }. URI needs fetching?
-  }));
+  const posts = (rawPosts || []).map((post) => {
+    const mapped = {
+      id: post.id || post.publicKey,
+      content: post.content || '',
+      author: {
+        username: post.authorUsername || post.author.slice(0, 8),
+        address: post.author,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author}`,
+        verified: false,
+      },
+      timestamp: post.createdAt,
+      images: post.imageUrls || [],
+      likes: post.likes || 0,
+      comments: post.comments || 0,
+      reposts: post.reposts || 0,
+      tips: post.tips || 0,
+      isLiked: post.isLiked || false,
+      isReposted: post.isReposted || false,
+      mint: post.mint || null,
+    };
+    
+    // Debug log to see post data and mint status
+    console.log('📝 Post mapping:', {
+      id: mapped.id,
+      authorAddress: mapped.author.address,
+      currentWallet: publicKey?.toBase58(),
+      isAuthor: mapped.author.address === publicKey?.toBase58(),
+      hasMint: !!mapped.mint,
+      mintAddress: mapped.mint,
+    });
+    
+    return mapped;
+  });
 
   // Intersection Observer for infinite scroll
   useEffect(() => {
@@ -130,7 +157,7 @@ export function Feed() {
     );
   };
 
-  const handleTip = (postId: string) => {
+  const handleTip = (post: any) => {
     if (!publicKey) {
       toast.error('Please connect your wallet');
       return;
@@ -140,7 +167,7 @@ export function Feed() {
     if (!amount || isNaN(parseFloat(amount))) return;
 
     tipPostMutation.mutate(
-      { postId, amount: parseFloat(amount) },
+      { postId: post.id, authorAddress: post.author.address, amount: parseFloat(amount) },
       {
         onSuccess: () => {
           toast.success(`Tipped ${amount} SOL!`);
@@ -150,6 +177,23 @@ export function Feed() {
         },
       },
     );
+  };
+
+  const handleComment = (_postId: string) => {
+    if (!publicKey) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+    
+    const content = prompt('Enter your comment (max 280 characters):');
+    if (!content || content.trim().length === 0) return;
+    
+    if (content.length > 280) {
+      toast.error('Comment must be 280 characters or less');
+      return;
+    }
+    
+    toast.success('Comment feature coming soon - UI to be added');
   };
 
   return (
@@ -254,7 +298,7 @@ export function Feed() {
                         className="w-12 h-12 rounded-full border border-white/10"
                       />
                       <div className="flex-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-white hover:text-[var(--color-solana-green)] transition-colors cursor-pointer">{post.author.username}</span>
                           <span className="text-gray-400 text-sm">
                             {post.author.address.slice(0, 4)}...{post.author.address.slice(-4)}
@@ -263,6 +307,19 @@ export function Feed() {
                           <span className="text-gray-500 text-sm">
                             {new Date(post.timestamp).toLocaleDateString()}
                           </span>
+                          {/* NFT Badge */}
+                          {post.mint && (
+                            <a
+                              href={`https://solscan.io/token/${post.mint}?cluster=devnet`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-full text-xs font-medium text-yellow-400 hover:border-yellow-500/50 transition-colors"
+                              title="This post is an NFT - Click to view on Solscan"
+                            >
+                              <Sparkles className="w-3 h-3 fill-current" />
+                              NFT
+                            </a>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -293,7 +350,7 @@ export function Feed() {
                         <span className="text-sm font-medium">{post.likes}</span>
                       </button>
                       
-                      <button className="flex items-center gap-2 hover:text-blue-400 transition-colors group">
+                      <button className="flex items-center gap-2 hover:text-blue-400 transition-colors group" onClick={() => handleComment(post.id)}>
                         <div className="p-2 rounded-full group-hover:bg-blue-400/10 transition-colors">
                            <MessageCircle className="w-5 h-5" />
                         </div>
@@ -313,7 +370,7 @@ export function Feed() {
                       </button>
                       
                       <button
-                        onClick={() => handleTip(post.id)}
+                        onClick={() => handleTip(post)}
                         className="flex items-center gap-2 hover:text-[var(--color-solana-green)] transition-colors group"
                       >
                         <div className="p-2 rounded-full group-hover:bg-[var(--color-solana-green)]/10 transition-colors">
@@ -322,18 +379,46 @@ export function Feed() {
                         <span className="text-sm font-medium">{post.tips.toFixed(2)} SOL</span>
                       </button>
                       
-                      {/* Mint as NFT Button */}
-                      {post.author.address === publicKey?.toBase58() && !post.mint && (
-                        <button
-                          onClick={() => handleOpenMintModal(post)}
-                          className="flex items-center gap-2 hover:text-yellow-400 transition-colors group"
-                          title="Mint this post as an NFT"
-                        >
-                          <div className="p-2 rounded-full group-hover:bg-yellow-400/10 transition-colors">
-                            <Sparkles className="w-5 h-5" />
+                      {/* Mint as NFT Button OR NFT Badge */}
+                      {post.author.address && publicKey && post.author.address === publicKey.toBase58() && (
+                        post.mint ? (
+                          // Show NFT badge with links if already minted
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={`https://solscan.io/token/${post.mint}?cluster=devnet`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors group"
+                              title="View NFT on Solscan"
+                            >
+                              <div className="p-2 rounded-full bg-yellow-400/10 group-hover:bg-yellow-400/20 transition-colors">
+                                <Sparkles className="w-5 h-5 fill-current" />
+                              </div>
+                              <span className="text-sm font-medium">NFT</span>
+                            </a>
+                            <a
+                              href={`https://solscan.io/token/${post.mint}?cluster=devnet`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-gray-400 hover:text-[var(--color-solana-green)] transition-colors"
+                              title="View on Solscan"
+                            >
+                              📊
+                            </a>
                           </div>
-                          <span className="text-sm font-medium">Mint</span>
-                        </button>
+                        ) : (
+                          // Show Mint button if not yet minted
+                          <button
+                            onClick={() => handleOpenMintModal(post)}
+                            className="flex items-center gap-2 hover:text-yellow-400 transition-colors group"
+                            title="Mint this post as an NFT"
+                          >
+                            <div className="p-2 rounded-full group-hover:bg-yellow-400/10 transition-colors">
+                              <Sparkles className="w-5 h-5" />
+                            </div>
+                            <span className="text-sm font-medium">Mint</span>
+                          </button>
+                        )
                       )}
                     </div>
                   </motion.div>
@@ -405,8 +490,7 @@ export function Feed() {
       {selectedPostForMint && (
         <MintPostModal
           isOpen={mintModalOpen}
-          postId={selectedPostForMint.publicKey}
-          postContent={selectedPostForMint.content}
+          post={selectedPostForMint}
           onClose={handleCloseMintModal}
           onSuccess={(mintAddress) => {
             toast.success(`Post minted as NFT! Mint: ${mintAddress.slice(0, 8)}...`);

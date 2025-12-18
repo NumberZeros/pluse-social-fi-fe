@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/social_fi_contract.json`.
  */
 export type SocialFiContract = {
-  "address": "8dU8UsnavCaqmm4JTgMHCtjzcfcu4D4iKYW71MXE1mDP",
+  "address": "FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL",
   "metadata": {
     "name": "socialFiContract",
     "version": "0.1.0",
@@ -1187,7 +1187,7 @@ export type SocialFiContract = {
               },
               {
                 "kind": "arg",
-                "path": "uri"
+                "path": "nonce"
               }
             ]
           }
@@ -2537,6 +2537,10 @@ export type SocialFiContract = {
       "args": [
         {
           "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "nftMetadataUri",
           "type": "string"
         }
       ]
@@ -5201,6 +5205,10 @@ export type SocialFiContract = {
           },
           {
             "name": "uri",
+            "type": "string"
+          },
+          {
+            "name": "nonce",
             "type": "string"
           },
           {

@@ -249,15 +249,13 @@ export class PDAs {
     // Convert to string if number
     const nonceStr = typeof nonce === 'number' ? nonce.toString() : nonce;
     
-    // Take first 16 chars of nonce (keeps it compact but unique)
-    // Timestamp like "1734554400000" is 13 chars, so this is safe
-    const compactNonce = nonceStr.slice(0, 16);
-    
+    // MUST match Rust program: uses nonce.as_bytes() directly
+    // Rust validates nonce.len() <= 16 in the instruction
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from('post'),
         author.toBuffer(),
-        Buffer.from(compactNonce)
+        Buffer.from(nonceStr)
       ],
       PROGRAM_ID
     );

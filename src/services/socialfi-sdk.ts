@@ -170,6 +170,7 @@ export class SocialFiSDK {
           post: postPda,
           author: this.wallet.publicKey,
           platformConfig: platformConfigPda,
+          systemProgram: SystemProgram.programId,
         })
         .rpc();
 
@@ -184,8 +185,37 @@ export class SocialFiSDK {
    * Mint a post as an NFT
    * @param postPubkey - The Post PDA to mint
    * @param title - Title for the NFT (Metadata)
+   * @param metadata - Optional metadata including description and images
    */
-  async mintPost(postPubkey: PublicKey, title: string) {
+  async mintPost(
+    postPubkey: PublicKey,
+    title: string,
+    metadata?: { title?: string; description?: string; images?: string[] }
+  ) {
+    // Fetch post account to verify it exists and we're the author
+    let postAccount;
+    try {
+      postAccount = await this.program.account.post.fetch(postPubkey);
+      console.log('📦 Post account fetched:', {
+        author: postAccount.author.toBase58(),
+        currentWallet: this.wallet.publicKey.toBase58(),
+        match: postAccount.author.toBase58() === this.wallet.publicKey.toBase58(),
+      });
+
+      // Verify we're the author
+      if (postAccount.author.toBase58() !== this.wallet.publicKey.toBase58()) {
+        throw new Error('Only the post author can mint an NFT');
+      }
+
+      // Check if post already has NFT minted
+      if (postAccount.mint) {
+        throw new Error('This post has already been minted as an NFT');
+      }
+    } catch (error) {
+      console.error('Failed to fetch post account:', error);
+      throw error;
+    }
+
     // Generate a new Mint Keypair
     const mintKeypair = Keypair.generate();
     const mint = mintKeypair.publicKey;
@@ -197,7 +227,7 @@ export class SocialFiSDK {
     );
 
     // Get Metaplex PDAs
-    const [metadata] = PublicKey.findProgramAddressSync(
+    const [metadataPda] = PublicKey.findProgramAddressSync(
       [
         Buffer.from('metadata'),
         TOKEN_METADATA_PROGRAM_ID.toBuffer(),
@@ -216,13 +246,115 @@ export class SocialFiSDK {
       TOKEN_METADATA_PROGRAM_ID
     );
 
+    console.log('📸 Minting post with metadata:', {
+      title,
+      description: metadata?.description,
+      images: metadata?.images?.length || 0,
+      postPubkey: postPubkey.toBase58(),
+      author: this.wallet.publicKey.toBase58(),
+    });
+
+    // Fetch post content from post URI to get images
+    let postMetadata = { content: '', images: [] };
+    try {
+      // Handle different URI formats
+      if (postAccount.uri.startsWith('http')) {
+        postMetadata = await fetch(postAccount.uri).then(r => r.json());
+      } else if (postAccount.uri.startsWith('ipfs://')) {
+        // Try Pinata gateway
+        const ipfsPath = postAccount.uri.replace('ipfs://', '');
+        postMetadata = await fetch(`https://gateway.pinata.cloud/ipfs/${ipfsPath}`).then(r => r.json());
+      } else if (postAccount.uri.startsWith('text:')) {
+        // Plain text content
+        postMetadata = { content: postAccount.uri.slice(5), images: [] };
+      } else {
+        // Try localStorage mock
+        const stored = localStorage.getItem(`post_metadata_${postAccount.uri}`);
+        if (stored) postMetadata = JSON.parse(stored);
+      }
+    } catch (error) {
+      console.warn('Failed to fetch post metadata:', error);
+    }
+    
+    const postImages = postMetadata.images || metadata?.images || [];
+    console.log('📸 Post images found:', postImages);
+
+    // Create NFT metadata JSON (Metaplex standard)
+    const nftMetadata = {
+      name: title,
+      symbol: 'POST',
+      description: metadata?.description || postMetadata.content || '',
+      image: postImages[0] || 'https://via.placeholder.com/400x400.png?text=Post+NFT',
+      attributes: [
+        {
+          trait_type: 'Post Author',
+          value: this.wallet.publicKey.toBase58().slice(0, 8),
+        },
+        {
+          trait_type: 'Minted Date',
+          value: new Date().toISOString().split('T')[0],
+        },
+      ],
+      properties: {
+        files: postImages.map((url: string) => ({ uri: url, type: 'image/jpeg' })),
+        category: 'image',
+        creators: [
+          {
+            address: this.wallet.publicKey.toBase58(),
+            share: 100,
+          },
+        ],
+      },
+    };
+
+    // Upload NFT metadata to Pinata
+    const pinataJwt = import.meta.env.VITE_PINATA_JWT;
+    if (!pinataJwt) {
+      throw new Error('VITE_PINATA_JWT not configured. Please add it to .env file.');
+    }
+
+    let nftMetadataUri = '';
+    try {
+      console.log('📤 Uploading NFT metadata to Pinata...');
+      const pinataResponse = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${pinataJwt}`,
+        },
+        body: JSON.stringify({
+          pinataContent: nftMetadata,
+          pinataMetadata: {
+            name: `nft-${title.replace(/[^a-zA-Z0-9]/g, '-')}-${Date.now()}.json`,
+          },
+        }),
+      });
+
+      if (!pinataResponse.ok) {
+        const errorText = await pinataResponse.text();
+        console.error('Pinata API error:', errorText);
+        throw new Error(`Pinata upload failed: ${pinataResponse.status} ${errorText}`);
+      }
+
+      const pinataData = await pinataResponse.json();
+      nftMetadataUri = `https://gateway.pinata.cloud/ipfs/${pinataData.IpfsHash}`;
+      console.log('✅ NFT Metadata uploaded to Pinata:', nftMetadataUri);
+      console.log('📦 IPFS Hash:', pinataData.IpfsHash);
+    } catch (error) {
+      console.error('Error uploading NFT metadata to Pinata:', error);
+      throw new Error(`Failed to upload NFT metadata: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    console.log('📦 NFT Metadata:', nftMetadata);
+    console.log('📦 NFT Metadata URI:', nftMetadataUri);
+
     const tx = await this.program.methods
-      .mintPost(title)
+      .mintPost(title, nftMetadataUri)
       .accountsPartial({
         post: postPubkey,
         mint,
         tokenAccount,
-        metadata,
+        metadata: metadataPda,
         masterEdition,
         author: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
@@ -234,6 +366,7 @@ export class SocialFiSDK {
       .signers([mintKeypair])
       .rpc();
 
+    console.log('✅ NFT minted successfully:', tx);
     return { signature: tx, mint };
   }
 
@@ -484,6 +617,12 @@ export class SocialFiSDK {
   async likePost(postPubkey: PublicKey) {
     const [like] = PDAs.getLike(this.wallet.publicKey, postPubkey);
 
+    // Check if already liked
+    const isLiked = await this.hasLikedPost(postPubkey);
+    if (isLiked) {
+      throw new Error('You have already liked this post. Unlike it first to like again.');
+    }
+
     const tx = await this.program.methods
       .likePost()
       .accountsPartial({
@@ -523,6 +662,20 @@ export class SocialFiSDK {
   async createRepost(originalPostPubkey: PublicKey) {
     const [repost] = PDAs.getRepost(this.wallet.publicKey, originalPostPubkey);
 
+    // Check if already reposted
+    try {
+      await this.program.account.repost.fetch(repost);
+      throw new Error('You have already reposted this post. Delete the repost first to repost again.');
+    } catch (error: any) {
+      // If error is "Account does not exist", that's good - we can proceed
+      if (error.message?.includes('does not exist') || error.message?.includes('Account does not exist')) {
+        // Continue - account doesn't exist, safe to create
+      } else if (error.message?.includes('already reposted')) {
+        throw error;
+      }
+      // For other errors during fetch, still try to proceed (might be network issue)
+    }
+
     const tx = await this.program.methods
       .createRepost()
       .accountsPartial({
@@ -540,9 +693,17 @@ export class SocialFiSDK {
    * Create a comment on a post
    * @param postPubkey - Post PDA to comment on
    * @param content - Comment content (max 280 chars)
-   * @param nonce - Unique nonce for this comment (e.g., Date.now())
+   * @param nonce - Unique nonce for this comment (defaults to current timestamp + random)
    */
-  async createComment(postPubkey: PublicKey, content: string, nonce: number = Date.now()) {
+  async createComment(postPubkey: PublicKey, content: string, nonce: number = Date.now() + Math.floor(Math.random() * 1000)) {
+    if (!content || content.trim().length === 0) {
+      throw new Error('Comment content cannot be empty');
+    }
+
+    if (content.length > 280) {
+      throw new Error('Comment must be 280 characters or less');
+    }
+
     const [comment] = PDAs.getComment(postPubkey, this.wallet.publicKey, nonce);
 
     const tx = await this.program.methods
@@ -789,6 +950,66 @@ export class SocialFiSDK {
       return commentData;
     } catch (error) {
       console.warn('⚠️ Error fetching comments:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get a specific post by its public key
+   * @param postPubkey - Post account public key
+   */
+  async getPost(postPubkey: PublicKey) {
+    try {
+      const post = await this.program.account.post.fetch(postPubkey);
+      return {
+        publicKey: postPubkey.toBase58(),
+        author: post.author.toBase58(),
+        uri: post.uri,
+        mint: post.mint ? post.mint.toBase58() : null,
+        createdAt: post.createdAt.toNumber(),
+      };
+    } catch (error) {
+      console.error('Error fetching post:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get reposts of a post
+   * Queries all Repost accounts for a specific original post
+   */
+  async getPostReposts(originalPostPubkey: PublicKey) {
+    try {
+      console.log('🚀 Fetching reposts for post:', originalPostPubkey.toBase58());
+      
+      const reposts = await this.connection.getProgramAccounts(this.program.programId, {
+        filters: [
+          {
+            memcmp: {
+              offset: 8 + 32, // Skip discriminator (8) + user (32), get to 'original_post' field
+              bytes: originalPostPubkey.toBase58(),
+            },
+          },
+        ],
+      });
+
+      const repostData = reposts.map(r => {
+        try {
+          const decoded = this.program.account.repost.coder.accounts.decode('repost', r.account.data);
+          return {
+            user: decoded.user.toBase58(),
+            originalPost: decoded.originalPost.toBase58(),
+            created_at: decoded.created_at.toNumber(),
+          };
+        } catch (e) {
+          return null;
+        }
+      }).filter((r): r is any => r !== null);
+
+      console.log(`✅ Found ${repostData.length} reposts`);
+      return repostData;
+    } catch (error) {
+      console.warn('⚠️ Error fetching reposts:', error);
       return [];
     }
   }

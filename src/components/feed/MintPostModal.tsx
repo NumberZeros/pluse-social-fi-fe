@@ -6,21 +6,19 @@ import { toast } from 'react-hot-toast';
 
 interface MintPostModalProps {
   isOpen: boolean;
-  postId: string;
-  postContent: string;
+  post?: { id: string; content: string; images?: string[] } | null;
   onClose: () => void;
   onSuccess?: (mintAddress: string) => void;
 }
 
 export function MintPostModal({
   isOpen,
-  postId,
-  postContent,
+  post,
   onClose,
   onSuccess,
 }: MintPostModalProps) {
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState(postContent || '');
+  const [description, setDescription] = useState(post?.content || '');
   const { mintPost, loading } = useMintPost();
 
   const handleMint = async () => {
@@ -29,10 +27,19 @@ export function MintPostModal({
       return;
     }
 
-    const result = await mintPost(postId, title);
+    if (!post?.id) {
+      toast.error('Post data missing');
+      return;
+    }
+
+    // Pass full post data including images
+    const result = await mintPost(post.id, title, {
+      description,
+      images: post.images || [],
+    });
     if (result?.mint) {
       setTitle('');
-      setDescription(postContent || '');
+      setDescription(post?.content || '');
       onClose();
       onSuccess?.(result.mint.toBase58());
     }
@@ -75,7 +82,21 @@ export function MintPostModal({
               {/* Preview */}
               <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10">
                 <p className="text-sm text-gray-400 mb-2">Post Content</p>
-                <p className="text-white line-clamp-3 text-sm">{postContent}</p>
+                <p className="text-white line-clamp-3 text-sm">{post?.content}</p>
+                
+                {/* Preview Images */}
+                {post?.images && post.images.length > 0 && (
+                  <div className="mt-3 grid gap-2 grid-cols-2">
+                    {post.images.slice(0, 2).map((img, i) => (
+                      <img
+                        key={i}
+                        src={img}
+                        alt="Post preview"
+                        className="w-full h-24 object-cover rounded-lg border border-white/10"
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* NFT Title Input */}
@@ -88,12 +109,12 @@ export function MintPostModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., My First Web3 Post"
-                  maxLength={100}
+                  maxLength={32}
                   disabled={loading}
                   className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ABFE2C] disabled:opacity-50"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  {title.length}/100
+                <p className={`text-xs mt-1 ${title.length > 32 ? 'text-red-400' : 'text-gray-500'}`}>
+                  {title.length}/32 characters (Metaplex limit)
                 </p>
               </div>
 
