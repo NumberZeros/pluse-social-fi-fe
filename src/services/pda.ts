@@ -60,8 +60,7 @@ export class PDAs {
    */
   static getSubscriptionTier(creator: PublicKey, tierId: number): [PublicKey, number] {
     const tierIdBuffer = Buffer.alloc(8);
-    // @ts-ignore
-    tierIdBuffer.writeBigUInt64LE(BigInt(tierId), 0);
+    tierIdBuffer.writeBigUInt64LE(BigInt(tierId) as any, 0);
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from('subscription_tier'),
@@ -94,8 +93,7 @@ export class PDAs {
     tierId: number
   ): [PublicKey, number] {
     const tierIdBuffer = Buffer.alloc(8);
-    // @ts-ignore
-    tierIdBuffer.writeBigUInt64LE(BigInt(tierId), 0);
+    tierIdBuffer.writeBigUInt64LE(BigInt(tierId) as any, 0);
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from('subscription'),
@@ -233,6 +231,91 @@ export class PDAs {
   static getVotePDA(proposal: PublicKey, voter: PublicKey): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
       [Buffer.from('vote'), proposal.toBuffer(), voter.toBuffer()],
+      PROGRAM_ID
+    );
+  }
+
+  /**
+   * Get Post PDA
+   * Uses a nonce instead of URI because URI can be very long (IPFS URLs are 100+ chars)
+   * and Solana has a max seed length limit (~32 bytes total for all seeds combined)
+   * 
+   * The contract derives the same PDA using: seeds = [POST_SEED, author, nonce]
+   * 
+   * @param author - Post author's public key
+   * @param nonce - Unique nonce (timestamp string, e.g., "1734554400000")
+   */
+  static getPost(author: PublicKey, nonce: string | number): [PublicKey, number] {
+    // Convert to string if number
+    const nonceStr = typeof nonce === 'number' ? nonce.toString() : nonce;
+    
+    // MUST match Rust program: uses nonce.as_bytes() directly
+    // Rust validates nonce.len() <= 16 in the instruction
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('post'),
+        author.toBuffer(),
+        Buffer.from(nonceStr)
+      ],
+      PROGRAM_ID
+    );
+  }
+
+  /**
+   * Get Follow PDA
+   */
+  static getFollow(follower: PublicKey, following: PublicKey): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('follow'),
+        follower.toBuffer(),
+        following.toBuffer()
+      ],
+      PROGRAM_ID
+    );
+  }
+
+  /**
+   * Get Like PDA
+   */
+  static getLike(user: PublicKey, post: PublicKey): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('like'),
+        user.toBuffer(),
+        post.toBuffer()
+      ],
+      PROGRAM_ID
+    );
+  }
+
+  /**
+   * Get Repost PDA
+   */
+  static getRepost(user: PublicKey, originalPost: PublicKey): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('repost'),
+        user.toBuffer(),
+        originalPost.toBuffer()
+      ],
+      PROGRAM_ID
+    );
+  }
+
+  /**
+   * Get Comment PDA
+   */
+  static getComment(post: PublicKey, author: PublicKey, nonce: number): [PublicKey, number] {
+    const nonceBuffer = Buffer.alloc(8);
+    nonceBuffer.writeBigUInt64LE(BigInt(nonce) as any, 0);
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('comment'),
+        post.toBuffer(),
+        author.toBuffer(),
+        nonceBuffer
+      ],
       PROGRAM_ID
     );
   }

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
 import { toast } from 'react-hot-toast';
+import { CacheManager } from '../services/storage';
 
 export const useGovernance = (stakerPubkey?: PublicKey, proposalPubkey?: PublicKey) => {
   const { sdk } = useSocialFi();
@@ -12,7 +13,22 @@ export const useGovernance = (stakerPubkey?: PublicKey, proposalPubkey?: PublicK
     queryKey: ['stakePosition', stakerPubkey?.toString()],
     queryFn: async () => {
       if (!stakerPubkey || !sdk) return null;
-      return await sdk.getStakePosition(stakerPubkey);
+      const cacheKey = `stakePosition:${stakerPubkey.toString()}`;
+      try {
+        const position = await sdk.getStakePosition(stakerPubkey);
+        if (position) {
+          await CacheManager.setCachedMetadata(cacheKey, position);
+        }
+        return position;
+      } catch (error) {
+        console.error('Error fetching stake position:', error);
+        const cached = await CacheManager.getCachedMetadata(cacheKey);
+        if (cached) {
+          console.log('📱 Using cached stake position (error fallback)');
+          return cached as any;
+        }
+        return null;
+      }
     },
     enabled: !!sdk && !!stakerPubkey,
   });
@@ -22,7 +38,22 @@ export const useGovernance = (stakerPubkey?: PublicKey, proposalPubkey?: PublicK
     queryKey: ['proposal', proposalPubkey?.toString()],
     queryFn: async () => {
       if (!proposalPubkey || !sdk) return null;
-      return await sdk.getProposal(proposalPubkey);
+      const cacheKey = `proposal:${proposalPubkey.toString()}`;
+      try {
+        const prop = await sdk.getProposal(proposalPubkey);
+        if (prop) {
+          await CacheManager.setCachedMetadata(cacheKey, prop);
+        }
+        return prop;
+      } catch (error) {
+        console.error('Error fetching proposal:', error);
+        const cached = await CacheManager.getCachedMetadata(cacheKey);
+        if (cached) {
+          console.log('📱 Using cached proposal (error fallback)');
+          return cached as any;
+        }
+        return null;
+      }
     },
     enabled: !!sdk && !!proposalPubkey,
   });
@@ -32,7 +63,22 @@ export const useGovernance = (stakerPubkey?: PublicKey, proposalPubkey?: PublicK
     queryKey: ['userVote', proposalPubkey?.toString(), stakerPubkey?.toString()],
     queryFn: async () => {
       if (!proposalPubkey || !stakerPubkey || !sdk) return null;
-      return await sdk.getVote(proposalPubkey, stakerPubkey);
+      const cacheKey = `userVote:${proposalPubkey.toString()}:${stakerPubkey.toString()}`;
+      try {
+        const vote = await sdk.getVote(proposalPubkey, stakerPubkey);
+        if (vote) {
+          await CacheManager.setCachedMetadata(cacheKey, vote);
+        }
+        return vote;
+      } catch (error) {
+        console.error('Error fetching user vote:', error);
+        const cached = await CacheManager.getCachedMetadata(cacheKey);
+        if (cached) {
+          console.log('📱 Using cached user vote (error fallback)');
+          return cached as any;
+        }
+        return null;
+      }
     },
     enabled: !!sdk && !!proposalPubkey && !!stakerPubkey,
   });

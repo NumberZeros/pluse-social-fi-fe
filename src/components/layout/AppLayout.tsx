@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Navbar } from './Navbar';
 import Footer from './Footer';
 import { App3DBackground } from './App3DBackground';
+import { MintUsernameModal } from '../landing/MintUsernameModal';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -24,6 +25,9 @@ export function AppLayout({ children, showFooter = true }: AppLayoutProps) {
 
         {showFooter && <Footer />}
       </div>
+      
+      {/* Global Modals */}
+      <MintUsernameModal />
     </div>
   );
 }

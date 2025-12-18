@@ -68,19 +68,35 @@ export function WalletProvider({ children, endpoint, config = {} }: WalletProvid
    * Connect to the selected wallet
    */
   const connect = useCallback(async () => {
-    if (!wallet || connecting || connected) return;
+    if (!wallet) return;
+    if (connecting) return;
+    if (connected) {
+      console.log('[WalletProvider] Already connected');
+      return;
+    }
 
     try {
       setConnecting(true);
+      console.log('[WalletProvider] Connecting to:', wallet.name);
+      
+      // Connect
       await wallet.connect();
       
+      console.log('[WalletProvider] Connect call completed');
+      
+      // Wait a tick for adapter state to sync
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Ensure state is updated even if events don't fire
-      if (wallet.publicKey && wallet.connected) {
+      if (wallet.publicKey) {
+        console.log('[WalletProvider] Setting public key:', wallet.publicKey.toBase58());
         setPublicKey(wallet.publicKey);
         setConnected(true);
+      } else {
+        console.warn('[WalletProvider] No publicKey after connect');
       }
     } catch (error: any) {
-      console.error('Failed to connect wallet:', error);
+      console.error('[WalletProvider] Failed to connect wallet:', error);
       setPublicKey(null);
       setConnected(false);
       
@@ -258,28 +274,38 @@ export function WalletProvider({ children, endpoint, config = {} }: WalletProvid
       
       const savedWallet = storage.getSelectedWallet();
       if (savedWallet) {
+        console.log('[WalletProvider] Auto-connect: found saved wallet:', savedWallet);
         const adapter = adapters.find((a) => a.name === savedWallet);
         if (adapter) {
+          // Properly select the wallet
           setWallet(adapter);
-          setConnecting(true);
           
-          // Attempt silent connect
-          adapter.connect()
-            .then(() => {
-              // Update state after successful connection
+          // Wait a tick then attempt connection
+          setTimeout(async () => {
+            try {
+              setConnecting(true);
+              console.log('[WalletProvider] Auto-connect: attempting to connect to', adapter.name);
+              
+              // Call connect on the adapter
+              await adapter.connect();
+              
+              // Check state after connection
               if (adapter.publicKey && adapter.connected) {
+                console.log('[WalletProvider] Auto-connect: success');
                 setPublicKey(adapter.publicKey);
                 setConnected(true);
+              } else {
+                console.warn('[WalletProvider] Auto-connect: adapter connected but state not updated');
               }
-              setConnecting(false);
-            })
-            .catch((error) => {
-              console.warn('Auto-connect failed:', error);
+            } catch (error: any) {
+              console.warn('[WalletProvider] Auto-connect failed:', error?.message || error);
               storage.clearSelectedWallet();
-              setConnecting(false);
               setPublicKey(null);
               setConnected(false);
-            });
+            } finally {
+              setConnecting(false);
+            }
+          }, 0);
         }
       }
     }

@@ -27,6 +27,8 @@
     "bs58": "^6.0.0",
     "buffer": "^6.0.3",
     "framer-motion": "^12.23.26",
+    "idb": "^8.0.3",
+    "idb-keyval": "^6.2.2",
     "lucide-react": "^0.561.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -34,6 +36,7 @@
     "react-hook-form": "^7.68.0",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.10.1",
+    "unstorage": "^1.17.3",
     "zod": "^4.1.13",
     "zustand": "^5.0.9"
   },

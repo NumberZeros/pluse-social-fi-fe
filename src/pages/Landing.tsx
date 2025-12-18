@@ -13,7 +13,6 @@ import { Hero } from '../components/landing/Hero';
 import { Features } from '../components/landing/Features';
 import { Community } from '../components/landing/Community';
 import { CTA } from '../components/landing/CTA';
-import { MintUsernameModal } from '../components/landing/MintUsernameModal';
 import { App3DBackground } from '../components/layout/App3DBackground';
 
 export function Landing() {
@@ -99,7 +98,7 @@ export function Landing() {
       <Footer />
 
       {/* Modals */}
-      <MintUsernameModal />
+
     </div>
   );
 }

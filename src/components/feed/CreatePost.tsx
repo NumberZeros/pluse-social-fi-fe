@@ -4,8 +4,10 @@ import { useWallet } from '../../lib/wallet-adapter';
 import { useUserStore } from '../../stores/useUserStore';
 import { useAirdropStore } from '../../stores/useAirdropStore';
 import useSubscriptionStore from '../../stores/useSubscriptionStore';
+import { usePost } from '../../hooks/usePost';
 import { toast } from 'react-hot-toast';
-import { Crown } from 'lucide-react';
+import { Crown, Image as ImageIcon, Video, X } from 'lucide-react';
+import { uploadFileToIPFS, uploadMetadataToIPFS, validateFile } from '../../services/ipfs';
 
 interface CreatePostProps {
   onPost?: (
@@ -23,9 +25,12 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
   const { publicKey } = useWallet();
   const [content, setContent] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [videos, setVideos] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSubscriberOnly, setIsSubscriberOnly] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+  const { createPost } = usePost();
   const incrementPostsCount = useUserStore((state) => state.incrementPostsCount);
   const updateAirdropProgress = useAirdropStore((state) => state.updateProgress);
   const markDayActive = useUserStore((state) => state.markDayActive);
@@ -37,9 +42,54 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
   const myTiers = publicKey ? getTiersByCreator(publicKey.toBase58()) : [];
   const selectedTierData = myTiers.find((t) => t.id === selectedTier);
 
-  const handlePost = () => {
-    if (content.trim()) {
-      onPost?.(content, images, isSubscriberOnly, selectedTierData?.name, groupId);
+  const handlePost = async () => {
+    if (!content.trim()) {
+      toast.error('Please enter some content');
+      return;
+    }
+
+    setIsUploading(true);
+    const uploadToast = toast.loading('Creating post...');
+
+    try {
+      // Step 1: Upload images/videos to IPFS (if any)
+      let uploadedImages: string[] = [];
+      let uploadedVideos: string[] = [];
+
+      if (images.length > 0) {
+        toast.loading('Uploading images...', { id: uploadToast });
+        uploadedImages = images; // Already base64 or mock URLs from handleImageUpload
+      }
+
+      if (videos.length > 0) {
+        toast.loading('Uploading videos...', { id: uploadToast });
+        uploadedVideos = videos; // Already uploaded in handleVideoUpload
+      }
+
+      // Step 2: Create metadata object
+      const metadata = {
+        content: content.trim(),
+        images: uploadedImages.length > 0 ? uploadedImages : undefined,
+        videos: uploadedVideos.length > 0 ? uploadedVideos : undefined,
+      };
+
+      // Step 3: Upload metadata to IPFS
+      toast.loading('Uploading metadata...', { id: uploadToast });
+      const metadataUri = await uploadMetadataToIPFS(metadata);
+
+      // Step 4: Create post on-chain with metadata URI
+      toast.loading('Creating post on blockchain...', { id: uploadToast });
+      const postResult = await createPost(metadataUri);
+      
+      if (!postResult) {
+        throw new Error('Failed to create post on-chain');
+      }
+
+      console.log('✅ Post created on-chain:', postResult);
+      toast.success('Post created successfully! 🎉', { id: uploadToast });
+
+      // Call the callback for UI updates
+      onPost?.(content, uploadedImages, isSubscriberOnly, selectedTierData?.name, groupId);
 
       // Update stores
       incrementPostsCount();
@@ -66,41 +116,101 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
         }
       }
 
+      // Reset form
       setContent('');
       setImages([]);
+      setVideos([]);
       setIsExpanded(false);
       setIsSubscriberOnly(false);
       setSelectedTier('');
-      toast.success(
-        isSubscriberOnly ? 'Subscriber-only post created! 👑' : 'Post created!',
-      );
+    } catch (error) {
+      console.error('❌ Error creating post:', error);
+      toast.error(`Failed to create post: ${error instanceof Error ? error.message : 'Unknown error'}`, { 
+        id: uploadToast 
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    // Limit to 4 images
+    // Limit to 4 images total
     const maxImages = 4 - images.length;
     const filesToProcess = Array.from(files).slice(0, maxImages);
 
-    filesToProcess.forEach((file) => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImages((prev) => [...prev, reader.result as string]);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+    setIsUploading(true);
+    const uploadToast = toast.loading(`Uploading ${filesToProcess.length} image(s)...`);
 
-    // Reset input
-    e.target.value = '';
+    try {
+      for (const file of filesToProcess) {
+        // Validate file
+        const validation = validateFile(file, 'image');
+        if (!validation.valid) {
+          toast.error(validation.error || 'Invalid image file');
+          continue;
+        }
+
+        // Upload to IPFS
+        const imageUrl = await uploadFileToIPFS(file);
+        setImages((prev) => [...prev, imageUrl]);
+      }
+      
+      toast.success(`${filesToProcess.length} image(s) uploaded!`, { id: uploadToast });
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast.error('Failed to upload images', { id: uploadToast });
+    } finally {
+      setIsUploading(false);
+      e.target.value = ''; // Reset input
+    }
+  };
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Limit to 1 video
+    if (videos.length >= 1) {
+      toast.error('Maximum 1 video per post');
+      return;
+    }
+
+    const file = files[0];
+    
+    setIsUploading(true);
+    const uploadToast = toast.loading('Uploading video...');
+
+    try {
+      // Validate file
+      const validation = validateFile(file, 'video');
+      if (!validation.valid) {
+        toast.error(validation.error || 'Invalid video file');
+        return;
+      }
+
+      // Upload to IPFS
+      const videoUrl = await uploadFileToIPFS(file);
+      setVideos([videoUrl]);
+      
+      toast.success('Video uploaded!', { id: uploadToast });
+    } catch (error) {
+      console.error('Video upload error:', error);
+      toast.error('Failed to upload video', { id: uploadToast });
+    } finally {
+      setIsUploading(false);
+      e.target.value = ''; // Reset input
+    }
   };
 
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeVideo = (index: number) => {
+    setVideos((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -128,44 +238,64 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
             aria-describedby="char-count"
           />
 
-          {/* Image Preview */}
-          {images.length > 0 && (
-            <div
-              className={`grid gap-2 ${images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}
-            >
-              {images.map((image, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="relative group rounded-xl overflow-hidden"
+          {/* Media Preview */}
+          {(images.length > 0 || videos.length > 0) && (
+            <div className="space-y-2">
+              {/* Images */}
+              {images.length > 0 && (
+                <div
+                  className={`grid gap-2 ${images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}
                 >
-                  <img
-                    src={image}
-                    alt={`Upload ${index + 1}`}
-                    className="w-full h-48 object-cover"
-                  />
-                  <button
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 w-8 h-8 bg-black/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                    aria-label={`Remove image ${index + 1}`}
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  {images.map((image, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="relative group rounded-xl overflow-hidden"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
+                      <img
+                        src={image.startsWith('mock://') ? image : image}
+                        alt={`Upload ${index + 1}`}
+                        className="w-full h-48 object-cover"
                       />
-                    </svg>
-                  </button>
-                </motion.div>
-              ))}
+                      <button
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 w-8 h-8 bg-black/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                        aria-label={`Remove image ${index + 1}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              {/* Videos */}
+              {videos.length > 0 && (
+                <div className="space-y-2">
+                  {videos.map((video, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="relative group rounded-xl overflow-hidden"
+                    >
+                      <video
+                        src={video.startsWith('mock://') ? video : video}
+                        controls
+                        className="w-full max-h-96 object-contain bg-black"
+                      />
+                      <button
+                        onClick={() => removeVideo(index)}
+                        className="absolute top-2 right-2 w-8 h-8 bg-black/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                        aria-label={`Remove video ${index + 1}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -176,32 +306,39 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
               className="flex items-center justify-between pt-4 border-t border-white/10"
             >
               <div className="flex items-center gap-2 flex-wrap">
+                {/* Image Upload */}
                 <label
-                  className={`p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer ${images.length >= 4 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer ${images.length >= 4 || isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   aria-label="Add images"
+                  title="Upload images (max 4)"
                 >
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
                     multiple
                     onChange={handleImageUpload}
-                    disabled={images.length >= 4}
+                    disabled={images.length >= 4 || isUploading}
                     className="hidden"
                   />
-                  <svg
-                    className="w-5 h-5 text-[#ABFE2C]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
+                  <ImageIcon className="w-5 h-5 text-[#ABFE2C]" />
                 </label>
+
+                {/* Video Upload */}
+                <label
+                  className={`p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer ${videos.length >= 1 || isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  aria-label="Add video"
+                  title="Upload video (max 1)"
+                >
+                  <input
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime"
+                    onChange={handleVideoUpload}
+                    disabled={videos.length >= 1 || isUploading}
+                    className="hidden"
+                  />
+                  <Video className="w-5 h-5 text-[#ABFE2C]" />
+                </label>
+
                 <button
                   className="p-2 hover:bg-white/5 rounded-full transition-colors"
                   aria-label="Add emoji (coming soon)"

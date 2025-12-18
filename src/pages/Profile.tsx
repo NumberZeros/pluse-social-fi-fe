@@ -37,7 +37,7 @@ export function Profile() {
   const [showSendTip, setShowSendTip] = useState(false);
 
   // Resolve username to PublicKey via on-chain registry
-  const targetPublicKey = useMemo(() => {
+  const targetPublicKey :any = useMemo(() => {
     if (!username) return publicKey;
     
     // Check if username is actually a wallet address
@@ -63,7 +63,6 @@ export function Profile() {
 
   // Follow hooks
   const { data: isFollowing } = useIsFollowing(
-    publicKey?.toString() || '',
     targetPublicKey?.toString() || ''
   );
   const { data: followers = [] } = useFollowers(targetPublicKey?.toString() || '');
@@ -397,52 +396,71 @@ export function Profile() {
               </motion.div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {userNFTs.map((nft, index) => (
                 <motion.div
                   key={nft.mint}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="glass-card rounded-2xl p-6 border border-white/10 hover:border-[var(--color-solana-purple)]/50 transition-all group hover:bg-white/5"
+                  className="relative overflow-hidden rounded-2xl border border-white/10 hover:border-[var(--color-solana-purple)]/50 transition-all group bg-gradient-to-br from-gray-900/80 to-black"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      {nft.image ? (
-                        <img 
-                          src={nft.image} 
-                          alt={nft.username}
-                          className="w-16 h-16 rounded-xl object-cover shadow-lg group-hover:scale-105 transition-transform duration-500"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[var(--color-premium-purple)] to-[var(--color-premium-pink)] flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-500">
-                          <span className="text-white font-bold text-2xl">
-                            {nft.username.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-xl font-bold text-white mb-1 group-hover:text-[var(--color-solana-purple)] transition-colors">@{nft.username}</div>
-                        <div className="text-xs text-gray-400 font-mono">
-                          {nft.mintedAt 
-                            ? new Date(nft.mintedAt * 1000).toLocaleDateString()
-                            : 'Verified NFT'}
-                        </div>
+                  {/* NFT Image Header */}
+                  <div className="relative h-48 overflow-hidden">
+                    {nft.image ? (
+                      <img 
+                        src={nft.image} 
+                        alt={nft.username}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `<div class="w-full h-full bg-gradient-to-br from-[#9945FF] via-[#14F195] to-[#00C2FF] flex items-center justify-center"><span class="text-white font-bold text-6xl drop-shadow-lg">${nft.username.charAt(0).toUpperCase()}</span></div>`;
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-[#9945FF] via-[#14F195] to-[#00C2FF] flex items-center justify-center">
+                        <span className="text-white font-bold text-6xl drop-shadow-lg">
+                          {nft.username.charAt(0).toUpperCase()}
+                        </span>
                       </div>
-                    </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    
+                    {/* Category Badge */}
                     {nft.category && (
-                      <div className="px-3 py-1 rounded-full bg-[var(--color-premium-purple)]/20 text-[var(--color-premium-pink)] border border-[var(--color-premium-purple)]/30 text-xs font-bold capitalize">
+                      <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[var(--color-premium-pink)] border border-[var(--color-premium-purple)]/30 text-xs font-bold capitalize">
                         {nft.category}
                       </div>
                     )}
                   </div>
-                  
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/5 text-xs group-hover:border-white/10 transition-colors">
-                      <span className="text-gray-500 uppercase tracking-wider font-bold">Mint Address</span>
+
+                  {/* Card Content */}
+                  <div className="p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--color-premium-purple)] to-[var(--color-premium-pink)] flex items-center justify-center shadow-lg">
+                        <span className="text-white font-bold text-lg">
+                          {nft.username.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="text-xl font-bold text-white group-hover:text-[var(--color-solana-purple)] transition-colors">
+                          @{nft.username}
+                        </div>
+                        <div className="text-xs text-gray-400 flex items-center gap-1">
+                          <svg className="w-3 h-3 text-[var(--color-solana-green)]" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          Verified NFT
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/5 text-xs mb-4">
+                      <span className="text-gray-500 uppercase tracking-wider font-bold">Mint</span>
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(nft.mint);
@@ -454,17 +472,15 @@ export function Profile() {
                         <Copy className="w-3 h-3" />
                       </button>
                     </div>
-                  </div>
 
-                  <div className="flex gap-2">
                     <a
                       href={`https://explorer.solana.com/address/${nft.mint}${NETWORK !== 'mainnet-beta' ? `?cluster=${NETWORK}` : ''}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg font-medium transition-all text-sm"
+                      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gradient-to-r from-[var(--color-solana-purple)]/20 to-[var(--color-solana-green)]/20 hover:from-[var(--color-solana-purple)]/30 hover:to-[var(--color-solana-green)]/30 rounded-xl font-medium transition-all text-sm border border-white/10"
                     >
                       <ExternalLink className="w-4 h-4" />
-                      Explorer
+                      View on Explorer
                     </a>
                   </div>
                 </motion.div>

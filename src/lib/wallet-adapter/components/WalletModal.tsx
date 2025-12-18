@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useWallet } from '../hooks';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '../adapters';
 import { WalletReadyState } from '../types';
@@ -14,6 +15,12 @@ interface WalletModalProps {
  */
 export function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const { select, connect } = useWallet();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // Available wallets
   const wallets = [
@@ -82,9 +89,9 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <div className="wallet-modal-overlay" onClick={onClose}>
       <div className="wallet-modal" onClick={(e) => e.stopPropagation()}>
         <div className="wallet-modal__header">
@@ -140,7 +147,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                         className="wallet-option__download"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Install Extension →
+                        Install Extension &rarr;
                       </a>
                     )}
                   </div>
@@ -152,6 +159,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

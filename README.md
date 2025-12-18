@@ -8,10 +8,49 @@
 [![Solana](https://img.shields.io/badge/Solana-Devnet-purple)](https://solana.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.2-61dafb)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-6.0-646cff)](https://vitejs.dev/)
 
-[Live Demo](https://pulse.thosoft.xyz) • [Documentation](./BLOCKCHAIN_STATUS.md) • [Whitepaper](./public/whitepaper.md)
+[Live Demo](https://pulse.thosoft.xyz) • [Smart Contract](../social-fi-contract) • [Whitepaper](./public/whitepaper.md)
 
 </div>
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm 8+
+- Solana wallet (Phantom, Solflare, etc.)
+
+### Installation
+
+```bash
+# Clone repository
+git clone <repo-url>
+cd social-fi-fe
+
+# Install dependencies
+pnpm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings
+
+# Start development server
+pnpm dev
+```
+
+### Environment Variables
+
+```env
+VITE_SOLANA_NETWORK=devnet
+VITE_PROGRAM_ID=FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL
+VITE_PINATA_JWT=<your-pinata-jwt>
+```
+
+Get your Pinata JWT from [pinata.cloud](https://pinata.cloud)
 
 ---
 
@@ -43,7 +82,8 @@ Pulse Social is a **fully decentralized social platform** built on Solana that r
 - **Instant Tipping**: Send SOL directly to creators (no intermediaries)
 - **Social Graph**: On-chain profiles, followers, and social connections
 - **Content Creation**: Posts, comments, likes, reposts with hashtag support
-- **Decentralized Storage**: Content references stored on-chain (Shadow Drive/Arweave)
+- **Post NFTs**: Mint your posts as NFTs with images on Solana blockchain
+- **Decentralized Storage**: Content and NFT metadata on Pinata IPFS
 
 ### 💎 Creator Economy
 - **Subscription Tiers**: Create Bronze/Silver/Gold tiers for exclusive content
@@ -98,16 +138,46 @@ Pulse Social is a **fully decentralized social platform** built on Solana that r
 
 ## 🏗️ Architecture
 
-### Frontend Stack
-- **Framework**: React 19.2 + TypeScript 5.9 (strict mode)
-- **Build**: Vite 7.2.5 with Rolldown (sub-200ms cold starts)
-- **Styling**: Tailwind CSS 4.1 + Framer Motion animations
-- **State**: Zustand 5.0 with localStorage persistence
-- **Routing**: React Router DOM 7.10 with code splitting
+### Tech Stack
 
-### Blockchain Integration
-- **Network**: Solana (Devnet/Mainnet)
-- **Smart Contract**: Anchor Framework (Program deployed)
+**Frontend:**
+- React 19 + TypeScript 5.9
+- Vite 6 (build tool)
+- TailwindCSS + Framer Motion
+- React Query (data fetching & caching)
+- Solana Web3.js + Wallet Adapter
+- IndexedDB (offline cache)
+
+**Blockchain:**
+- Solana Devnet
+- Anchor Framework 0.32.1
+- Metaplex Token Metadata
+- Program ID: `FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL`
+
+**Storage:**
+- Pinata IPFS (post content & NFT metadata)
+- Gateway: `https://gateway.pinata.cloud/ipfs/`
+
+### Project Structure
+
+```
+src/
+├── components/       # React components
+│   ├── feed/        # Feed, posts, create post
+│   ├── profile/     # User profiles
+│   ├── wallet/      # Wallet connection
+│   └── layout/      # App shell, navigation
+├── hooks/           # Custom React hooks
+│   ├── useFeed.ts   # Post operations
+│   ├── useMintPost.ts  # NFT minting
+│   └── useCache.ts  # IndexedDB cache
+├── services/        # Business logic
+│   ├── socialfi-sdk.ts  # Smart contract SDK
+│   └── storage.ts   # Cache management
+├── stores/          # Zustand state
+├── pages/           # Route pages
+└── idl/             # Anchor IDL types
+```
 - **� Quick Start
 
 ### Prerequisites
@@ -273,7 +343,7 @@ Price increases quadratically with supply, ensuring early supporters benefit.
 | 365 days    | 30%  | 3.0x         |
 
 ### Smart Contract (Anchor)
-- **Program ID**: `8dU8UsnavCaqmm4JTgMHCtjzcfcu4D4iKYW71MXE1mDP`
+- **Program ID**: `FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL`
 - **Network**: Solana Devnet
 - **Instructions**: 28 (tips, shares, groups, governance, etc.)
 - **Security**: Audited and tested on Devnet

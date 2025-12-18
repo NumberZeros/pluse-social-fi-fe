@@ -1,7 +1,7 @@
 import { PublicKey } from '@solana/web3.js';
 
 export const PROGRAM_ID = new PublicKey(
-  '8dU8UsnavCaqmm4JTgMHCtjzcfcu4D4iKYW71MXE1mDP'
+  'FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL'
 );
 
 export const NETWORK = (import.meta.env.VITE_SOLANA_NETWORK as string) || 'devnet';
