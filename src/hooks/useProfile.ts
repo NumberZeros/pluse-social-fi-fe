@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
+import { CacheManager } from '../services/storage';
 
 /**
  * Hook for managing user profile operations
@@ -21,7 +22,23 @@ export function useProfile(ownerPubkey?: PublicKey) {
     queryKey: ['profile', targetPubkey?.toBase58()],
     queryFn: async () => {
       if (!targetPubkey) return null;
-      return await getUserProfile(targetPubkey);
+      try {
+        const result = await getUserProfile(targetPubkey);
+        // Cache profile if successful and not null
+        if (result) {
+          await CacheManager.setCachedMetadata(`profile:${targetPubkey.toBase58()}`, result);
+        }
+        return result;
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        // Try to return cached profile on error
+        const cached = await CacheManager.getCachedMetadata(`profile:${targetPubkey.toBase58()}`);
+        if (cached) {
+          console.log('📱 Using cached profile (error fallback)');
+          return cached as any;
+        }
+        throw error;
+      }
     },
     enabled: !!targetPubkey,
     staleTime: 30000, // 30 seconds

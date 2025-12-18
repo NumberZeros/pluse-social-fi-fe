@@ -1,8 +1,9 @@
 import type { WalletAdapter } from '../lib/wallet-adapter';
+import { uploadFileToPinata, uploadJSONToPinata } from './pinata';
 
 /**
  * Metadata Upload Service - Metaplex Standard
- * Uploads NFT metadata to Arweave via Irys for Magic Eden & OpenSea compatibility
+ * Uploads NFT metadata to IPFS via Pinata for Magic Eden & OpenSea compatibility
  */
 
 export interface NFTMetadata {
@@ -87,7 +88,7 @@ export class MetadataUploadService {
   }
 
   /**
-   * Create and upload username NFT metadata to Arweave
+   * Create and upload username NFT metadata to Pinata IPFS
    */
   async uploadUsernameMetadata(data: UsernameMetadataInput): Promise<string> {
     const { username, category, mintedAt, owner } = data;
@@ -141,105 +142,42 @@ export class MetadataUploadService {
     };
 
     try {
-      console.log('Uploading metadata to Arweave...', { username, category });
+      console.log('📤 Uploading username metadata to Pinata IPFS...', { username, category });
       
-      // Upload to Irys (formerly Bundlr)
-      const metadataUri = await this.uploadToIrys(JSON.stringify(metadata));
+      // Upload to Pinata IPFS using shared service
+      const metadataUri = await uploadJSONToPinata(metadata, {
+        name: `NFT Metadata: ${metadata.name}`,
+        keyvalues: {
+          type: 'nft-metadata',
+          platform: 'social-fi',
+        },
+      });
       
-      console.log('✅ Metadata uploaded successfully:', metadataUri);
+      console.log('✅ Metadata uploaded to Pinata:', metadataUri);
       return metadataUri;
     } catch (error) {
       console.error('Failed to upload metadata:', error);
-      throw new Error(`Failed to upload metadata to Arweave: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to upload metadata to Pinata: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   /**
-   * Upload JSON to IPFS via Pinata (free tier available)
-   * Pinata is reliable and has good free limits for MVP
-   */
-  private async uploadToIrys(data: string): Promise<string> {
-    const pinataJWT = import.meta.env.VITE_PINATA_JWT;
-    
-    if (!pinataJWT || pinataJWT === 'YOUR_PINATA_JWT_HERE') {
-      throw new Error(
-        'VITE_PINATA_JWT not configured. Get free API key at https://pinata.cloud\n' +
-        '1. Sign up at pinata.cloud\n' +
-        '2. Go to API Keys → New Key\n' +
-        '3. Copy JWT and add to .env as VITE_PINATA_JWT=your_jwt_here'
-      );
-    }
-
-    try {
-      console.log('Uploading metadata to IPFS via Pinata...');
-      
-      const metadata = JSON.parse(data);
-      const blob = new Blob([data], { type: 'application/json' });
-      const formData = new FormData();
-      formData.append('file', blob, `${metadata.name}_metadata.json`);
-      
-      // Add metadata for easier management
-      formData.append('pinataMetadata', JSON.stringify({
-        name: `NFT Metadata: @${metadata.name}`,
-      }));
-
-      const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${pinataJWT}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Pinata upload failed: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
-      const ipfsHash = result.IpfsHash;
-      
-      if (!ipfsHash) {
-        throw new Error('No IPFS hash returned from Pinata');
-      }
-
-      // Use Pinata gateway (fast and reliable)
-      const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
-      
-      console.log('✅ Metadata uploaded to IPFS via Pinata');
-      console.log('   URL:', ipfsUrl);
-      console.log('   IPFS Hash:', ipfsHash);
-      
-      return ipfsUrl;
-      
-    } catch (error) {
-      console.error('❌ Pinata upload failed:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Upload custom image file to Arweave
+   * Upload custom image file to Pinata IPFS
    */
   async uploadImage(file: File): Promise<string> {
     try {
-      const buffer = await file.arrayBuffer();
-      const uint8Array = new Uint8Array(buffer);
-
-      console.log('Uploading image to Arweave...', { size: file.size, type: file.type });
+      console.log('📤 Uploading image to Pinata...', { size: file.size, type: file.type });
       
-      // Upload image data directly
-      const imageUri = await this.uploadToIrys(JSON.stringify({
-        data: Array.from(uint8Array),
-        type: file.type,
-        name: file.name,
-      }));
-      
-      console.log('✅ Image uploaded successfully:', imageUri);
-      return imageUri;
+      return await uploadFileToPinata(file, {
+        name: `NFT Image: ${file.name}`,
+        keyvalues: {
+          type: 'nft-image',
+          platform: 'social-fi',
+        },
+      });
     } catch (error) {
       console.error('Failed to upload image:', error);
-      throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to upload image to Pinata: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -257,17 +195,6 @@ export class MetadataUploadService {
       console.error('Failed to fetch metadata:', error);
       throw new Error(`Failed to fetch metadata: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }
-
-  /**
-   * Estimate upload cost in SOL
-   * Irys pricing is dynamic, this is an approximation
-   */
-  estimateUploadCost(metadataSize: number = 2048): number {
-    // Approximate: ~0.00001 SOL per KB
-    const sizeInKB = metadataSize / 1024;
-    const costInLamports = Math.ceil(sizeInKB * 10000);
-    return costInLamports / 1e9; // Convert to SOL
   }
 }
 

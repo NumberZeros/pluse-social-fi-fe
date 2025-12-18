@@ -60,8 +60,7 @@ export class PDAs {
    */
   static getSubscriptionTier(creator: PublicKey, tierId: number): [PublicKey, number] {
     const tierIdBuffer = Buffer.alloc(8);
-    // @ts-ignore
-    tierIdBuffer.writeBigUInt64LE(BigInt(tierId), 0);
+    tierIdBuffer.writeBigUInt64LE(BigInt(tierId) as any, 0);
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from('subscription_tier'),
@@ -94,8 +93,7 @@ export class PDAs {
     tierId: number
   ): [PublicKey, number] {
     const tierIdBuffer = Buffer.alloc(8);
-    // @ts-ignore
-    tierIdBuffer.writeBigUInt64LE(BigInt(tierId), 0);
+    tierIdBuffer.writeBigUInt64LE(BigInt(tierId) as any, 0);
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from('subscription'),
@@ -239,13 +237,27 @@ export class PDAs {
 
   /**
    * Get Post PDA
+   * Uses a nonce instead of URI because URI can be very long (IPFS URLs are 100+ chars)
+   * and Solana has a max seed length limit (~32 bytes total for all seeds combined)
+   * 
+   * The contract derives the same PDA using: seeds = [POST_SEED, author, nonce]
+   * 
+   * @param author - Post author's public key
+   * @param nonce - Unique nonce (timestamp string, e.g., "1734554400000")
    */
-  static getPost(author: PublicKey, uri: string): [PublicKey, number] {
+  static getPost(author: PublicKey, nonce: string | number): [PublicKey, number] {
+    // Convert to string if number
+    const nonceStr = typeof nonce === 'number' ? nonce.toString() : nonce;
+    
+    // Take first 16 chars of nonce (keeps it compact but unique)
+    // Timestamp like "1734554400000" is 13 chars, so this is safe
+    const compactNonce = nonceStr.slice(0, 16);
+    
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from('post'),
         author.toBuffer(),
-        Buffer.from(uri)
+        Buffer.from(compactNonce)
       ],
       PROGRAM_ID
     );
@@ -298,8 +310,7 @@ export class PDAs {
    */
   static getComment(post: PublicKey, author: PublicKey, nonce: number): [PublicKey, number] {
     const nonceBuffer = Buffer.alloc(8);
-    // @ts-ignore
-    nonceBuffer.writeBigUInt64LE(BigInt(nonce), 0);
+    nonceBuffer.writeBigUInt64LE(BigInt(nonce) as any, 0);
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from('comment'),

@@ -3,6 +3,7 @@ import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
 import { useConnection } from '../lib/wallet-adapter';
 import { NFTService } from '../services/nft-service';
+import { CacheManager } from '../services/storage';
 
 export interface UsernameAccount {
   mint: string;
@@ -28,6 +29,7 @@ export function useUserNFTs(owner?: PublicKey | string) {
       if (!owner || !sdk) return [];
 
       const ownerPubkey = typeof owner === 'string' ? new PublicKey(owner) : owner;
+      const cacheKey = `userNFTs:${ownerPubkey.toBase58()}`;
 
       try {
         // Fetch all UsernameNft accounts owned by this wallet
@@ -85,9 +87,20 @@ export function useUserNFTs(owner?: PublicKey | string) {
           })
         );
 
+        // Cache NFTs if we got results
+        if (nftsWithMetadata && nftsWithMetadata.length > 0) {
+          await CacheManager.setCachedMetadata(cacheKey, nftsWithMetadata);
+        }
+
         return nftsWithMetadata;
       } catch (error) {
         console.error('Error fetching user username NFTs:', error);
+        // Try to return cached NFTs on error
+        const cached = await CacheManager.getCachedMetadata(cacheKey);
+        if (cached) {
+          console.log('📱 Using cached NFTs (error fallback)');
+          return cached as UsernameAccount[];
+        }
         return [];
       }
     },

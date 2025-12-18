@@ -1,4 +1,4 @@
-import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
+import { Program, AnchorProvider, BN, setProvider } from '@coral-xyz/anchor';
 import type { Idl } from '@coral-xyz/anchor';
 import { Connection, PublicKey, SystemProgram, Keypair, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token';
@@ -26,11 +26,16 @@ export class SocialFiSDK {
       commitment: DEFAULT_COMMITMENT,
     });
     
-    // Create Program with proper IDL casting
-    this.program = new Program(
+    // Set global provider for Anchor
+    setProvider(this.provider);
+    
+    // Anchor v0.32.1: Pass provider directly for transaction signing
+    // See: https://www.anchor-lang.com/docs/clients/typescript
+    this.program = new Program<SocialFiContract>(
       idlJson as Idl,
       this.provider
-    ) as Program<SocialFiContract>;
+    );
+    
   }
 
   // ==================== PLATFORM ====================
@@ -148,20 +153,31 @@ export class SocialFiSDK {
    * @param uri - Metadata URI (e.g., Arweave/IPFS link)
    */
   async createPost(uri: string) {
-    const [post] = PDAs.getPost(this.wallet.publicKey, uri);
-    const [platformConfig] = PDAs.getPlatformConfig();
+    // Generate a unique nonce for this post (timestamp)
+    // This ensures each post gets a unique PDA
+    const nonce = Date.now().toString();
+    
+    // Calculate PDA using the nonce (not the URI, since URI can be 100+ bytes)
+    const [postPda] = PDAs.getPost(this.wallet.publicKey, nonce);
+    const [platformConfigPda] = PDAs.getPlatformConfig();
 
-    const tx = await this.program.methods
-      .createPost(uri)
-      .accounts({
-        post,
-        author: this.wallet.publicKey,
-        platformConfig,
-        systemProgram: SystemProgram.programId,
-      } as any)
-      .rpc();
 
-    return { signature: tx, post };
+    try {
+      // Call contract - pass nonce and uri
+      const tx = await this.program.methods
+        .createPost(nonce, uri)
+        .accountsPartial({
+          post: postPda,
+          author: this.wallet.publicKey,
+          platformConfig: platformConfigPda,
+        })
+        .rpc();
+
+      return { signature: tx, post: postPda };
+    } catch (error) {
+      console.error('Failed to create post:', error);
+      throw error;
+    }
   }
 
   /**
@@ -202,7 +218,7 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .mintPost(title)
-      .accounts({
+      .accountsPartial({
         post: postPubkey,
         mint,
         tokenAccount,
@@ -214,7 +230,7 @@ export class SocialFiSDK {
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
         rent: SYSVAR_RENT_PUBKEY,
-      } as any)
+      })
       .signers([mintKeypair])
       .rpc();
 
@@ -331,7 +347,7 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .buyShares(new BN(amount), new BN(maxPricePerShare))
-      .accounts({
+      .accountsPartial({
         creatorPool,
         shareHolding,
         poolVault,
@@ -339,7 +355,7 @@ export class SocialFiSDK {
         creator: creatorPubkey,
         platformConfig,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -356,7 +372,7 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .sellShares(new BN(amount), new BN(minPricePerShare))
-      .accounts({
+      .accountsPartial({
         creatorPool,
         shareHolding,
         poolVault,
@@ -364,7 +380,7 @@ export class SocialFiSDK {
         creator: creatorPubkey,
         platformConfig,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -425,14 +441,14 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .followUser()
-      .accounts({
+      .accountsPartial({
         follow,
         follower: this.wallet.publicKey,
         following: followingPubkey,
         followerProfile,
         followingProfile,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return { signature: tx, follow };
@@ -449,13 +465,13 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .unfollowUser()
-      .accounts({
+      .accountsPartial({
         follow,
         follower: this.wallet.publicKey,
         following: followingPubkey,
         followerProfile,
         followingProfile,
-      } as any)
+      })
       .rpc();
 
     return { signature: tx };
@@ -470,12 +486,12 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .likePost()
-      .accounts({
+      .accountsPartial({
         like,
         user: this.wallet.publicKey,
         post: postPubkey,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return { signature: tx, like };
@@ -490,11 +506,11 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .unlikePost()
-      .accounts({
+      .accountsPartial({
         like,
         user: this.wallet.publicKey,
         post: postPubkey,
-      } as any)
+      })
       .rpc();
 
     return { signature: tx };
@@ -509,12 +525,12 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .createRepost()
-      .accounts({
+      .accountsPartial({
         repost,
         user: this.wallet.publicKey,
         originalPost: originalPostPubkey,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return { signature: tx, repost };
@@ -531,12 +547,12 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .createComment(new BN(nonce), content)
-      .accounts({
+      .accountsPartial({
         comment,
         author: this.wallet.publicKey,
         post: postPubkey,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return { signature: tx, comment };
@@ -570,113 +586,209 @@ export class SocialFiSDK {
 
   /**
    * Get all posts from blockchain
+   * Queries all Post accounts using getProgramAccounts
+   * 
+   * Note: Cannot filter by exact dataSize because String fields have dynamic size
+   * - Short URI posts: ~286 bytes
+   * - Long URI posts: ~310 bytes
+   * Solution: Try to decode all accounts, skip non-Post accounts
    */
   async getAllPosts() {
     try {
-      const posts = await this.program.account.post.all();
-      return posts.map(p => ({
-        publicKey: p.publicKey.toBase58(),
-        author: p.account.author.toBase58(),
-        uri: p.account.uri,
-        mint: p.account.mint?.toBase58() || null,
-        createdAt: p.account.createdAt.toNumber(),
-      }));
+      console.log('🚀 Fetching all posts from blockchain...');
+      
+      // Fetch ALL accounts (no dataSize filter due to dynamic String sizes)
+      const allAccounts = await this.connection.getProgramAccounts(this.program.programId);
+      console.log(`📊 Total accounts for program: ${allAccounts.length}`);
+
+      // Try to decode each account as Post, skip non-Post accounts
+      const postData: any[] = [];
+      for (const p of allAccounts) {
+        try {
+          const decoded = this.program.account.post.coder.accounts.decode('post', p.account.data);
+          
+          const post = {
+            publicKey: p.pubkey.toBase58(),
+            author: decoded.author.toBase58(),
+            uri: decoded.uri,
+            mint: decoded.mint ? decoded.mint.toBase58() : null,
+            createdAt: decoded.createdAt.toNumber(),
+          };
+          console.debug('Decoded Post account:', post);
+
+          postData.push(post);
+        } catch (e) {
+          console.debug('Skipping non-Post account:', p.pubkey.toBase58());
+          // Not a Post account (could be UserProfile, Follow, Like, etc.), skip silently
+        }
+      }
+
+      console.log(`✅ Successfully decoded ${postData.length} posts`);
+      return postData;
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error('⚠️ Error fetching posts from blockchain:', error);
       return [];
     }
   }
 
   /**
    * Get all followers of a user
+   * Queries all Follow accounts where user is the 'following' (target of follow)
    */
   async getFollowers(userPubkey: PublicKey) {
     try {
-      const follows = await this.program.account.follow.all([
-        {
-          memcmp: {
-            offset: 8 + 32, // Skip discriminator (8) + follower (32)
-            bytes: userPubkey.toBase58(),
+      console.log('🚀 Fetching followers for:', userPubkey.toBase58());
+      
+      const follows = await this.connection.getProgramAccounts(this.program.programId, {
+        filters: [
+          {
+            memcmp: {
+              offset: 8 + 32, // Skip discriminator (8) + follower (32), get to 'following' field
+              bytes: userPubkey.toBase58(),
+            },
           },
-        },
-      ]);
-      return follows.map(f => ({
-        follower: f.account.follower.toBase58(),
-        createdAt: f.account.createdAt.toNumber(),
-      }));
+        ],
+      });
+
+      const followerData = follows.map(f => {
+        try {
+          const decoded = this.program.account.follow.coder.accounts.decode('follow', f.account.data);
+          return {
+            follower: decoded.follower.toBase58(),
+            following: decoded.following.toBase58(),
+            created_at: decoded.created_at.toNumber(),
+          };
+        } catch (e) {
+          return null;
+        }
+      }).filter((f): f is any => f !== null);
+
+      console.log(`✅ Found ${followerData.length} followers`);
+      return followerData;
     } catch (error) {
-      console.error('Error fetching followers:', error);
+      console.warn('⚠️ Error fetching followers:', error);
       return [];
     }
   }
 
   /**
    * Get all users a user is following
+   * Queries all Follow accounts where user is the 'follower'
    */
   async getFollowing(userPubkey: PublicKey) {
     try {
-      const follows = await this.program.account.follow.all([
-        {
-          memcmp: {
-            offset: 8, // Skip discriminator
-            bytes: userPubkey.toBase58(),
+      console.log('🚀 Fetching following list for:', userPubkey.toBase58());
+      
+      const follows = await this.connection.getProgramAccounts(this.program.programId, {
+        filters: [
+          {
+            memcmp: {
+              offset: 8, // Skip discriminator, get to 'follower' field
+              bytes: userPubkey.toBase58(),
+            },
           },
-        },
-      ]);
-      return follows.map(f => ({
-        following: f.account.following.toBase58(),
-        createdAt: f.account.createdAt.toNumber(),
-      }));
+        ],
+      });
+
+      const followingData = follows.map(f => {
+        try {
+          const decoded = this.program.account.follow.coder.accounts.decode('follow', f.account.data);
+          return {
+            follower: decoded.follower.toBase58(),
+            following: decoded.following.toBase58(),
+            created_at: decoded.created_at.toNumber(),
+          };
+        } catch (e) {
+          return null;
+        }
+      }).filter((f): f is any => f !== null);
+
+      console.log(`✅ Found ${followingData.length} users being followed`);
+      return followingData;
     } catch (error) {
-      console.error('Error fetching following:', error);
+      console.warn('⚠️ Error fetching following list:', error);
       return [];
     }
   }
 
   /**
    * Get likes for a post
+   * Queries all Like accounts where the post is the target
    */
   async getPostLikes(postPubkey: PublicKey) {
     try {
-      const likes = await this.program.account.like.all([
-        {
-          memcmp: {
-            offset: 8 + 32, // Skip discriminator (8) + user (32)
-            bytes: postPubkey.toBase58(),
+      console.log('🚀 Fetching likes for post:', postPubkey.toBase58());
+      
+      const likes = await this.connection.getProgramAccounts(this.program.programId, {
+        filters: [
+          {
+            memcmp: {
+              offset: 8 + 32, // Skip discriminator (8) + user (32), get to 'post' field
+              bytes: postPubkey.toBase58(),
+            },
           },
-        },
-      ]);
-      return likes.map(l => ({
-        user: l.account.user.toBase58(),
-        createdAt: l.account.createdAt.toNumber(),
-      }));
+        ],
+      });
+
+      const likeData = likes.map(l => {
+        try {
+          const decoded = this.program.account.like.coder.accounts.decode('like', l.account.data);
+          return {
+            user: decoded.user.toBase58(),
+            post: decoded.post.toBase58(),
+            created_at: decoded.created_at.toNumber(),
+          };
+        } catch (e) {
+          return null;
+        }
+      }).filter((l): l is any => l !== null);
+
+      console.log(`✅ Found ${likeData.length} likes`);
+      return likeData;
     } catch (error) {
-      console.error('Error fetching likes:', error);
+      console.warn('⚠️ Error fetching likes:', error);
       return [];
     }
   }
 
   /**
    * Get comments for a post
+   * Queries all Comment accounts for a specific post
    */
   async getPostComments(postPubkey: PublicKey) {
     try {
-      const comments = await this.program.account.comment.all([
-        {
-          memcmp: {
-            offset: 8 + 32, // Skip discriminator (8) + author (32)
-            bytes: postPubkey.toBase58(),
+      console.log('🚀 Fetching comments for post:', postPubkey.toBase58());
+      
+      const comments = await this.connection.getProgramAccounts(this.program.programId, {
+        filters: [
+          {
+            memcmp: {
+              offset: 8 + 32, // Skip discriminator (8) + author (32), get to 'post' field
+              bytes: postPubkey.toBase58(),
+            },
           },
-        },
-      ]);
-      return comments.map(c => ({
-        publicKey: c.publicKey.toBase58(),
-        author: c.account.author.toBase58(),
-        content: c.account.content,
-        createdAt: c.account.createdAt.toNumber(),
-      }));
+        ],
+      });
+
+      const commentData = comments.map(c => {
+        try {
+          const decoded = this.program.account.comment.coder.accounts.decode('comment', c.account.data);
+          return {
+            publicKey: c.pubkey.toBase58(),
+            author: decoded.author.toBase58(),
+            post: decoded.post.toBase58(),
+            content: decoded.content,
+            created_at: decoded.created_at.toNumber(),
+          };
+        } catch (e) {
+          return null;
+        }
+      }).filter((c): c is any => c !== null);
+
+      console.log(`✅ Found ${commentData.length} comments`);
+      return commentData;
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      console.warn('⚠️ Error fetching comments:', error);
       return [];
     }
   }
@@ -760,13 +872,13 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .subscribe()
-      .accounts({
+      .accountsPartial({
         subscriptionTier,
         subscription,
         subscriber: this.wallet.publicKey,
         creator: creatorPubkey,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -873,12 +985,12 @@ export class SocialFiSDK {
         entryRequirement,
         entryPrice > 0 ? new BN(entryPrice) : null
       )
-      .accounts({
+      .accountsPartial({
         group,
         groupMember,
         creator: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return { signature: tx, group };
@@ -894,13 +1006,13 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .joinGroup()
-      .accounts({
+      .accountsPartial({
         group: groupPubkey,
         groupMember,
         member: this.wallet.publicKey,
         groupCreator: groupCreatorPubkey,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -960,12 +1072,12 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .updateMemberRole(newRole)
-      .accounts({
+      .accountsPartial({
         group: groupPubkey,
         adminMember,
         targetMember,
         admin: this.wallet.publicKey,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -980,12 +1092,12 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .kickMember()
-      .accounts({
+      .accountsPartial({
         group: groupPubkey,
         adminMember,
         targetMember,
         admin: this.wallet.publicKey,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -1054,12 +1166,12 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .createProposal(title, description, category, new BN(executionDelay))
-      .accounts({
+      .accountsPartial({
         proposal,
         proposer: this.wallet.publicKey,
         stakePosition,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return { signature: tx, proposal };
@@ -1077,13 +1189,13 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .castVote(voteType)
-      .accounts({
+      .accountsPartial({
         proposal: proposalPubkey,
         vote,
         voter: this.wallet.publicKey,
         stakePosition,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -1136,10 +1248,10 @@ export class SocialFiSDK {
   async executeProposal(proposalPubkey: PublicKey) {
     const tx = await this.program.methods
       .executeProposal()
-      .accounts({
+      .accountsPartial({
         proposal: proposalPubkey,
         executor: this.wallet.publicKey,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -1191,7 +1303,7 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .mintUsername(username, metadataUri)
-      .accounts({
+      .accountsPartial({
         usernameNft,
         mint: mint.publicKey,
         tokenAccount,
@@ -1204,7 +1316,7 @@ export class SocialFiSDK {
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
         rent: SYSVAR_RENT_PUBKEY,
-      } as any)
+      })
       .signers([mint])
       .rpc();
 
@@ -1272,7 +1384,7 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .listUsername(priceInLamports)
-      .accounts({
+      .accountsPartial({
         usernameNft: nftPubkey,
         sellerTokenAccount,
         listing,
@@ -1280,7 +1392,7 @@ export class SocialFiSDK {
         platformConfig,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
-      } as any)
+      })
       .rpc();
 
     return { signature: tx, listing };
@@ -1315,7 +1427,7 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .buyListing()
-      .accounts({
+      .accountsPartial({
         usernameNft: nftPubkey,
         listing: listingPubkey,
         mint: mintPubkey,
@@ -1327,7 +1439,7 @@ export class SocialFiSDK {
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -1344,14 +1456,14 @@ export class SocialFiSDK {
     const listingAccount = await this.program.account.listing.fetch(listingPubkey);
     const [usernameNft] = PDAs.getUsernameNFT(listingAccount.username);
 
-    const tx = await (this.program.methods as any)
+    const tx = await this.program.methods
       .cancelListing()
-      .accounts({
+      .accountsPartial({
         usernameNft,
         listing: listingPubkey,
         seller: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -1384,14 +1496,14 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .makeOffer(amountInLamports)
-      .accounts({
+      .accountsPartial({
         usernameNft: usernameNftPubkey,
         listing: listingPubkey,
         offer,
         buyer: this.wallet.publicKey,
         platformConfig,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return { signature: tx, offer };
@@ -1436,7 +1548,7 @@ export class SocialFiSDK {
     // Note: Contract requires buyer signature - may need multi-sig flow
     const tx = await this.program.methods
       .acceptOffer()
-      .accounts({
+      .accountsPartial({
         usernameNft: usernameNftPubkey,
         listing: listingPubkey,
         offer,
@@ -1449,7 +1561,7 @@ export class SocialFiSDK {
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      } as any)
+      })
       .rpc();
 
     return tx;
@@ -1471,11 +1583,11 @@ export class SocialFiSDK {
 
     const tx = await this.program.methods
       .cancelOffer()
-      .accounts({
+      .accountsPartial({
         offer,
         buyer: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .rpc();
 
     return tx;

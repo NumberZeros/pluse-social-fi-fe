@@ -186,9 +186,7 @@ export const useListings = () => {
           nftPubkey: PDAs.getUsernameNFT(l.account.username)[0],
           sellerAddress: l.account.seller.toBase58(),
           username: l.account.username,
-          // @ts-ignore
           price: l.account.price.toNumber() / 1e9,
-          // @ts-ignore
           createdAt: l.account.listedAt.toNumber() * 1000,
           // Map u8 category to string
           category: ['premium', 'short', 'rare', 'custom'][l.account.category] || 'custom',

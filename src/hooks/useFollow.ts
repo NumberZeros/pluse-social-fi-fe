@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
 import { toast } from 'react-hot-toast';
+import { CacheManager } from '../services/storage';
 
 /**
  * Hook to check if current user is following another user
@@ -33,7 +34,24 @@ export const useFollowers = (targetAddress?: string) => {
     queryKey: ['followers', targetAddress],
     queryFn: async () => {
       if (!sdk || !targetAddress) return [];
-      return await sdk.getFollowers(new PublicKey(targetAddress));
+      const cacheKey = `followers:${targetAddress}`;
+      try {
+        const followers = await sdk.getFollowers(new PublicKey(targetAddress));
+        // Cache if we got results
+        if (followers && followers.length > 0) {
+          await CacheManager.setCachedMetadata(cacheKey, followers);
+        }
+        return followers || [];
+      } catch (error) {
+        console.error('Error fetching followers:', error);
+        // Try to return cached followers on error
+        const cached = await CacheManager.getCachedMetadata(cacheKey);
+        if (cached) {
+          console.log('📱 Using cached followers (error fallback)');
+          return cached as any;
+        }
+        return [];
+      }
     },
     enabled: !!sdk && !!targetAddress,
   });
@@ -49,7 +67,24 @@ export const useFollowing = (targetAddress?: string) => {
     queryKey: ['following', targetAddress],
     queryFn: async () => {
       if (!sdk || !targetAddress) return [];
-      return await sdk.getFollowing(new PublicKey(targetAddress));
+      const cacheKey = `following:${targetAddress}`;
+      try {
+        const following = await sdk.getFollowing(new PublicKey(targetAddress));
+        // Cache if we got results
+        if (following && following.length > 0) {
+          await CacheManager.setCachedMetadata(cacheKey, following);
+        }
+        return following || [];
+      } catch (error) {
+        console.error('Error fetching following:', error);
+        // Try to return cached following on error
+        const cached = await CacheManager.getCachedMetadata(cacheKey);
+        if (cached) {
+          console.log('📱 Using cached following (error fallback)');
+          return cached as any;
+        }
+        return [];
+      }
     },
     enabled: !!sdk && !!targetAddress,
   });

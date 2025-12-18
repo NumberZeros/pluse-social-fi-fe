@@ -111,14 +111,15 @@ export class NFTService {
   }
 
   /**
-   * Fetch metadata JSON from URI
+   * Fetch metadata JSON from URI (supports IPFS via Pinata gateway)
    */
   async fetchMetadata(uri: string): Promise<NFTMetadata | null> {
     try {
-      // Handle IPFS URIs
+      // Handle IPFS URIs - convert to Pinata gateway
       let url = uri;
       if (uri.startsWith('ipfs://')) {
         url = uri.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/');
+        console.log('📍 Resolved IPFS URI via Pinata:', url);
       }
 
       const response = await fetch(url);
@@ -129,7 +130,7 @@ export class NFTService {
       const metadata = await response.json();
       return metadata;
     } catch (error) {
-      console.error('Error fetching metadata:', error);
+      console.error('Error fetching metadata from URI:', error);
       return null;
     }
   }

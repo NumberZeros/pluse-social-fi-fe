@@ -37,7 +37,7 @@ export function Profile() {
   const [showSendTip, setShowSendTip] = useState(false);
 
   // Resolve username to PublicKey via on-chain registry
-  const targetPublicKey = useMemo(() => {
+  const targetPublicKey :any = useMemo(() => {
     if (!username) return publicKey;
     
     // Check if username is actually a wallet address
@@ -63,7 +63,6 @@ export function Profile() {
 
   // Follow hooks
   const { data: isFollowing } = useIsFollowing(
-    publicKey?.toString() || '',
     targetPublicKey?.toString() || ''
   );
   const { data: followers = [] } = useFollowers(targetPublicKey?.toString() || '');

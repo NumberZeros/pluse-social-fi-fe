@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useWallet } from '../lib/wallet-adapter';
 import { CreatePost } from '../components/feed/CreatePost';
 import TrendingSidebar from '../components/feed/TrendingSidebar';
+import { MintPostModal } from '../components/feed/MintPostModal';
 import { useUserStore } from '../stores/useUserStore';
 import { SEO } from '../components/SEO';
 import { useTimeline, useCreatePost, useLikePost, useUnlikePost, useRepostPost, useTipPost } from '../hooks/useFeed';
-import { Heart, Repeat2, DollarSign, MessageCircle } from 'lucide-react';
+import { useCache } from '../hooks/useCache';
+import { Heart, Repeat2, DollarSign, MessageCircle, Sparkles, Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { AppLayout } from '../components/layout/AppLayout';
 
@@ -14,6 +16,11 @@ export function Feed() {
   const { publicKey } = useWallet();
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const profile = useUserStore((state) => state.profile);
+  const { isOnline } = useCache();
+  
+  // Mint modal state
+  const [mintModalOpen, setMintModalOpen] = useState(false);
+  const [selectedPostForMint, setSelectedPostForMint] = useState<any>(null);
 
   const { data: rawPosts, isLoading } = useTimeline();
   const createPostMutation = useCreatePost();
@@ -21,6 +28,16 @@ export function Feed() {
   const unlikePostMutation = useUnlikePost();
   const repostMutation = useRepostPost();
   const tipPostMutation = useTipPost();
+  
+  const handleOpenMintModal = (post: any) => {
+    setSelectedPostForMint(post);
+    setMintModalOpen(true);
+  };
+  
+  const handleCloseMintModal = () => {
+    setMintModalOpen(false);
+    setSelectedPostForMint(null);
+  };
 
   // Mock pagination for now until SDK supports it
   const hasNextPage = false;
@@ -142,6 +159,30 @@ export function Feed() {
         description="Stay updated with the latest posts from the Pulse Social community."
         url="/feed"
       />
+
+      {/* Online/Offline Status Badge */}
+      <div className="mb-6 flex justify-end">
+        <motion.div
+          animate={{ opacity: isOnline ? 1 : 0.8 }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
+            isOnline
+              ? 'bg-green-500/10 text-green-400 border-green-500/20'
+              : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+          }`}
+        >
+          {isOnline ? (
+            <>
+              <Wifi className="w-4 h-4" />
+              <span className="text-sm font-medium">Online</span>
+            </>
+          ) : (
+            <>
+              <WifiOff className="w-4 h-4" />
+              <span className="text-sm font-medium">Offline (Using Cache)</span>
+            </>
+          )}
+        </motion.div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-12">
         {/* Left Sidebar (Optional Navigation/User Card) - Hidden on Mobile */}
@@ -280,6 +321,20 @@ export function Feed() {
                         </div>
                         <span className="text-sm font-medium">{post.tips.toFixed(2)} SOL</span>
                       </button>
+                      
+                      {/* Mint as NFT Button */}
+                      {post.author.address === publicKey?.toBase58() && !post.mint && (
+                        <button
+                          onClick={() => handleOpenMintModal(post)}
+                          className="flex items-center gap-2 hover:text-yellow-400 transition-colors group"
+                          title="Mint this post as an NFT"
+                        >
+                          <div className="p-2 rounded-full group-hover:bg-yellow-400/10 transition-colors">
+                            <Sparkles className="w-5 h-5" />
+                          </div>
+                          <span className="text-sm font-medium">Mint</span>
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 ))}
@@ -345,6 +400,20 @@ export function Feed() {
           </div>
         </div>
       </div>
+      
+      {/* Mint Post Modal */}
+      {selectedPostForMint && (
+        <MintPostModal
+          isOpen={mintModalOpen}
+          postId={selectedPostForMint.publicKey}
+          postContent={selectedPostForMint.content}
+          onClose={handleCloseMintModal}
+          onSuccess={(mintAddress) => {
+            toast.success(`Post minted as NFT! Mint: ${mintAddress.slice(0, 8)}...`);
+            handleCloseMintModal();
+          }}
+        />
+      )}
     </AppLayout>
   );
 }
