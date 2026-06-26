@@ -46,27 +46,10 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/guide', label: 'Guide', icon: bookIcon, group: 'learn' },
 ];
 
-const STATIC_APP_PATHS = new Set([
-  '/',
-  '/feed',
-  '/explore',
-  '/dashboard',
-  '/what',
-  '/why',
-  '/guide',
-  '/post',
-]);
-
 /** Match nav active state including /post/:id under Feed. */
 export function isNavItemActive(pathname: string, itemPath: string): boolean {
   if (pathname === itemPath) return true;
   if (itemPath === '/feed' && pathname.startsWith('/post/')) return true;
   if (pathname.startsWith(`${itemPath}/`)) return true;
   return false;
-}
-
-export function isProfileRoute(pathname: string): boolean {
-  if (STATIC_APP_PATHS.has(pathname)) return false;
-  if (pathname.startsWith('/post/')) return false;
-  return /^\/[^/]+$/.test(pathname);
 }

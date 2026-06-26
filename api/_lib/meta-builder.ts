@@ -106,7 +106,6 @@ export async function buildProfileMeta(username: string): Promise<PageMeta | nul
 
   const profile = await fetchProfile(pubkey);
   const displayName = profile?.username || username;
-  const address = pubkey.toBase58();
 
   return {
     title: `@${displayName} | ${SITE_NAME}`,

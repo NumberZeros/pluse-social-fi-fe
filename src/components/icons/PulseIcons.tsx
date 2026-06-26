@@ -174,39 +174,6 @@ export function IconHeart(props: IconProps) {
   );
 }
 
-export function IconRepost(props: IconProps) {
-  return (
-    <BaseIcon title={props.title ?? 'Repost'} {...props}>
-      <path
-        d="M7.5 7.8h9.2a3 3 0 0 1 3 3V12"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <path
-        d="M16.2 16.2H7a3 3 0 0 1-3-3V12"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <path
-        d="m9 5.8-1.9 2 1.9 2"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="m15 18.2 1.9-2-1.9-2"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </BaseIcon>
-  );
-}
-
 export function IconIdentity(props: IconProps) {
   return (
     <BaseIcon title={props.title ?? 'Identity'} {...props}>

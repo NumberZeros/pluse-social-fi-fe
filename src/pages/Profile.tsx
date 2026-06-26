@@ -149,7 +149,7 @@ export function Profile() {
       content: post.content,
       author: {
         username: user.username,
-        authorUsername: profile?.username,
+        authorUsername: user.username,
         address: user.address,
         avatar: user.avatar,
       },

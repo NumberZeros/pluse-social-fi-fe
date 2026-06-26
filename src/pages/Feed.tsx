@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useWallet } from '../lib/wallet-adapter';
 import { CreatePost } from '../components/feed/CreatePost';
 import TrendingSidebar from '../components/feed/TrendingSidebar';
@@ -61,7 +61,7 @@ export function Feed() {
     [following],
   );
 
-  const allPosts = rawPosts || [];
+  const allPosts = useMemo(() => rawPosts ?? [], [rawPosts]);
 
   const filteredPosts = useMemo(() => {
     if (feedTab === 'all') return allPosts;
@@ -74,9 +74,11 @@ export function Feed() {
   }, [feedTab]);
 
   const hasNextPage = page * FEED_PAGE_SIZE < filteredPosts.length;
-  const fetchNextPage = () => {
-    if (hasNextPage) setPage((p) => p + 1);
-  };
+  const fetchNextPage = useCallback(() => {
+    if (page * FEED_PAGE_SIZE < filteredPosts.length) {
+      setPage((p) => p + 1);
+    }
+  }, [page, filteredPosts.length]);
 
   const posts: FeedPostData[] = filteredPosts.slice(0, page * FEED_PAGE_SIZE).map((post) => ({
     id: post.id || post.publicKey,
@@ -121,7 +123,7 @@ export function Feed() {
     }
 
     return () => observer.disconnect();
-  }, [hasNextPage]);
+  }, [hasNextPage, fetchNextPage]);
 
   const handleLikePost = (postId: string, isLiked: boolean) => {
     guardAction(() => {

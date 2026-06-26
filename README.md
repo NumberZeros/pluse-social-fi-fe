@@ -21,8 +21,27 @@
 ### Prerequisites
 
 - Node.js 18+
-- pnpm 8+
+- pnpm 11.9+ (pinned via `packageManager` in `package.json`)
 - Solana wallet (Phantom, Solflare, etc.)
+
+### Package manager (`pnpm-workspace.yaml`)
+
+This is a **single-app repo**, not a monorepo. pnpm 11 still requires `pnpm-workspace.yaml` at the project root for build-script policy (`allowBuilds`).
+
+The file whitelists native build scripts used by the Solana stack:
+
+| Package | Used by |
+|---------|---------|
+| `esbuild` | Vite, tsx |
+| `bigint-buffer` | `@solana/spl-token` |
+| `bufferutil`, `utf-8-validate` | optional WebSocket perf for `@solana/web3.js` |
+
+Unused Metaplex/Irys deps were removed to avoid extra native crypto (`keccak`, `secp256k1`). Vite is standard **^6** (not the `rolldown-vite` alias).
+
+```bash
+corepack enable   # once, if pnpm is not on PATH
+pnpm install
+```
 
 ### Installation
 
@@ -129,7 +148,7 @@ See the [User Guide](https://pulse.thosoft.xyz/guide#coming-soon) for the full r
 **Blockchain:**
 - Solana Devnet
 - Anchor Framework 0.32.1
-- Metaplex Token Metadata
+- `@solana/web3.js` + `@solana/spl-token`
 - Program ID: `FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL`
 
 **Storage:**

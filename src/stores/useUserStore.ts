@@ -20,7 +20,6 @@ interface UserStore {
   activeDays: Set<string>;
   following: Set<string>; // usernames being followed
   likedPosts: Set<string>; // post IDs that user liked
-  repostedPosts: Set<string>; // post IDs that user reposted
   bookmarkedPosts: Set<string>; // post IDs that user bookmarked
   referrals: Set<string>; // wallet addresses of referred users
 
@@ -40,9 +39,6 @@ interface UserStore {
   likePost: (postId: string) => void;
   unlikePost: (postId: string) => void;
   isPostLiked: (postId: string) => boolean;
-  repostPost: (postId: string) => void;
-  unrepostPost: (postId: string) => void;
-  isPostReposted: (postId: string) => boolean;
   bookmarkPost: (postId: string) => void;
   unbookmarkPost: (postId: string) => void;
   isPostBookmarked: (postId: string) => boolean;
@@ -79,7 +75,6 @@ export const useUserStore = create<UserStore>()((set, get) => ({
   activeDays: new Set<string>(),
   following: new Set<string>(),
   likedPosts: new Set<string>(),
-  repostedPosts: new Set<string>(),
   bookmarkedPosts: new Set<string>(),
   referrals: new Set<string>(),
 
@@ -175,22 +170,6 @@ export const useUserStore = create<UserStore>()((set, get) => ({
 
   isPostLiked: (postId) => get().likedPosts.has(postId),
 
-  repostPost: (postId) =>
-    set((state) => {
-      const newRepostedPosts = new Set(state.repostedPosts);
-      newRepostedPosts.add(postId);
-      return { repostedPosts: newRepostedPosts };
-    }),
-
-  unrepostPost: (postId) =>
-    set((state) => {
-      const newRepostedPosts = new Set(state.repostedPosts);
-      newRepostedPosts.delete(postId);
-      return { repostedPosts: newRepostedPosts };
-    }),
-
-  isPostReposted: (postId) => get().repostedPosts.has(postId),
-
   bookmarkPost: (postId) =>
     set((state) => {
       const newBookmarkedPosts = new Set(state.bookmarkedPosts);
@@ -252,7 +231,6 @@ export const useUserStore = create<UserStore>()((set, get) => ({
       activeDays: new Set<string>(),
       following: new Set<string>(),
       likedPosts: new Set<string>(),
-      repostedPosts: new Set<string>(),
       bookmarkedPosts: new Set<string>(),
       referrals: new Set<string>(),
     }),

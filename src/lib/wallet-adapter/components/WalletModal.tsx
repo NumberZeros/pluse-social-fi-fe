@@ -5,6 +5,11 @@ import { PhantomWalletAdapter, SolflareWalletAdapter } from '../adapters';
 import { WalletReadyState } from '../types';
 import './WalletButton.css';
 
+const AVAILABLE_WALLETS = [
+  new PhantomWalletAdapter(),
+  new SolflareWalletAdapter(),
+];
+
 interface WalletModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -22,11 +27,8 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     return () => setMounted(false);
   }, []);
 
-  // Available wallets
-  const wallets = [
-    new PhantomWalletAdapter(),
-    new SolflareWalletAdapter(),
-  ];
+  // Available wallets (module-level adapters — stable reference for effects)
+  const wallets = AVAILABLE_WALLETS;
   
   // Log wallet detection status
   useEffect(() => {
@@ -36,7 +38,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
         console.log(`  - ${wallet.name}: ${wallet.readyState} (connected: ${wallet.connected})`);
       });
     }
-  }, [isOpen]);
+  }, [isOpen, wallets]);
 
   const handleWalletSelect = async (walletName: string) => {
     try {

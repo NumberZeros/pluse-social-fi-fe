@@ -1,5 +1,8 @@
 node_modules
 .git
+.env
+.env.*
+!.env.example
 .env.local
 .env*.local
 *.log

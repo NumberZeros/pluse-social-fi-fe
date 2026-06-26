@@ -159,44 +159,6 @@ export const usePost = () => {
   }, [sdk, invalidatePostEngagement]);
 
   /**
-   * Repost a post
-   * @param originalPostPubkey - Original post PDA to repost
-   */
-  const repostPost = useCallback(async (originalPostPubkey: string | PublicKey) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
-
-    setLoading(true);
-
-    try {
-      await assertPlatformNotPaused(sdk);
-      const pubkey = typeof originalPostPubkey === 'string' 
-        ? new PublicKey(originalPostPubkey) 
-        : originalPostPubkey;
-
-      const result = await withAnchorToast(
-        () => sdk.createRepost(pubkey),
-        {
-          loading: 'Reposting...',
-          success: '🔄 Reposted!',
-        }
-      );
-
-      return result;
-    } catch (error) {
-      console.error('Error reposting:', error);
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to repost'
-      );
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [sdk]);
-
-  /**
    * Create a comment on a post
    * @param postPubkey - Post PDA to comment on
    * @param content - Comment content (max 280 characters)
@@ -362,27 +324,6 @@ export const usePost = () => {
     }
   }, [sdk]);
 
-  /**
-   * Get reposts of a post
-   * @param postPubkey - Post PDA
-   */
-  const getPostReposts = useCallback(async (postPubkey: string | PublicKey) => {
-    if (!sdk) {
-      return [];
-    }
-
-    try {
-      const pubkey = typeof postPubkey === 'string' 
-        ? new PublicKey(postPubkey) 
-        : postPubkey;
-
-      return await sdk.getPostReposts(pubkey);
-    } catch (error) {
-      console.error('Error fetching reposts:', error);
-      return [];
-    }
-  }, [sdk]);
-
   return {
     // State
     loading,
@@ -394,13 +335,11 @@ export const usePost = () => {
     // Engagement operations
     likePost,
     unlikePost,
-    repostPost,
     createComment,
     tipPostAuthor,
 
     // Data fetching
     getPostLikes,
     getPostComments,
-    getPostReposts,
   };
 };

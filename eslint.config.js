@@ -6,7 +6,15 @@ import tseslint from 'typescript-eslint'
 
 export default [
   {
-    ignores: ['dist', 'node_modules', '.vite', 'build'],
+    ignores: [
+      'dist',
+      'dist-ssr',
+      'build',
+      'coverage',
+      'node_modules',
+      '.vite',
+      'pnpm-lock.yaml',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -21,7 +29,6 @@ export default [
       globals: globals.browser,
     },
     rules: {
-      // TypeScript rules similar to bethub
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
@@ -31,16 +38,23 @@ export default [
           caughtErrorsIgnorePattern: '^_',
         },
       ],
-      
-      // React hooks rules
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      
-      // React refresh rules for Vite
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
+    },
+  },
+  {
+    files: [
+      'api/**/*.{ts,tsx}',
+      'scripts/**/*.{ts,tsx,js,mjs}',
+      'middleware.ts',
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.node,
     },
   },
 ]

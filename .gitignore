@@ -1,3 +1,19 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+dist-ssr
+build
+.vite
+*.tsbuildinfo
+
+# Environment (never commit secrets — use .env.example as template)
+.env
+.env.*
+!.env.example
+
 # Logs
 logs
 *.log
@@ -7,20 +23,25 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Test / coverage
+coverage
 
-# Editor directories and files
+# Deploy
+.vercel
+
+# Editor / IDE
 .vscode/*
 !.vscode/extensions.json
 .idea
+.cursor
+
+# OS
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-.vercel
-.pnpm-store
+
+# Local overrides
+*.local

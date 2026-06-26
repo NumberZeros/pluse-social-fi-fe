@@ -20,11 +20,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['buffer', '@solana/spl-token', '@solana/web3.js'],
-    rolldownOptions: {
-      define: {
-        global: 'globalThis',
-      },
-    },
   },
   build: {
     // We intentionally keep the WebGL stack (three/R3F/Drei) in its own chunk.

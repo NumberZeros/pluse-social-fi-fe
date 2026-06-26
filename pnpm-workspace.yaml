@@ -1,14 +1,8 @@
-# pnpm 11+ build-script policy:
-# - explicit allowBuilds: native deps used by @solana/web3.js must compile
-# - strictDepBuilds: false → install/dev never fails; new deps only warn (no `pnpm approve-builds`)
+# Single-app repo — not a monorepo.
+# pnpm 11+: project config (allowBuilds) must live here.
 strictDepBuilds: false
 allowBuilds:
+  esbuild: true
   bigint-buffer: true
   bufferutil: true
-  esbuild: set this to true or false
-  keccak: true
-  secp256k1: true
   utf-8-validate: true
-
-overrides:
-  vite: npm:rolldown-vite@7.2.5
