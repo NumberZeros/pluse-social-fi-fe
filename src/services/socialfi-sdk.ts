@@ -7,7 +7,7 @@ import type { AnchorWallet } from '@solana/wallet-adapter-react';
 import idlJson from '../idl/social_fi_contract.json';
 import type { SocialFiContract } from '../idl/social_fi_contract';
 import { PDAs } from './pda';
-import { RPC_ENDPOINTS, NETWORK, DEFAULT_COMMITMENT } from '../utils/constants';
+import { getRpcEndpoint, DEFAULT_COMMITMENT } from '../utils/constants';
 
 /**
  * Social-Fi SDK
@@ -43,7 +43,7 @@ export class SocialFiSDK {
     options?: { registerGlobalProvider?: boolean },
   ) {
     this.wallet = wallet;
-    this.connection = connection || new Connection(RPC_ENDPOINTS[NETWORK], DEFAULT_COMMITMENT);
+    this.connection = connection || new Connection(getRpcEndpoint(), DEFAULT_COMMITMENT);
     this.provider = new AnchorProvider(this.connection, wallet, {
       commitment: DEFAULT_COMMITMENT,
     });

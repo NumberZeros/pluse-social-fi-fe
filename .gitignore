@@ -45,3 +45,4 @@ coverage
 
 # Local overrides
 *.local
+.env*.local

@@ -55,13 +55,19 @@ export const RPC_ENDPOINTS: Record<string, string> = {
   mainnet: 'https://api.mainnet-beta.solana.com',
 };
 
+export function normalizeNetworkKey(n: string): keyof typeof RPC_ENDPOINTS {
+  if (n === 'mainnet' || n === 'mainnet-beta') return 'mainnet';
+  if (n in RPC_ENDPOINTS) return n as keyof typeof RPC_ENDPOINTS;
+  return 'devnet';
+}
+
 /** Resolve RPC URL: custom env override, then network default */
 export const getRpcEndpoint = (): string => {
   const custom = import.meta.env.VITE_SOLANA_RPC_URL as string | undefined;
   if (custom && custom.trim().length > 0) {
     return custom.trim();
   }
-  return RPC_ENDPOINTS[NETWORK] ?? RPC_ENDPOINTS.devnet;
+  return RPC_ENDPOINTS[normalizeNetworkKey(NETWORK)];
 };
 
 export const EXPLORER_URL: Record<string, string> = {

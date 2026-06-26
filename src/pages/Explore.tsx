@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { PostSkeleton } from '../components/LoadingStates';
 import { PAGE_SEO_CONFIG } from '../lib/seo/page-config';
+import { getNetworkLabel } from '../utils/constants';
 import { buildExplorePageSchema } from '../lib/seo/schema';
 
 const EXPLORE_FILTERS = [
@@ -140,7 +141,7 @@ export function Explore() {
           </p>
           {creatorPools.length > 0 && (
             <p className="text-sm text-gray-500 mt-4 relative z-10">
-              {creatorPools.length} creator{creatorPools.length !== 1 ? 's' : ''} with Supporter Shares on devnet
+              {creatorPools.length} creator{creatorPools.length !== 1 ? 's' : ''} with Supporter Shares on {getNetworkLabel()}
             </p>
           )}
         </motion.div>

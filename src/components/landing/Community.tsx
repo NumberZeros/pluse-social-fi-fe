@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { getNetworkLabel } from '../../utils/constants';
 
 export function Community() {
+  const networkLabel = getNetworkLabel();
   return (
     <section className="relative z-10 py-20 px-6 max-w-[1400px] mx-auto border-t border-white/5">
       <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -9,11 +11,11 @@ export function Community() {
           <h2 className="text-4xl md:text-5xl font-display font-bold mb-8">
             Join early on{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-solana-green)] to-blue-400">
-              devnet
+              {networkLabel}
             </span>
           </h2>
           <p className="text-lg text-gray-400 mb-10 leading-relaxed">
-            We&apos;re building in public on Solana devnet. Be among the first creators to
+            We&apos;re building in public on Solana {networkLabel}. Be among the first creators to
             launch a supporter community.
           </p>
 
@@ -41,7 +43,7 @@ export function Community() {
           <div className="relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl">
             <h3 className="text-2xl font-bold mb-4">Early access</h3>
             <p className="text-gray-400 leading-relaxed mb-6">
-              Building on devnet — be an early creator. Real on-chain stats will appear here
+              Building on {networkLabel} — be an early creator. Real on-chain stats will appear here
               as the network grows.
             </p>
             <Link

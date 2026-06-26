@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { getNetworkLabel } from '../../utils/constants';
 
 const STEPS = [
   { step: '01', title: 'Create profile', description: 'Connect your wallet and claim your on-chain creator identity.' },
@@ -16,7 +17,7 @@ export function HowItWorks() {
           How it works for creators
         </h2>
         <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-          Go from zero to earning in four steps — about two minutes on devnet.
+          Go from zero to earning in four steps — about two minutes on {getNetworkLabel()}.
         </p>
       </div>
 
