@@ -17,7 +17,10 @@
     "smoke:check": "tsx scripts/smoke-supporter-flow.ts --check-only",
     "sync-idl": "cp ../social-fi-contract/target/idl/social_fi_contract.json src/idl/social_fi_contract.json 2>/dev/null || echo 'Build contract first: cd ../social-fi-contract && anchor build'",
     "generate:og": "node scripts/generate-og-images.mjs",
-    "validate:seo": "tsx scripts/validate-seo.ts"
+    "generate:guide": "tsx scripts/generate-guide-md.ts",
+    "generate:llms": "tsx scripts/generate-guide-md.ts && node scripts/generate-llms-full.mjs",
+    "validate:llms": "tsx scripts/validate-llms.ts",
+    "validate:seo": "tsx scripts/validate-seo.ts && tsx scripts/validate-llms.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "0.32.1",

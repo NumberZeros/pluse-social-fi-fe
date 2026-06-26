@@ -10,7 +10,7 @@
 [![React](https://img.shields.io/badge/React-19.2-61dafb)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.0-646cff)](https://vitejs.dev/)
 
-[Live Demo](https://pulse.thosoft.xyz) • [Smart Contract](../social-fi-contract) • [Whitepaper](./public/whitepaper.md)
+[Live Demo](https://pulsesol.xyz) • [Smart Contract](../social-fi-contract) • [Whitepaper](./public/whitepaper.md) • [llms.txt](https://pulsesol.xyz/llms.txt)
 
 </div>
 
@@ -132,7 +132,7 @@ These exist in the contract/SDK but are **hidden in the UI** (redirect to `/guid
 - Reposts
 - Airdrop & referrals
 
-See the [User Guide](https://pulse.thosoft.xyz/guide#coming-soon) for the full roadmap.
+See the [User Guide](https://pulsesol.xyz/guide#coming-soon) for the full roadmap.
 
 ## 🏗️ Architecture
 
@@ -232,9 +232,9 @@ We welcome contributions from the community! Here's how you can help:
 ## 📚 Documentation
 
 ### For Users
-- **[User Guide](https://pulse.thosoft.xyz/guide)**: Complete step-by-step guide for all features
-- **[What is Pulse](https://pulse.thosoft.xyz/what)**: Platform overview and core concepts
-- **[Why Pulse](https://pulse.thosoft.xyz/why)**: Benefits of decentralized social
+- **[User Guide](https://pulsesol.xyz/guide)**: Complete step-by-step guide for all features
+- **[What is Pulse](https://pulsesol.xyz/what)**: Platform overview and core concepts
+- **[Why Pulse](https://pulsesol.xyz/why)**: Benefits of decentralized social
 
 ### For Developers
 - **[Whitepaper](./public/whitepaper.md)**: MVP technical overview (Supporter Shares)
@@ -313,7 +313,7 @@ Legacy routes (`/creator`, `/shares`, `/marketplace`, `/governance`, etc.) redir
 
 ## 📞 Contact & Links
 
-- **Live Demo**: [pulse.thosoft.xyz](https://pulse.thosoft.xyz)
+- **Live Demo**: [pulsesol.xyz](https://pulsesol.xyz)
 - **GitHub**: [@NumberZeros](https://github.com/NumberZeros)
 - **Repository**: [social-fi-fe](https://github.com/NumberZeros/social-fi-fe)
 - **Email**: tho.nguyen.soft@gmail.com

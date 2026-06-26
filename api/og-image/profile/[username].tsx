@@ -50,7 +50,7 @@ export default async function handler(req: Request) {
             fontWeight: 600,
           }}
         >
-          pulse.social
+          pulsesol.xyz
         </div>
       </div>
     ),
