@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { useWallet } from '../../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useOpenWalletModal } from '../../hooks/useOpenWalletModal';
 import { useUserStore } from '../../stores/useUserStore';
 import { usePost } from '../../hooks/usePost';
 import { toast } from 'react-hot-toast';
@@ -20,6 +21,7 @@ interface CreatePostProps {
 
 export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
   const { publicKey } = useWallet();
+  const openWalletModal = useOpenWalletModal();
   const [content, setContent] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [videos, setVideos] = useState<string[]>([]);
@@ -33,6 +35,11 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
   const isSupportersOnly = accessLevel === 'supporters';
 
   const handlePost = async () => {
+    if (!publicKey) {
+      openWalletModal({ toast: true });
+      return;
+    }
+
     if (!content.trim()) {
       toast.error('Please enter some content');
       return;
@@ -150,6 +157,25 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
   const removeVideo = (index: number) => {
     setVideos((prev) => prev.filter((_, i) => i !== index));
   };
+
+  if (!publicKey) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card rounded-2xl p-6 border border-white/10 text-center"
+      >
+        <p className="text-gray-400 mb-4">Connect your wallet to create a post.</p>
+        <button
+          type="button"
+          onClick={() => openWalletModal({ toast: true })}
+          className="px-6 py-2 bg-[var(--color-solana-green)] text-black rounded-full font-bold hover:bg-[#9FE51C] transition-colors"
+        >
+          Connect Wallet
+        </button>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

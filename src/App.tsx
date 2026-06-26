@@ -107,8 +107,8 @@ function App() {
       <ErrorBoundary>
         <QueryProvider>
           <SolanaProvider>
-            <WalletConnectionManager />
             <BrowserRouter>
+              <WalletConnectionManager />
               <RouterContent />
             </BrowserRouter>
             <Toaster

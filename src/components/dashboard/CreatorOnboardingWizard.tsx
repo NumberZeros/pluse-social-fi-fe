@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useWallet } from '../../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { useProfile } from '../../hooks/useProfile';
 import { useSocialFi } from '../../hooks/useSocialFi';
 import { useShares } from '../../hooks/useShares';

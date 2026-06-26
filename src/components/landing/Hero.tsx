@@ -1,18 +1,22 @@
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { useWallet } from '../../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useOpenWalletModal } from '../../hooks/useOpenWalletModal';
+import { getNetworkLabel } from '../../utils/constants';
 import { Pulse3D } from './Pulse3D';
 import { Lock, Users, Sparkles } from 'lucide-react';
 
 export function Hero() {
   const navigate = useNavigate();
   const { connected } = useWallet();
+  const openWalletModal = useOpenWalletModal();
+  const networkLabel = getNetworkLabel();
 
   const handleStartEarning = () => {
     if (connected) {
       navigate('/dashboard');
     } else {
-      document.querySelector<HTMLButtonElement>('[data-wallet-button]')?.click();
+      openWalletModal();
     }
   };
 
@@ -35,7 +39,7 @@ export function Hero() {
               <span className="relative inline-flex rounded-full h-3 w-3 bg-[var(--color-solana-green)]" />
             </span>
             <span className="text-sm font-semibold text-[var(--color-solana-green)] tracking-wide uppercase">
-              Live on Devnet
+              Live on {networkLabel}
             </span>
           </motion.div>
 

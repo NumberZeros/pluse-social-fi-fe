@@ -1,4 +1,5 @@
 import { PublicKey } from '@solana/web3.js';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
 const DEFAULT_PROGRAM_ID = 'FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL';
 
@@ -7,6 +8,46 @@ export const PROGRAM_ID = new PublicKey(
 );
 
 export const NETWORK = (import.meta.env.VITE_SOLANA_NETWORK as string) || 'devnet';
+
+export const IS_DEVNET =
+  NETWORK === 'devnet' || NETWORK === 'localnet' || NETWORK === 'testnet';
+
+export const MIN_SOL_BALANCE = IS_DEVNET ? 0.05 : 0.01;
+
+export const SITE_URL =
+  (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') ||
+  'https://pulse.social';
+
+/** Known genesis hashes for network mismatch detection */
+export const EXPECTED_GENESIS_HASH: Record<string, string> = {
+  devnet: 'EtWTRABZaYq6iMfeYKouRu1GW1SNx7w4CGTPHwnot95',
+  'mainnet-beta': '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  mainnet: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  testnet: '4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
+};
+
+export function getWalletAdapterNetwork(): WalletAdapterNetwork {
+  const n = NETWORK;
+  if (n === 'mainnet' || n === 'mainnet-beta') {
+    return WalletAdapterNetwork.Mainnet;
+  }
+  if (n === 'testnet') {
+    return WalletAdapterNetwork.Testnet;
+  }
+  return WalletAdapterNetwork.Devnet;
+}
+
+export function getNetworkLabel(): string {
+  if (NETWORK === 'mainnet' || NETWORK === 'mainnet-beta') return 'Mainnet';
+  if (NETWORK === 'testnet') return 'Testnet';
+  if (NETWORK === 'localnet') return 'Localnet';
+  return 'Devnet';
+}
+
+export function getExpectedGenesisHash(): string | undefined {
+  if (NETWORK === 'localnet') return undefined;
+  return EXPECTED_GENESIS_HASH[NETWORK] ?? EXPECTED_GENESIS_HASH.devnet;
+}
 
 export const RPC_ENDPOINTS: Record<string, string> = {
   localnet: 'http://localhost:8899',

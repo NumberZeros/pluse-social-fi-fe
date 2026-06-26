@@ -19,7 +19,14 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['buffer', '@solana/spl-token', '@solana/web3.js'],
+    include: [
+      'buffer',
+      '@solana/spl-token',
+      '@solana/web3.js',
+      '@solana/wallet-adapter-react',
+      '@solana/wallet-adapter-react-ui',
+      '@solana/wallet-adapter-walletconnect',
+    ],
   },
   build: {
     // We intentionally keep the WebGL stack (three/R3F/Drei) in its own chunk.

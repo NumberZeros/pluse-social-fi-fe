@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
 import { useReadOnlySdk } from '../services/read-only-sdk';
-import { useWallet } from '../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from 'react-hot-toast';
 import { assertPlatformNotPaused } from '../utils/platformPauseGuard';
 import { CacheManager } from '../services/storage';

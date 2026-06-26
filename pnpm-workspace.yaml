@@ -6,3 +6,8 @@ allowBuilds:
   bigint-buffer: true
   bufferutil: true
   utf-8-validate: true
+  '@stellar/stellar-sdk': set this to true or false
+  blake-hash: set this to true or false
+  protobufjs: set this to true or false
+  tiny-secp256k1: set this to true or false
+  usb: set this to true or false

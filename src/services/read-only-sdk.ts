@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Keypair } from '@solana/web3.js';
-import { useConnection } from '../lib/wallet-adapter';
-import type { AnchorWallet } from '../lib/wallet-adapter';
+import { useConnection } from '@solana/wallet-adapter-react';
+import type { AnchorWallet } from '@solana/wallet-adapter-react';
 import { SocialFiSDK } from './socialfi-sdk';
 
 function createReadOnlyWallet(): AnchorWallet {

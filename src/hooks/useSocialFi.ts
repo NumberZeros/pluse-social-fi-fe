@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from 'react';
-import { useWallet, useConnection, useAnchorWallet } from '../lib/wallet-adapter';
+import { useWallet, useConnection, useAnchorWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { toast } from 'react-hot-toast';
 import { SocialFiSDK } from '../services/socialfi-sdk';
 import { assertPlatformNotPaused } from '../utils/platformPauseGuard';
+import { useRequireWallet } from './useRequireWallet';
 
 /**
  * Main hook for interacting with Social-Fi smart contract
@@ -14,6 +15,7 @@ export function useSocialFi() {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
+  const requireWallet = useRequireWallet();
 
   // Create SDK instance
   const sdk = useMemo(() => {
@@ -30,10 +32,8 @@ export function useSocialFi() {
 
   const createProfile = useCallback(
     async (username: string) => {
-      if (!sdk) {
-        toast.error('Please connect your wallet');
-        return null;
-      }
+      if (!requireWallet()) return null;
+      if (!sdk) return null;
 
       try {
         await assertPlatformNotPaused(sdk);
@@ -48,7 +48,7 @@ export function useSocialFi() {
         throw error;
       }
     },
-    [sdk]
+    [sdk, requireWallet]
   );
 
   const getUserProfile = useCallback(
@@ -67,10 +67,8 @@ export function useSocialFi() {
 
   const sendTip = useCallback(
     async (recipientPubkey: PublicKey, amount: number) => {
-      if (!sdk) {
-        toast.error('Please connect your wallet');
-        return null;
-      }
+      if (!requireWallet()) return null;
+      if (!sdk) return null;
 
       try {
         await assertPlatformNotPaused(sdk);
@@ -85,17 +83,15 @@ export function useSocialFi() {
         throw error;
       }
     },
-    [sdk]
+    [sdk, requireWallet]
   );
 
   // ==================== SHARES OPERATIONS ====================
 
   const buyShares = useCallback(
     async (creatorPubkey: PublicKey, amount: number, maxPricePerShare: number) => {
-      if (!sdk) {
-        toast.error('Please connect your wallet');
-        return null;
-      }
+      if (!requireWallet()) return null;
+      if (!sdk) return null;
 
       try {
         await assertPlatformNotPaused(sdk);
@@ -110,15 +106,13 @@ export function useSocialFi() {
         throw error;
       }
     },
-    [sdk]
+    [sdk, requireWallet]
   );
 
   const sellShares = useCallback(
     async (creatorPubkey: PublicKey, amount: number, minPricePerShare: number) => {
-      if (!sdk) {
-        toast.error('Please connect your wallet');
-        return null;
-      }
+      if (!requireWallet()) return null;
+      if (!sdk) return null;
 
       try {
         await assertPlatformNotPaused(sdk);
@@ -133,7 +127,7 @@ export function useSocialFi() {
         throw error;
       }
     },
-    [sdk]
+    [sdk, requireWallet]
   );
 
   const getCreatorShares = useCallback(
@@ -165,10 +159,8 @@ export function useSocialFi() {
   );
 
   const initializeCreatorPool = useCallback(async () => {
-    if (!sdk) {
-      toast.error('Please connect your wallet');
-      return null;
-    }
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
 
     try {
       await assertPlatformNotPaused(sdk);
@@ -182,7 +174,7 @@ export function useSocialFi() {
       toast.error(message, { id: 'init-pool' });
       throw error;
     }
-  }, [sdk]);
+  }, [sdk, requireWallet]);
 
   const getShareHolding = useCallback(
     async (holderPubkey: PublicKey, creatorPubkey: PublicKey) => {
@@ -230,7 +222,7 @@ export function useSocialFi() {
   return {
     // SDK instance
     sdk,
-    isConnected: !!publicKey,
+    isConnected: !!anchorWallet && !!publicKey,
     publicKey,
 
     // Profile operations

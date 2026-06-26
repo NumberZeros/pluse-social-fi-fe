@@ -9,8 +9,9 @@ import { TipPostModal } from '../components/feed/TipPostModal';
 import { PostSkeleton } from '../components/LoadingStates';
 import { useSinglePost } from '../hooks/useSinglePost';
 import { useLikePost, useUnlikePost, useTipPost } from '../hooks/useFeed';
-import { useWallet } from '../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { usePlatformAction } from '../hooks/usePlatformAction';
+import { useRequireWallet } from '../hooks/useRequireWallet';
 import { buildPostPageSchema } from '../lib/seo/schema';
 import { PAGE_SEO_CONFIG } from '../lib/seo/page-config';
 import { toast } from 'react-hot-toast';
@@ -20,6 +21,7 @@ export function Post() {
   const { publicKey } = useWallet();
   const { data: post, isLoading, isError } = useSinglePost(postId);
   const { isPaused, guardAction } = usePlatformAction();
+  const requireWallet = useRequireWallet();
   const likePostMutation = useLikePost();
   const unlikePostMutation = useUnlikePost();
   const tipPostMutation = useTipPost();
@@ -72,10 +74,7 @@ export function Post() {
 
   const handleLike = (id: string, isLiked: boolean) => {
     guardAction(() => {
-      if (!publicKey) {
-        toast.error('Please connect your wallet');
-        return;
-      }
+      if (!requireWallet()) return;
       if (isLiked) unlikePostMutation.mutate(id);
       else likePostMutation.mutate(id);
     });
@@ -83,10 +82,7 @@ export function Post() {
 
   const handleTip = () => {
     guardAction(() => {
-      if (!publicKey) {
-        toast.error('Please connect your wallet');
-        return;
-      }
+      if (!requireWallet()) return;
       setTipModalOpen(true);
     });
   };

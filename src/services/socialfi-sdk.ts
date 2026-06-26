@@ -3,7 +3,7 @@ import type { Idl } from '@coral-xyz/anchor';
 import { Connection, PublicKey, SystemProgram } from '@solana/web3.js';
 import { Buffer } from 'buffer';
 import bs58 from 'bs58';
-import type { AnchorWallet } from '../lib/wallet-adapter';
+import type { AnchorWallet } from '@solana/wallet-adapter-react';
 import idlJson from '../idl/social_fi_contract.json';
 import type { SocialFiContract } from '../idl/social_fi_contract';
 import { PDAs } from './pda';

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useWallet } from '../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { IconVerified } from '../components/icons/PulseIcons';
 import { useProfile } from '../hooks/useProfile';
@@ -17,6 +17,7 @@ import { SellSharesModal } from '../components/shares/SellSharesModal';
 import { FeedPostCard, type FeedPostData } from '../components/feed/FeedPostCard';
 import { TipPostModal } from '../components/feed/TipPostModal';
 import { usePlatformAction } from '../hooks/usePlatformAction';
+import { useRequireWallet } from '../hooks/useRequireWallet';
 import { PostSkeleton } from '../components/LoadingStates';
 import { toast } from 'react-hot-toast';
 import { Crown, Grid, MessageSquare, Image as ImageIcon, Users } from 'lucide-react';
@@ -51,6 +52,7 @@ export function Profile() {
   const [selectedPostForTip, setSelectedPostForTip] = useState<FeedPostData | null>(null);
 
   const { isPaused, guardAction } = usePlatformAction();
+  const requireWallet = useRequireWallet();
   const likePostMutation = useLikePost();
   const unlikePostMutation = useUnlikePost();
   const tipPostMutation = useTipPost();
@@ -175,10 +177,7 @@ export function Profile() {
 
   const handleFollow = () => {
     guardAction(() => {
-      if (!publicKey || !effectivePubkey) {
-        toast.error('Please connect your wallet');
-        return;
-      }
+      if (!requireWallet() || !effectivePubkey || !publicKey) return;
 
       if (isFollowing) {
         unfollowMutation.mutate(
@@ -213,10 +212,7 @@ export function Profile() {
 
   const handleLikePost = (postId: string, isLiked: boolean) => {
     guardAction(() => {
-      if (!publicKey) {
-        toast.error('Please connect your wallet');
-        return;
-      }
+      if (!requireWallet()) return;
       if (isLiked) {
         unlikePostMutation.mutate(postId);
       } else {
@@ -227,10 +223,7 @@ export function Profile() {
 
   const handleTip = (post: FeedPostData) => {
     guardAction(() => {
-      if (!publicKey) {
-        toast.error('Please connect your wallet');
-        return;
-      }
+      if (!requireWallet()) return;
       setSelectedPostForTip(post);
       setTipModalOpen(true);
     });

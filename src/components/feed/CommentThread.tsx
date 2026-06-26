@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePostComments, useCreateComment } from '../../hooks/useFeed';
-import { useWallet } from '../../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { usePlatformAction } from '../../hooks/usePlatformAction';
+import { useRequireWallet } from '../../hooks/useRequireWallet';
 import { toast } from 'react-hot-toast';
 import { MessageCircle, Send } from 'lucide-react';
 
@@ -14,6 +15,7 @@ interface CommentThreadProps {
 export function CommentThread({ postId, commentCount }: CommentThreadProps) {
   const { publicKey } = useWallet();
   const { guardAction } = usePlatformAction();
+  const requireWallet = useRequireWallet();
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState('');
   const { data: comments = [], isLoading } = usePostComments(isOpen ? postId : undefined);
@@ -21,10 +23,7 @@ export function CommentThread({ postId, commentCount }: CommentThreadProps) {
 
   const handleSubmit = () => {
     guardAction(() => {
-      if (!publicKey) {
-        toast.error('Please connect your wallet');
-        return;
-      }
+      if (!requireWallet()) return;
       if (!content.trim()) return;
       if (content.length > 280) {
         toast.error('Comment must be 280 characters or less');

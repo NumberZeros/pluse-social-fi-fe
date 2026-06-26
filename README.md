@@ -74,6 +74,7 @@ Get your Pinata JWT from [pinata.cloud](https://pinata.cloud)
 VITE_SOLANA_NETWORK=devnet
 VITE_PROGRAM_ID=FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL
 VITE_PINATA_JWT=<your-pinata-jwt>
+VITE_WALLETCONNECT_PROJECT_ID=<walletconnect-project-id>  # iOS Safari / mobile
 ```
 
 
@@ -142,7 +143,7 @@ See the [User Guide](https://pulse.thosoft.xyz/guide#coming-soon) for the full r
 - Vite 6 (build tool)
 - TailwindCSS + Framer Motion
 - React Query (data fetching & caching)
-- Solana Web3.js + Wallet Adapter
+- Solana Web3.js + [@solana/wallet-adapter](https://github.com/anza-xyz/wallet-adapter) (Phantom, Solflare, Wallet Standard, WalletConnect, MWA)
 - IndexedDB (offline cache)
 
 **Blockchain:**
@@ -163,7 +164,9 @@ src/
 │   ├── feed/        # Feed, posts, gating, create post
 │   ├── shares/      # Buy/sell Supporter Shares modals
 │   ├── dashboard/   # Creator onboarding wizard
+│   ├── wallet/      # WalletButton, NetworkBanner, onboarding
 │   └── layout/      # App shell, navigation
+├── providers/       # SolanaProvider (Connection + Wallet + Modal)
 ├── hooks/           # Custom React hooks
 │   ├── useFeed.ts   # Post operations
 │   ├── useShares.ts # Supporter Shares

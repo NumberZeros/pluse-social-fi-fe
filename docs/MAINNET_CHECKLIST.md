@@ -8,6 +8,8 @@ Use this checklist before promoting Pulse Social beyond devnet.
 - [ ] `VITE_SOLANA_RPC_URL` set to a reliable mainnet RPC (Helius, Triton, etc.)
 - [ ] `VITE_PROGRAM_ID` points to the audited shares-enabled program deployment
 - [ ] `VITE_PINATA_JWT` configured — **required**; production builds throw without it
+- [ ] `VITE_WALLETCONNECT_PROJECT_ID` set for iOS Safari / mobile wallet connect
+- [ ] WalletConnect domain whitelist includes production URL at [cloud.walletconnect.com](https://cloud.walletconnect.com)
 
 ## On-chain (shares module)
 
@@ -30,11 +32,13 @@ Use this checklist before promoting Pulse Social beyond devnet.
 - [ ] Supporter gating verified: non-holders see blur + CTA on `accessLevel: supporters` posts
 - [ ] Legacy routes redirect (`/creator`, `/shares`, `/marketplace`, etc.)
 - [ ] Copy uses “Supporter Shares” terminology (not “bonding curve”, “mint @handle”)
+- [ ] Network banner shows mainnet badge (no devnet faucet on mainnet)
+- [ ] Wallet modal: Phantom, Solflare, Wallet Standard wallets, WalletConnect (iOS)
 
 ## Security review
 
 - [ ] Shares module instruction set reviewed (no marketplace/governance stubs in active path)
-- [ ] Wallet adapter domain verified for production URL
+- [ ] WalletConnect project domain whitelist verified for production URL
 - [ ] No secrets in client bundle beyond public env vars
 
 ## Smoke test (mainnet)

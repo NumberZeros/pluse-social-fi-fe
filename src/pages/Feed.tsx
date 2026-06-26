@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { useWallet } from '../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { CreatePost } from '../components/feed/CreatePost';
 import TrendingSidebar from '../components/feed/TrendingSidebar';
 import { FeedPostCard } from '../components/feed/FeedPostCard';
@@ -18,6 +18,7 @@ import {
 import { useFollowers, useFollowing } from '../hooks/useFollow';
 import { useCache } from '../hooks/useCache';
 import { usePlatformAction } from '../hooks/usePlatformAction';
+import { useRequireWallet } from '../hooks/useRequireWallet';
 import { TipPostModal } from '../components/feed/TipPostModal';
 import { Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -42,6 +43,7 @@ export function Feed() {
 
   const { data: rawPosts, isPending, isError } = useTimeline();
   const { isPaused, guardAction } = usePlatformAction();
+  const requireWallet = useRequireWallet();
   const { data: followers = [] } = useFollowers(publicKey?.toBase58() || '');
   const { data: following = [] } = useFollowing(publicKey?.toBase58() || '');
   const [page, setPage] = useState(1);
@@ -127,10 +129,7 @@ export function Feed() {
 
   const handleLikePost = (postId: string, isLiked: boolean) => {
     guardAction(() => {
-      if (!publicKey) {
-        toast.error('Please connect your wallet');
-        return;
-      }
+      if (!requireWallet()) return;
       if (isLiked) {
         unlikePostMutation.mutate(postId);
       } else {
@@ -141,10 +140,7 @@ export function Feed() {
 
   const handleTip = (post: FeedPostData) => {
     guardAction(() => {
-      if (!publicKey) {
-        toast.error('Please connect your wallet');
-        return;
-      }
+      if (!requireWallet()) return;
       setSelectedPostForTip(post);
       setTipModalOpen(true);
     });

@@ -2,9 +2,9 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTrendingTopics, useSuggestedUsers } from '../../hooks/useFeed';
 import { useIsFollowing, useFollowUser, useUnfollowUser } from '../../hooks/useFollow';
-import { useWallet } from '../../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { usePlatformAction } from '../../hooks/usePlatformAction';
-import { toast } from 'react-hot-toast';
+import { useRequireWallet } from '../../hooks/useRequireWallet';
 
 export function TrendingSidebar() {
   const { publicKey } = useWallet();
@@ -104,15 +104,13 @@ function SuggestedUserRow({
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
   const { guardAction } = usePlatformAction();
+  const requireWallet = useRequireWallet();
   const isSelf = currentWallet === user.address;
 
   const handleFollow = () => {
     guardAction(() => {
       if (isSelf) return;
-      if (!currentWallet) {
-        toast.error('Please connect your wallet');
-        return;
-      }
+      if (!requireWallet() || !currentWallet) return;
       if (isFollowing) {
         unfollowMutation.mutate({ followerId: currentWallet, followingId: user.address });
       } else {

@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { useWallet } from '../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { useUserStore } from '../stores/useUserStore';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProfile } from '../hooks/useProfile';
+import { WalletOnboardingSheet } from './wallet/WalletOnboardingSheet';
 
 const WALLET_SCOPED_QUERY_KEYS = [
   'feed_timeline',
@@ -54,10 +55,8 @@ export function WalletConnectionManager() {
 
     const prev = prevPubkeyRef.current;
     if (prev !== pubkeyStr) {
-      if (prev !== null || pubkeyStr === null) {
-        for (const key of WALLET_SCOPED_QUERY_KEYS) {
-          queryClient.invalidateQueries({ queryKey: [key] });
-        }
+      for (const key of WALLET_SCOPED_QUERY_KEYS) {
+        queryClient.invalidateQueries({ queryKey: [key] });
       }
       prevPubkeyRef.current = pubkeyStr;
     }
@@ -68,5 +67,5 @@ export function WalletConnectionManager() {
     }
   }, [connected, publicKey, setWalletAddress, resetProfile, queryClient]);
 
-  return null;
+  return <WalletOnboardingSheet />;
 }

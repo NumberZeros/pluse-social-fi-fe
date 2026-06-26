@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { PublicKey } from '@solana/web3.js';
 import { useReadOnlySdk } from '../services/read-only-sdk';
-import { useWallet } from '../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { fetchMetadata } from './useFeed';
 import { CacheManager } from '../services/storage';
 import type { PostAccessLevel } from '../services/ipfs';

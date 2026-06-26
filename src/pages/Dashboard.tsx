@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 import { SEO } from '../components/SEO';
-import { useWallet } from '../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useOpenWalletModal } from '../hooks/useOpenWalletModal';
 import { useProfile } from '../hooks/useProfile';
 import { useShares } from '../hooks/useShares';
 import { useReadOnlySdk } from '../services/read-only-sdk';
@@ -21,6 +22,7 @@ import {
 
 export function Dashboard() {
   const { publicKey } = useWallet();
+  const openWalletModal = useOpenWalletModal();
   const { profile, hasProfile } = useProfile(publicKey || undefined);
   const { shares } = useShares(publicKey || undefined);
   const readSdk = useReadOnlySdk();
@@ -69,6 +71,13 @@ export function Dashboard() {
             <p className="text-gray-400 text-lg mb-8">
               Connect your wallet to launch Supporter Shares and track your community.
             </p>
+            <button
+              type="button"
+              onClick={() => openWalletModal({ toast: true })}
+              className="px-8 py-4 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-xl font-bold transition-all"
+            >
+              Connect Wallet
+            </button>
           </motion.div>
         </div>
       </AppLayout>

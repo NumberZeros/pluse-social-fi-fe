@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { useWallet } from '../../lib/wallet-adapter';
-import { WalletModal } from '../../lib/wallet-adapter/components/WalletModal';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useOpenWalletModal } from '../../hooks/useOpenWalletModal';
 import { SafeWalletButton } from '../wallet/SafeWalletButton';
 import { useProfile } from '../../hooks/useProfile';
 import { useFocusCreatePost } from '../../hooks/useFocusCreatePost';
@@ -18,7 +17,7 @@ export function Navbar() {
   const { profile } = useProfile(publicKey || undefined);
   const profilePath = profile?.username ? `/${profile.username}` : publicKey ? `/${publicKey.toBase58()}` : '/feed';
   const focusCreatePost = useFocusCreatePost();
-  const [showWalletModal, setShowWalletModal] = useState(false);
+  const openWalletModal = useOpenWalletModal();
 
   const renderNavLink = (item: (typeof NAV_ITEMS)[number]) => {
     const isActive = isNavItemActive(location.pathname, item.path);
@@ -29,7 +28,7 @@ export function Navbar() {
         <button
           key={item.path}
           type="button"
-          onClick={() => setShowWalletModal(true)}
+          onClick={() => openWalletModal()}
           title="Connect wallet"
           className="relative isolate px-3 py-1.5 rounded-full transition-colors opacity-50 hover:opacity-70"
         >
@@ -67,8 +66,7 @@ export function Navbar() {
   };
 
   return (
-    <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/70 backdrop-blur-xl border-b border-white/10 shadow-[0_1px_0_0_rgba(20,241,149,0.08)]">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/70 backdrop-blur-xl border-b border-white/10 shadow-[0_1px_0_0_rgba(20,241,149,0.08)]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
           <div className="hidden lg:grid grid-cols-[1fr_auto_1fr] items-center h-16">
             <Link to="/" className="flex items-center gap-2 group">
@@ -200,8 +198,5 @@ export function Navbar() {
           </div>
         </div>
       </nav>
-
-      <WalletModal isOpen={showWalletModal} onClose={() => setShowWalletModal(false)} />
-    </>
-  );
+    );
 }

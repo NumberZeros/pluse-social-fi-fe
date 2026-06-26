@@ -1,17 +1,19 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useAnchorWallet, useConnection } from '../lib/wallet-adapter';
+import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import { SocialFiSDK } from '../services/socialfi-sdk';
-import { toast } from 'react-hot-toast';
 import { withAnchorToast } from '../utils/error-handler';
 import { assertPlatformNotPaused } from '../utils/platformPauseGuard';
 import { PublicKey } from '@solana/web3.js';
 import { CacheManager } from '../services/storage';
 import { useQueryClient } from '@tanstack/react-query';
+import { useRequireWallet } from './useRequireWallet';
+import { toast } from 'react-hot-toast';
 
 export const usePost = () => {
   const wallet = useAnchorWallet();
   const { connection } = useConnection();
   const queryClient = useQueryClient();
+  const requireWallet = useRequireWallet();
   const [loading, setLoading] = useState(false);
 
   // Memoize SDK instance - only recreate when wallet or connection changes
@@ -49,10 +51,8 @@ export const usePost = () => {
    * @returns Post PDA and transaction signature
    */
   const createPost = useCallback(async (uri: string) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
 
     setLoading(true);
 
@@ -78,17 +78,15 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk, queryClient]);
+  }, [sdk, queryClient, requireWallet]);
 
   /**
    * Like a post
    * @param postPubkey - Post PDA to like
    */
   const likePost = useCallback(async (postPubkey: string | PublicKey) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
 
     setLoading(true);
 
@@ -117,17 +115,15 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk, invalidatePostEngagement]);
+  }, [sdk, invalidatePostEngagement, requireWallet]);
 
   /**
    * Unlike a post
    * @param postPubkey - Post PDA to unlike
    */
   const unlikePost = useCallback(async (postPubkey: string | PublicKey) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
 
     setLoading(true);
 
@@ -156,7 +152,7 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk, invalidatePostEngagement]);
+  }, [sdk, invalidatePostEngagement, requireWallet]);
 
   /**
    * Create a comment on a post
@@ -164,10 +160,8 @@ export const usePost = () => {
    * @param content - Comment content (max 280 characters)
    */
   const createComment = useCallback(async (postPubkey: string | PublicKey, content: string) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
 
     if (!content || content.trim().length === 0) {
       toast.error('Comment cannot be empty');
@@ -206,7 +200,7 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk, invalidatePostEngagement]);
+  }, [sdk, invalidatePostEngagement, requireWallet]);
 
   /**
    * Send a tip to a post author
@@ -214,10 +208,8 @@ export const usePost = () => {
    * @param amountInSol - Amount in SOL (will be converted to lamports)
    */
   const tipPostAuthor = useCallback(async (authorPubkey: string | PublicKey, amountInSol: number) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
 
     if (amountInSol <= 0) {
       toast.error('Tip amount must be greater than 0');
@@ -259,7 +251,7 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk, queryClient, invalidatePostEngagement]);
+  }, [sdk, queryClient, invalidatePostEngagement, requireWallet]);
 
   /**
    * Get a specific post

@@ -1,9 +1,9 @@
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useWallet } from '../../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { useProfile } from '../../hooks/useProfile';
 import { useFocusCreatePost } from '../../hooks/useFocusCreatePost';
-import { WalletModal } from '../../lib/wallet-adapter/components/WalletModal';
+import { useOpenWalletModal } from '../../hooks/useOpenWalletModal';
 import { IconExplore, IconFeed, IconIdentity } from '../icons/PulseIcons';
 import { isNavItemActive } from './nav-items';
 
@@ -31,7 +31,7 @@ export function MobileBottomNav() {
   const { connected, publicKey } = useWallet();
   const { profile } = useProfile(publicKey || undefined);
   const focusCreatePost = useFocusCreatePost();
-  const [showWalletModal, setShowWalletModal] = useState(false);
+  const openWalletModal = useOpenWalletModal();
 
   if (location.pathname === '/') return null;
 
@@ -116,7 +116,7 @@ export function MobileBottomNav() {
         <button
           key={tab.label}
           type="button"
-          onClick={() => setShowWalletModal(true)}
+          onClick={() => openWalletModal()}
           className={tabClassName(tab)}
           aria-label={`${tab.label} — connect wallet`}
         >
@@ -133,8 +133,7 @@ export function MobileBottomNav() {
   };
 
   return (
-    <>
-      <nav
+    <nav
         className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-black/90 backdrop-blur-xl border-t border-white/10 pb-[env(safe-area-inset-bottom)]"
         aria-label="Mobile navigation"
       >
@@ -159,8 +158,5 @@ export function MobileBottomNav() {
           <div className="grid grid-cols-4 h-16">{tabs.map(renderTab)}</div>
         )}
       </nav>
-
-      <WalletModal isOpen={showWalletModal} onClose={() => setShowWalletModal(false)} />
-    </>
   );
 }

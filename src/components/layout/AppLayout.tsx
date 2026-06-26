@@ -4,6 +4,7 @@ import { MobileBottomNav } from './MobileBottomNav';
 import Footer from './Footer';
 import { App3DBackground } from './App3DBackground';
 import { PlatformPauseBanner } from './PlatformPauseBanner';
+import { NetworkBanner } from '../wallet/NetworkBanner';
 
 export interface SiteLayoutProps {
   children: ReactNode;
@@ -29,6 +30,7 @@ export function SiteLayout({
 
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar />
+        <NetworkBanner />
         <PlatformPauseBanner />
 
         <main className={mainClasses}>{children}</main>
