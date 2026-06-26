@@ -1,93 +1,115 @@
 import { motion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useWallet } from '../lib/wallet-adapter';
 import { CreatePost } from '../components/feed/CreatePost';
 import TrendingSidebar from '../components/feed/TrendingSidebar';
-import { MintPostModal } from '../components/feed/MintPostModal';
+import { FeedPostCard } from '../components/feed/FeedPostCard';
+import type { FeedPostData } from '../components/feed/FeedPostCard';
+import { MySupportPanel } from '../components/shares/MySupportPanel';
 import { useUserStore } from '../stores/useUserStore';
 import { SEO } from '../components/SEO';
-import { useTimeline, useCreatePost, useLikePost, useUnlikePost, useRepostPost, useTipPost } from '../hooks/useFeed';
+import {
+  useTimeline,
+  useLikePost,
+  useUnlikePost,
+  useTipPost,
+  FEED_PAGE_SIZE,
+} from '../hooks/useFeed';
+import { useFollowers, useFollowing } from '../hooks/useFollow';
 import { useCache } from '../hooks/useCache';
-import { Heart, Repeat2, DollarSign, MessageCircle, Sparkles, Wifi, WifiOff } from 'lucide-react';
+import { usePlatformAction } from '../hooks/usePlatformAction';
+import { TipPostModal } from '../components/feed/TipPostModal';
+import { Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { AppLayout } from '../components/layout/AppLayout';
+import { PostSkeleton } from '../components/LoadingStates';
+import { PAGE_SEO_CONFIG } from '../lib/seo/page-config';
+import { buildFeedPageSchema } from '../lib/seo/schema';
+
+type FeedTab = 'following' | 'all';
 
 export function Feed() {
   const { publicKey } = useWallet();
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const profile = useUserStore((state) => state.profile);
   const { isOnline } = useCache();
-  
-  // Mint modal state
-  const [mintModalOpen, setMintModalOpen] = useState(false);
-  const [selectedPostForMint, setSelectedPostForMint] = useState<any>(null);
+  const feedConfig = PAGE_SEO_CONFIG['/feed'];
 
-  const { data: rawPosts, isLoading } = useTimeline();
-  const createPostMutation = useCreatePost();
+  const [tipModalOpen, setTipModalOpen] = useState(false);
+  const [selectedPostForTip, setSelectedPostForTip] = useState<FeedPostData | null>(null);
+  const [feedTab, setFeedTab] = useState<FeedTab>('all');
+  const defaultTabSet = useRef(false);
+
+  const { data: rawPosts, isPending, isError } = useTimeline();
+  const { isPaused, guardAction } = usePlatformAction();
+  const { data: followers = [] } = useFollowers(publicKey?.toBase58() || '');
+  const { data: following = [] } = useFollowing(publicKey?.toBase58() || '');
+  const [page, setPage] = useState(1);
   const likePostMutation = useLikePost();
   const unlikePostMutation = useUnlikePost();
-  const repostMutation = useRepostPost();
   const tipPostMutation = useTipPost();
-  
-  const handleOpenMintModal = (post: any) => {
-    // Check if post already has an NFT
-    if (post.mint) {
-      toast.error('This post has already been minted as an NFT');
-      return;
+
+  useEffect(() => {
+    if (!defaultTabSet.current && following.length > 0) {
+      setFeedTab('following');
+      defaultTabSet.current = true;
     }
-    setSelectedPostForMint(post);
-    setMintModalOpen(true);
+  }, [following.length]);
+
+  const followingAddresses = useMemo(
+    () => new Set(following.map((f) => f.following)),
+    [following],
+  );
+
+  const allPosts = rawPosts || [];
+
+  const filteredPosts = useMemo(() => {
+    if (feedTab === 'all') return allPosts;
+    if (!publicKey) return [];
+    return allPosts.filter((post) => followingAddresses.has(post.author));
+  }, [allPosts, feedTab, followingAddresses, publicKey]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [feedTab]);
+
+  const hasNextPage = page * FEED_PAGE_SIZE < filteredPosts.length;
+  const fetchNextPage = () => {
+    if (hasNextPage) setPage((p) => p + 1);
   };
-  
-  const handleCloseMintModal = () => {
-    setMintModalOpen(false);
-    setSelectedPostForMint(null);
-  };
 
-  // Mock pagination for now until SDK supports it
-  const hasNextPage = false;
-  const isFetchingNextPage = false;
-  const fetchNextPage = () => {};
+  const posts: FeedPostData[] = filteredPosts.slice(0, page * FEED_PAGE_SIZE).map((post) => ({
+    id: post.id || post.publicKey,
+    content: post.content || '',
+    author: {
+      username: post.authorUsername || post.author,
+      authorUsername: post.authorUsername,
+      address: post.author,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author}`,
+    },
+    timestamp: post.createdAt,
+    images: post.imageUrls || [],
+    videos: post.videoUrls || [],
+    likes: post.likes || 0,
+    comments: post.comments || 0,
+    tips: post.tips || 0,
+    isLiked: post.isLiked || false,
+    accessLevel: post.accessLevel || (post.isSubscriberOnly ? 'supporters' : 'public'),
+    gatedContentUri: post.gatedContentUri,
+  }));
 
-  const posts = (rawPosts || []).map((post) => {
-    const mapped = {
-      id: post.id || post.publicKey,
-      content: post.content || '',
-      author: {
-        username: post.authorUsername || post.author.slice(0, 8),
-        address: post.author,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author}`,
-        verified: false,
-      },
-      timestamp: post.createdAt,
-      images: post.imageUrls || [],
-      likes: post.likes || 0,
-      comments: post.comments || 0,
-      reposts: post.reposts || 0,
-      tips: post.tips || 0,
-      isLiked: post.isLiked || false,
-      isReposted: post.isReposted || false,
-      mint: post.mint || null,
-    };
-    
-    // Debug log to see post data and mint status
-    console.log('📝 Post mapping:', {
-      id: mapped.id,
-      authorAddress: mapped.author.address,
-      currentWallet: publicKey?.toBase58(),
-      isAuthor: mapped.author.address === publicKey?.toBase58(),
-      hasMint: !!mapped.mint,
-      mintAddress: mapped.mint,
-    });
-    
-    return mapped;
-  });
+  const schemaPosts = filteredPosts.slice(0, 20).map((post) => ({
+    id: post.id,
+    name: (post.content || 'Post').slice(0, 60),
+    path: `/post/${post.id}`,
+  }));
 
-  // Intersection Observer for infinite scroll
+  const schema = buildFeedPageSchema(feedConfig.breadcrumbs ?? [], schemaPosts);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isFetchingNextPage && hasNextPage) {
+        if (entries[0].isIntersecting && hasNextPage) {
           fetchNextPage();
         }
       },
@@ -99,78 +121,46 @@ export function Feed() {
     }
 
     return () => observer.disconnect();
-  }, [isFetchingNextPage, hasNextPage]);
-
-  const handleCreatePost = (content: string, images: string[]) => {
-    if (!publicKey) {
-      toast.error('Please connect your wallet');
-      return;
-    }
-
-    if (!publicKey) {
-      toast.error('Please connect your wallet');
-      return;
-    }
-
-    createPostMutation.mutate(
-      {
-        content,
-        images,
-      },
-      {
-        onSuccess: () => {
-          toast.success('Post created!');
-        },
-        onError: () => {
-          toast.error('Failed to create post');
-        },
-      },
-    );
-  };
+  }, [hasNextPage]);
 
   const handleLikePost = (postId: string, isLiked: boolean) => {
-    if (!publicKey) {
-      toast.error('Please connect your wallet');
-      return;
-    }
-
-    if (isLiked) {
-      unlikePostMutation.mutate(postId);
-    } else {
-      likePostMutation.mutate(postId);
-    }
+    guardAction(() => {
+      if (!publicKey) {
+        toast.error('Please connect your wallet');
+        return;
+      }
+      if (isLiked) {
+        unlikePostMutation.mutate(postId);
+      } else {
+        likePostMutation.mutate(postId);
+      }
+    });
   };
 
-  const handleRepost = (postId: string) => {
-    if (!publicKey) {
-      toast.error('Please connect your wallet');
-      return;
-    }
-
-    repostMutation.mutate(
-      { postId },
-      {
-        onSuccess: () => {
-          toast.success('Reposted!');
-        },
-      },
-    );
+  const handleTip = (post: FeedPostData) => {
+    guardAction(() => {
+      if (!publicKey) {
+        toast.error('Please connect your wallet');
+        return;
+      }
+      setSelectedPostForTip(post);
+      setTipModalOpen(true);
+    });
   };
 
-  const handleTip = (post: any) => {
-    if (!publicKey) {
-      toast.error('Please connect your wallet');
-      return;
-    }
-
-    const amount = prompt('Enter tip amount (SOL):');
-    if (!amount || isNaN(parseFloat(amount))) return;
-
+  const handleTipSubmit = (amount: number) => {
+    if (!selectedPostForTip) return;
     tipPostMutation.mutate(
-      { postId: post.id, authorAddress: post.author.address, amount: parseFloat(amount) },
+      {
+        postId: selectedPostForTip.id,
+        authorAddress: selectedPostForTip.author.address,
+        amount,
+      },
       {
         onSuccess: () => {
           toast.success(`Tipped ${amount} SOL!`);
+          setTipModalOpen(false);
+          setSelectedPostForTip(null);
         },
         onError: () => {
           toast.error('Failed to send tip');
@@ -179,32 +169,18 @@ export function Feed() {
     );
   };
 
-  const handleComment = (_postId: string) => {
-    if (!publicKey) {
-      toast.error('Please connect your wallet');
-      return;
-    }
-    
-    const content = prompt('Enter your comment (max 280 characters):');
-    if (!content || content.trim().length === 0) return;
-    
-    if (content.length > 280) {
-      toast.error('Comment must be 280 characters or less');
-      return;
-    }
-    
-    toast.success('Comment feature coming soon - UI to be added');
-  };
-
   return (
     <AppLayout>
       <SEO
-        title="Feed"
-        description="Stay updated with the latest posts from the Pulse Social community."
+        title={feedConfig.title}
+        description={feedConfig.description}
+        keywords={feedConfig.keywords}
+        image={feedConfig.ogImage}
+        imageAlt="Pulse Social Feed"
         url="/feed"
+        schema={schema}
       />
 
-      {/* Online/Offline Status Badge */}
       <div className="mb-6 flex justify-end">
         <motion.div
           animate={{ opacity: isOnline ? 1 : 0.8 }}
@@ -229,237 +205,104 @@ export function Feed() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-12">
-        {/* Left Sidebar (Optional Navigation/User Card) - Hidden on Mobile */}
         <div className="hidden lg:block lg:col-span-3">
-           <div className="glass-card rounded-2xl p-6 sticky top-28 border border-white/10">
+          <div className="sticky top-28 space-y-6">
+            <div className="glass-card rounded-2xl p-6 border border-white/10">
               <div className="flex items-center gap-3 mb-6">
-                 <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[var(--color-solana-green)] to-blue-500" />
-                 <div>
-                    <div className="font-bold">{profile.username || 'Anon User'}</div>
-                    <div className="text-sm text-gray-400">@handle</div>
-                 </div>
+                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[var(--color-solana-green)] to-blue-500" />
+                <div>
+                  <div className="font-bold">{profile.username || 'Anon User'}</div>
+                  <div className="text-sm text-gray-400">@{profile.username || 'creator'}</div>
+                </div>
               </div>
               <div className="space-y-4 text-sm text-gray-300">
-                 <div className="flex justify-between">
-                    <span>Followers</span>
-                    <span className="font-bold text-white">1,240</span>
-                 </div>
-                 <div className="flex justify-between">
-                    <span>Following</span>
-                    <span className="font-bold text-white">584</span>
-                 </div>
+                <div className="flex justify-between">
+                  <span>Followers</span>
+                  <span className="font-bold text-white">{followers.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Following</span>
+                  <span className="font-bold text-white">{following.length}</span>
+                </div>
               </div>
-           </div>
+            </div>
+
+            {publicKey && <MySupportPanel walletAddress={publicKey.toBase58()} />}
+          </div>
         </div>
 
-        {/* Main Feed */}
         <div className="lg:col-span-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <CreatePost onPost={handleCreatePost} />
+            <CreatePost />
 
-            {/* Loading State */}
-            {isLoading ? (
+            <div className="flex gap-2 p-1 bg-white/5 rounded-full border border-white/10 w-fit">
+              {(['following', 'all'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setFeedTab(tab)}
+                  className={`px-5 py-2 rounded-full text-sm font-bold transition-colors ${
+                    feedTab === tab
+                      ? 'bg-[var(--color-solana-green)] text-black'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {tab === 'following' ? 'Following' : 'All'}
+                </button>
+              ))}
+            </div>
+
+            {isPending ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="glass-card rounded-2xl p-6 border border-white/10 animate-pulse bg-white/5"
-                  >
-                    <div className="flex gap-4">
-                      <div className="w-12 h-12 bg-white/10 rounded-full"></div>
-                      <div className="flex-1 space-y-3">
-                        <div className="h-4 bg-white/10 rounded w-1/4"></div>
-                        <div className="h-4 bg-white/10 rounded w-3/4"></div>
-                        <div className="h-4 bg-white/10 rounded w-1/2"></div>
-                      </div>
-                    </div>
-                  </div>
+                  <PostSkeleton key={i} />
                 ))}
+              </div>
+            ) : isError ? (
+              <div className="glass-card rounded-2xl p-12 border border-white/10 text-center">
+                <h3 className="text-xl font-bold mb-2">Failed to load feed</h3>
+                <p className="text-gray-400">Check your connection and try again.</p>
+              </div>
+            ) : feedTab === 'following' && !publicKey ? (
+              <div className="glass-card rounded-2xl p-12 border border-white/10 text-center">
+                <h3 className="text-xl font-bold mb-2">Connect to see Following</h3>
+                <p className="text-gray-400">Connect your wallet to view posts from creators you follow.</p>
               </div>
             ) : posts.length > 0 ? (
               <div className="space-y-4">
                 {posts.map((post, index) => (
-                  <motion.div
+                  <FeedPostCard
                     key={post.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="glass-card rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all backdrop-blur-xl bg-black/40 hover:bg-black/60 shadow-lg"
-                  >
-                    {/* Post Header */}
-                    <div className="flex items-start gap-3 mb-4">
-                      <img
-                        src={post.author.avatar}
-                        alt={post.author.username}
-                        className="w-12 h-12 rounded-full border border-white/10"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-white hover:text-[var(--color-solana-green)] transition-colors cursor-pointer">{post.author.username}</span>
-                          <span className="text-gray-400 text-sm">
-                            {post.author.address.slice(0, 4)}...{post.author.address.slice(-4)}
-                          </span>
-                          <span className="text-gray-500 text-sm">·</span>
-                          <span className="text-gray-500 text-sm">
-                            {new Date(post.timestamp).toLocaleDateString()}
-                          </span>
-                          {/* NFT Badge */}
-                          {post.mint && (
-                            <a
-                              href={`https://solscan.io/token/${post.mint}?cluster=devnet`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-full text-xs font-medium text-yellow-400 hover:border-yellow-500/50 transition-colors"
-                              title="This post is an NFT - Click to view on Solscan"
-                            >
-                              <Sparkles className="w-3 h-3 fill-current" />
-                              NFT
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Post Content */}
-                    <div className="text-gray-200 mb-4 leading-relaxed whitespace-pre-wrap">{post.content}</div>
-
-                    {/* Post Images */}
-                    {post.images.length > 0 && (
-                      <div className={`grid gap-2 mb-4 rounded-xl overflow-hidden ${post.images.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                        {post.images.map((img, i) => (
-                          <img key={i} src={img} alt="" className="w-full h-64 object-cover hover:scale-105 transition-transform duration-500" />
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Post Actions */}
-                    <div className="flex items-center justify-between text-gray-500 pt-4 border-t border-white/5">
-                      <button
-                        onClick={() => handleLikePost(post.id, post.isLiked ?? false)}
-                        className={`flex items-center gap-2 hover:text-pink-500 transition-colors group ${
-                          post.isLiked ? 'text-pink-500' : ''
-                        }`}
-                      >
-                        <div className={`p-2 rounded-full group-hover:bg-pink-500/10 transition-colors ${post.isLiked ? 'bg-pink-500/10' : ''}`}>
-                           <Heart className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} />
-                        </div>
-                        <span className="text-sm font-medium">{post.likes}</span>
-                      </button>
-                      
-                      <button className="flex items-center gap-2 hover:text-blue-400 transition-colors group" onClick={() => handleComment(post.id)}>
-                        <div className="p-2 rounded-full group-hover:bg-blue-400/10 transition-colors">
-                           <MessageCircle className="w-5 h-5" />
-                        </div>
-                        <span className="text-sm font-medium">{post.comments}</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => handleRepost(post.id)}
-                        className={`flex items-center gap-2 hover:text-green-500 transition-colors group ${
-                          post.isReposted ? 'text-green-500' : ''
-                        }`}
-                      >
-                        <div className="p-2 rounded-full group-hover:bg-green-500/10 transition-colors">
-                           <Repeat2 className="w-5 h-5" />
-                        </div>
-                        <span className="text-sm font-medium">{post.reposts}</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => handleTip(post)}
-                        className="flex items-center gap-2 hover:text-[var(--color-solana-green)] transition-colors group"
-                      >
-                        <div className="p-2 rounded-full group-hover:bg-[var(--color-solana-green)]/10 transition-colors">
-                           <DollarSign className="w-5 h-5" />
-                        </div>
-                        <span className="text-sm font-medium">{post.tips.toFixed(2)} SOL</span>
-                      </button>
-                      
-                      {/* Mint as NFT Button OR NFT Badge */}
-                      {post.author.address && publicKey && post.author.address === publicKey.toBase58() && (
-                        post.mint ? (
-                          // Show NFT badge with links if already minted
-                          <div className="flex items-center gap-2">
-                            <a
-                              href={`https://solscan.io/token/${post.mint}?cluster=devnet`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors group"
-                              title="View NFT on Solscan"
-                            >
-                              <div className="p-2 rounded-full bg-yellow-400/10 group-hover:bg-yellow-400/20 transition-colors">
-                                <Sparkles className="w-5 h-5 fill-current" />
-                              </div>
-                              <span className="text-sm font-medium">NFT</span>
-                            </a>
-                            <a
-                              href={`https://solscan.io/token/${post.mint}?cluster=devnet`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-gray-400 hover:text-[var(--color-solana-green)] transition-colors"
-                              title="View on Solscan"
-                            >
-                              📊
-                            </a>
-                          </div>
-                        ) : (
-                          // Show Mint button if not yet minted
-                          <button
-                            onClick={() => handleOpenMintModal(post)}
-                            className="flex items-center gap-2 hover:text-yellow-400 transition-colors group"
-                            title="Mint this post as an NFT"
-                          >
-                            <div className="p-2 rounded-full group-hover:bg-yellow-400/10 transition-colors">
-                              <Sparkles className="w-5 h-5" />
-                            </div>
-                            <span className="text-sm font-medium">Mint</span>
-                          </button>
-                        )
-                      )}
-                    </div>
-                  </motion.div>
+                    post={post}
+                    index={index}
+                    viewerAddress={publicKey?.toBase58()}
+                    isPaused={isPaused}
+                    onLike={handleLikePost}
+                    onTip={handleTip}
+                  />
                 ))}
               </div>
             ) : (
               <div className="glass-card rounded-2xl p-12 border border-white/10 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/5 rounded-full mb-4">
-                  <svg
-                    className="w-8 h-8 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-2">No posts yet</h3>
-                <p className="text-gray-400">Be the first to post something!</p>
+                <h3 className="text-xl font-bold mb-2">
+                  {feedTab === 'following' ? 'No posts from people you follow' : 'No posts yet'}
+                </h3>
+                <p className="text-gray-400">
+                  {feedTab === 'following'
+                    ? 'Follow creators on Explore, or switch to All to see the global feed.'
+                    : 'Be the first to post something!'}
+                </p>
               </div>
             )}
 
-            {/* Infinite Scroll Trigger */}
-            {!isLoading && posts.length > 0 && (
+            {!isPending && posts.length > 0 && (
               <div ref={loadMoreRef} className="py-8">
-                {isFetchingNextPage && (
-                  <div className="flex justify-center">
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <div className="w-5 h-5 border-2 border-[var(--color-solana-green)] border-t-transparent rounded-full animate-spin"></div>
-                      <span>Loading more posts...</span>
-                    </div>
-                  </div>
-                )}
                 {!hasNextPage && (
                   <div className="text-center text-gray-500 py-4">
-                    <p>You've reached the end! 🎉</p>
+                    <p>You&apos;ve reached the end!</p>
                   </div>
                 )}
               </div>
@@ -467,37 +310,22 @@ export function Feed() {
           </motion.div>
         </div>
 
-        {/* Right Sidebar (Trending) */}
         <div className="lg:col-span-3">
           <div className="sticky top-28 space-y-6">
-             <TrendingSidebar />
-             
-             {/* Mini Footer */}
-             <div className="glass-card p-4 rounded-xl border border-white/5 text-xs text-gray-500 space-y-2">
-                <div className="flex flex-wrap gap-2">
-                   <a href="#" className="hover:text-white transition-colors">Terms</a>
-                   <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                   <a href="#" className="hover:text-white transition-colors">Docs</a>
-                   <a href="#" className="hover:text-white transition-colors">Source</a>
-                </div>
-                <div>© 2024 Pulse Social. All rights reserved.</div>
-             </div>
+            <TrendingSidebar />
           </div>
         </div>
       </div>
-      
-      {/* Mint Post Modal */}
-      {selectedPostForMint && (
-        <MintPostModal
-          isOpen={mintModalOpen}
-          post={selectedPostForMint}
-          onClose={handleCloseMintModal}
-          onSuccess={(mintAddress) => {
-            toast.success(`Post minted as NFT! Mint: ${mintAddress.slice(0, 8)}...`);
-            handleCloseMintModal();
-          }}
-        />
-      )}
+
+      <TipPostModal
+        isOpen={tipModalOpen}
+        onClose={() => {
+          setTipModalOpen(false);
+          setSelectedPostForTip(null);
+        }}
+        onSubmit={handleTipSubmit}
+        isSubmitting={tipPostMutation.isPending}
+      />
     </AppLayout>
   );
 }

@@ -2,32 +2,41 @@ import type { ReactNode } from 'react';
 import { Navbar } from './Navbar';
 import Footer from './Footer';
 import { App3DBackground } from './App3DBackground';
-import { MintUsernameModal } from '../landing/MintUsernameModal';
+import { PlatformPauseBanner } from './PlatformPauseBanner';
 
-interface AppLayoutProps {
+export interface SiteLayoutProps {
   children: ReactNode;
   showFooter?: boolean;
+  /** Skip max-width padding on main — used for landing hero sections. */
+  fullBleed?: boolean;
+  mainClassName?: string;
 }
 
-export function AppLayout({ children, showFooter = true }: AppLayoutProps) {
+export function SiteLayout({
+  children,
+  showFooter = true,
+  fullBleed = false,
+  mainClassName = '',
+}: SiteLayoutProps) {
+  const mainClasses = fullBleed
+    ? `flex-grow pt-24 w-full ${mainClassName}`
+    : `flex-grow pt-24 px-4 max-w-[1400px] mx-auto w-full ${mainClassName}`;
+
   return (
     <div className="bg-[#000000] min-h-screen text-white relative overflow-x-hidden selection:bg-[var(--color-solana-green)] selection:text-black">
-      {/* Global 3D Background */}
       <App3DBackground />
 
-      {/* Content Layer */}
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar />
-        
-        <main className="flex-grow pt-24 px-4 max-w-[1400px] mx-auto w-full">
-          {children}
-        </main>
+        <PlatformPauseBanner />
+
+        <main className={mainClasses}>{children}</main>
 
         {showFooter && <Footer />}
       </div>
-      
-      {/* Global Modals */}
-      <MintUsernameModal />
     </div>
   );
 }
+
+/** @deprecated Use SiteLayout — kept for existing imports. */
+export const AppLayout = SiteLayout;

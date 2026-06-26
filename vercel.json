@@ -1,13 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm build",
+  "buildCommand": "node scripts/generate-og-images.mjs && pnpm build",
   "devCommand": "pnpm dev",
   "installCommand": "pnpm install",
   "framework": "vite",
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap.xml"
+    },
+    {
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],
@@ -20,10 +24,25 @@
           "value": "public, max-age=31536000, immutable"
         }
       ]
+    },
+    {
+      "source": "/og-image(.*).png",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
     }
   ],
   "env": {
+    "VITE_SITE_URL": "https://pulse.social",
+    "SITE_URL": "https://pulse.social",
     "VITE_SOLANA_NETWORK": "devnet",
-    "VITE_SOLANA_RPC_URL": "https://api.devnet.solana.com"
+    "VITE_SOLANA_RPC_URL": "https://api.devnet.solana.com",
+    "SOLANA_RPC_URL": "https://api.devnet.solana.com",
+    "VITE_PROGRAM_ID": "FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL",
+    "PROGRAM_ID": "FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL",
+    "VITE_COLLECTION_MINT": "11111111111111111111111111111111"
   }
 }

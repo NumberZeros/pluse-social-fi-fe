@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { NETWORK, RPC_ENDPOINTS } from '../utils/constants';
+import { getRpcEndpoint } from '../utils/constants';
 import { WalletProvider, WalletError } from '../lib/wallet-adapter';
 
 interface SolanaProviderProps {
@@ -11,7 +11,7 @@ interface SolanaProviderProps {
  * Replaces the old @solana/wallet-adapter implementation
  */
 export function SolanaProvider({ children }: SolanaProviderProps) {
-  const endpoint = useMemo(() => RPC_ENDPOINTS[NETWORK], []);
+  const endpoint = useMemo(() => getRpcEndpoint(), []);
 
   const handleError = (error: WalletError) => {
     console.error('Wallet connection error:', error);

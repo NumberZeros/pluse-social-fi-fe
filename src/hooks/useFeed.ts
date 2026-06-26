@@ -1,8 +1,15 @@
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
+import { useReadOnlySdk } from '../services/read-only-sdk';
+import { useWallet } from '../lib/wallet-adapter';
 import { CacheManager, isOnline } from '../services/storage';
 import { toast } from 'react-hot-toast';
+import { type PostAccessLevel, fetchMetadata } from '../services/ipfs';
+import { assertPlatformNotPaused } from '../utils/platformPauseGuard';
+
+export const FEED_PAGE_SIZE = 10;
 
 export interface Post {
   id: string; // PublicKey string
@@ -11,76 +18,24 @@ export interface Post {
   authorUsername?: string; // Fetched from profile
   content: string;
   imageUrls: string[];
+  videoUrls: string[];
   createdAt: number;
   likes: number;
   comments: number;
   reposts: number;
   tips: number;
-  mint?: string | null; // NFT mint address if minted
+  mint?: string | null;
+  groupId?: string;
+  accessLevel?: PostAccessLevel;
+  gatedContentUri?: string;
+  /** @deprecated Use accessLevel */
+  isSubscriberOnly?: boolean;
   isLiked?: boolean;
   isReposted?: boolean;
 }
 
-// Fetch metadata with IndexedDB caching
-const fetchMetadata = async (uri: string): Promise<{ content: string; images: string[] }> => {
-  try {
-    // Check cache first
-    const cached = await CacheManager.getCachedMetadata(uri);
-    if (cached) {
-      return cached;
-    }
-
-    let metadata: { content: string; images: string[] };
-
-    // Plain text content
-    if (uri.startsWith('text:')) {
-      metadata = { content: uri.slice(5), images: [] };
-    }
-    // Mock storage in localStorage
-    else if (uri.startsWith('mock:') || uri.startsWith('ipfs://post/')) {
-      const data = localStorage.getItem(`post_metadata_${uri}`);
-      metadata = data ? JSON.parse(data) : { content: `[Test Post] URI: ${uri}`, images: [] };
-    }
-    // Real HTTP/HTTPS URLs (Arweave, Pinata gateways)
-    else if (uri.startsWith('http')) {
-      const res = await fetch(uri);
-      if (res.ok) {
-        metadata = await res.json();
-      } else {
-        metadata = { content: `[Error] Failed to fetch: ${uri}`, images: [] };
-      }
-    }
-    // Fallback: treat URI as plain text content
-    else {
-      console.warn('⚠️ Could not fetch metadata for URI:', uri);
-      metadata = { content: `[Test Post] URI: ${uri}`, images: [] };
-    }
-
-    // Cache the result for next time
-    await CacheManager.setCachedMetadata(uri, metadata);
-    return metadata;
-  } catch (e) {
-    console.error('Failed to fetch metadata:', uri, e);
-    
-    // Try to use cached version on error
-    const cached = await CacheManager.getCachedMetadata(uri);
-    if (cached) return cached;
-    
-    return { content: `[Test Post] URI: ${uri}`, images: [] };
-  }
-};
-
-const uploadMetadata = async (content: string, images: string[]): Promise<string> => {
-  // Store metadata temporarily in localStorage with Pinata-style IPFS URI
-  const id = `ipfs://post/${Date.now()}`;
-  const metadata = { content, images };
-  localStorage.setItem(`post_metadata_${id}`, JSON.stringify(metadata));
-  
-  // Also cache in IndexedDB
-  await CacheManager.setCachedMetadata(id, metadata);
-  
-  return id;
-};
+// Re-export for consumers that imported from useFeed
+export { fetchMetadata } from '../services/ipfs';
 
 interface RawPost {
   publicKey: string;
@@ -90,120 +45,137 @@ interface RawPost {
   createdAt: number;
 }
 
+async function buildUsernameMap(readSdk: NonNullable<ReturnType<typeof useReadOnlySdk>>) {
+  try {
+    const profiles = await readSdk.program.account.userProfile.all();
+    return new Map(
+      profiles.map((p) => [p.account.owner.toBase58(), p.account.username] as const),
+    );
+  } catch {
+    return new Map<string, string>();
+  }
+}
+
 /**
  * Get all posts from blockchain
  */
 export const useTimeline = () => {
-  const { sdk } = useSocialFi();
+  const readSdk = useReadOnlySdk();
+  const { publicKey } = useWallet();
 
   return useQuery({
-    queryKey: ['feed_timeline'],
+    queryKey: ['feed_timeline', publicKey?.toBase58()],
     queryFn: async (): Promise<Post[]> => {
-      try {
-        if (!sdk) {
-          // Try to return cached posts if offline
-          const cached = await CacheManager.getCachedPosts();
-          if (cached) {
-            console.log('📱 Using cached posts (no SDK)');
-            return cached;
-          }
-          return [];
-        }
+      if (!readSdk) {
+        throw new Error('Read-only SDK not initialized');
+      }
 
-        const rawPosts: RawPost[] = await sdk.getAllPosts();
-        
-        // If we get no posts from API, use cache instead of overwriting with empty array
-        if (!rawPosts || rawPosts.length === 0) {
-          const cached = await CacheManager.getCachedPosts();
-          if (cached) {
-            console.log('📱 API returned no posts, using cached');
-            return cached;
-          }
-          return [];
-        }
-        
-        // Fetch metadata and stats for each post
+      try {
+        const rawPosts: RawPost[] = await readSdk.getAllPosts();
+        const usernameByAuthor = await buildUsernameMap(readSdk);
+
         const enrichedPosts = await Promise.all(
           rawPosts.map(async (p) => {
             const metadata = await fetchMetadata(p.uri);
-            
-            // Don't fetch likes/comments/profile stats on initial load - too many RPC calls!
-            // These cause rate limiting. Fetch them on-demand instead.
-            // For now, return post with default stats (0 likes, 0 comments, no username)
+
             return {
               id: p.publicKey,
-              publicKey: p.publicKey, // For backwards compatibility
+              publicKey: p.publicKey,
               author: p.author,
-              authorUsername: undefined, // Will be fetched on demand or from cache
+              authorUsername: usernameByAuthor.get(p.author),
               content: metadata.content,
               imageUrls: metadata.images || [],
-              createdAt: p.createdAt * 1000, // Convert to ms
-              likes: 0, // Will be fetched on demand
-              comments: 0, // Will be fetched on demand
+              videoUrls: metadata.videos || [],
+              createdAt: p.createdAt * 1000,
+              likes: 0,
+              comments: 0,
               reposts: 0,
               tips: 0,
-              mint: p.mint, // NFT mint if exists
+              mint: p.mint,
+              groupId: metadata.groupId,
+              accessLevel: metadata.accessLevel,
+              gatedContentUri: metadata.gatedContentUri,
+              isSubscriberOnly: metadata.accessLevel === 'supporters',
               isLiked: false,
               isReposted: false,
             };
-          })
+          }),
         );
 
-        // Sort by createdAt descending
-        const sorted = enrichedPosts.sort((a, b) => b.createdAt - a.createdAt);
+        const engagementIndex = await readSdk.buildEngagementIndex(publicKey || undefined);
+        const withEngagement = enrichedPosts.map((post) => {
+          const engagement = engagementIndex.get(post.id);
+          if (!engagement) return post;
+          return {
+            ...post,
+            likes: engagement.likes,
+            comments: engagement.comments,
+            reposts: engagement.reposts,
+            isLiked: engagement.isLiked,
+          };
+        });
 
-        // Cache the fresh data (only if we have posts)
+        const sorted = withEngagement.sort((a, b) => b.createdAt - a.createdAt);
+
         if (sorted.length > 0) {
           await CacheManager.setCachedPosts(sorted);
         }
 
-        return sorted as any;
+        return sorted as Post[];
       } catch (error) {
         console.error('Error fetching feed:', error);
-        
-        // Always try to return cached posts on error (offline or API failure)
+
+        if (!isOnline()) {
+          const cached = await CacheManager.getCachedPosts();
+          if (cached) {
+            console.warn('Using stale cache — RPC may be failing (offline)');
+            return cached as Post[];
+          }
+        }
+
         const cached = await CacheManager.getCachedPosts();
         if (cached) {
-          const statusMsg = isOnline() ? '(API error - using cache)' : '(offline - using cache)';
-          console.log(`📱 Using cached posts ${statusMsg}`);
-          return cached as any;
+          console.warn('Using stale cache — RPC may be failing');
+          return cached as Post[];
         }
 
         throw error;
       }
     },
-    enabled: !!sdk,
-    staleTime: 1000 * 60 * 5, // 5 minutes (matches QueryClient default)
-    refetchInterval: undefined, // Disable auto-refetch (too heavy - multiple RPC calls per post)
+    enabled: !!readSdk,
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: undefined,
   });
 };
 
 /**
- * Create post mutation (on-chain)
+ * Batch engagement for visible posts (single index fetch, shared across cards).
  */
-export const useCreatePost = () => {
-  const queryClient = useQueryClient();
-  const { sdk } = useSocialFi();
+export const useFeedEngagement = (postIds: string[]) => {
+  const readSdk = useReadOnlySdk();
+  const { publicKey } = useWallet();
 
-  return useMutation({
-    mutationFn: async ({ content, images }: { content: string; images: string[] }) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      
-      const uri = await uploadMetadata(content, images);
-      
-      return await sdk.createPost(uri);
+  return useQuery({
+    queryKey: ['feed_engagement', postIds.join(','), publicKey?.toBase58()],
+    queryFn: async () => {
+      if (!readSdk || postIds.length === 0) {
+        return new Map<string, { likes: number; comments: number; reposts: number; isLiked: boolean }>();
+      }
+      const index = await readSdk.buildEngagementIndex(publicKey || undefined);
+      const filtered = new Map<string, { likes: number; comments: number; reposts: number; isLiked: boolean }>();
+      for (const id of postIds) {
+        const entry = index.get(id);
+        if (entry) filtered.set(id, entry);
+      }
+      return filtered;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
-      queryClient.invalidateQueries({ queryKey: ['user_posts'] });
-      // Clear cache to force refresh
-      CacheManager.clearCache();
-    },
+    enabled: !!readSdk && postIds.length > 0,
+    staleTime: 1000 * 60 * 2,
   });
 };
 
 /**
- * Like post mutation (on-chain)  
+ * Like post mutation (on-chain)
  */
 export const useLikePost = () => {
   const queryClient = useQueryClient();
@@ -211,12 +183,16 @@ export const useLikePost = () => {
 
   return useMutation({
     mutationFn: async (postId: string) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.likePost(new PublicKey(postId));
+      await assertPlatformNotPaused(sdk);
+      return await sdk!.likePost(new PublicKey(postId));
     },
-    onSuccess: () => {
+    onSuccess: (_data, postId) => {
       queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['feed_engagement'] });
       queryClient.invalidateQueries({ queryKey: ['post_likes'] });
+      queryClient.invalidateQueries({ queryKey: ['single_post', postId] });
+      queryClient.invalidateQueries({ queryKey: ['has_liked'] });
+      queryClient.invalidateQueries({ queryKey: ['post_engagement'] });
     },
   });
 };
@@ -230,30 +206,16 @@ export const useUnlikePost = () => {
 
   return useMutation({
     mutationFn: async (postId: string) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.unlikePost(new PublicKey(postId));
+      await assertPlatformNotPaused(sdk);
+      return await sdk!.unlikePost(new PublicKey(postId));
     },
-    onSuccess: () => {
+    onSuccess: (_data, postId) => {
       queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['feed_engagement'] });
       queryClient.invalidateQueries({ queryKey: ['post_likes'] });
-    },
-  });
-};
-
-/**
- * Repost mutation (on-chain)
- */
-export const useRepostPost = () => {
-  const queryClient = useQueryClient();
-  const { sdk } = useSocialFi();
-
-  return useMutation({
-    mutationFn: async ({ postId }: { postId: string }) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.createRepost(new PublicKey(postId));
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['single_post', postId] });
+      queryClient.invalidateQueries({ queryKey: ['has_liked'] });
+      queryClient.invalidateQueries({ queryKey: ['post_engagement'] });
     },
   });
 };
@@ -267,12 +229,15 @@ export const useCreateComment = () => {
 
   return useMutation({
     mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      return await sdk.createComment(new PublicKey(postId), content);
+      await assertPlatformNotPaused(sdk);
+      return await sdk!.createComment(new PublicKey(postId), content);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['post_comments'] });
       queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['feed_engagement'] });
+      queryClient.invalidateQueries({ queryKey: ['single_post'] });
+      queryClient.invalidateQueries({ queryKey: ['user_replies'] });
     },
   });
 };
@@ -287,17 +252,19 @@ export const useTipPost = () => {
 
   return useMutation({
     mutationFn: async ({ authorAddress, amount }: { postId: string; authorAddress: string; amount: number }) => {
-      if (!sdk) throw new Error('SDK not initialized');
+      await assertPlatformNotPaused(sdk);
       if (amount <= 0) throw new Error('Tip amount must be greater than 0');
       if (amount > 65) throw new Error('Maximum tip is 65 SOL');
-      
+
       const authorPubkey = new PublicKey(authorAddress);
-      const amountInLamports = Math.floor(amount * 1e9); // Convert SOL to lamports
-      
-      return await sdk.sendTip(authorPubkey, amountInLamports);
+      const amountInLamports = Math.floor(amount * 1e9);
+
+      return await sdk!.sendTip(authorPubkey, amountInLamports);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['single_post'] });
       toast.success('Tip sent successfully! 🎉');
     },
     onError: (error) => {
@@ -310,49 +277,18 @@ export const useTipPost = () => {
 };
 
 /**
- * Get all reposts of a post
- */
-export const usePostReposts = (postId?: string) => {
-  const { sdk } = useSocialFi();
-
-  return useQuery({
-    queryKey: ['post_reposts', postId],
-    queryFn: async () => {
-      if (!sdk || !postId) return [];
-      const cacheKey = `post_reposts:${postId}`;
-      try {
-        const reposts = await sdk.getPostReposts(new PublicKey(postId));
-        if (reposts && reposts.length > 0) {
-          await CacheManager.setCachedMetadata(cacheKey, reposts);
-        }
-        return reposts || [];
-      } catch (error) {
-        console.error('Error fetching post reposts:', error);
-        const cached = await CacheManager.getCachedMetadata(cacheKey);
-        if (cached) {
-          console.log('📱 Using cached post reposts (error fallback)');
-          return cached as any;
-        }
-        return [];
-      }
-    },
-    enabled: !!sdk && !!postId,
-  });
-};
-
-/**
  * Get a specific post by ID
  */
 export const useGetPost = (postId?: string) => {
-  const { sdk } = useSocialFi();
+  const readSdk = useReadOnlySdk();
 
   return useQuery({
     queryKey: ['post_details', postId],
     queryFn: async () => {
-      if (!sdk || !postId) return null;
+      if (!readSdk || !postId) return null;
       const cacheKey = `post_details:${postId}`;
       try {
-        const post = await sdk.getPost(new PublicKey(postId));
+        const post = await readSdk.getPost(new PublicKey(postId));
         if (post) {
           await CacheManager.setCachedMetadata(cacheKey, post);
         }
@@ -367,7 +303,7 @@ export const useGetPost = (postId?: string) => {
         return null;
       }
     },
-    enabled: !!sdk && !!postId,
+    enabled: !!readSdk && !!postId,
   });
 };
 
@@ -375,16 +311,15 @@ export const useGetPost = (postId?: string) => {
  * Get post likes
  */
 export const usePostLikes = (postId?: string) => {
-  const { sdk } = useSocialFi();
+  const readSdk = useReadOnlySdk();
 
   return useQuery({
     queryKey: ['post_likes', postId],
     queryFn: async () => {
-      if (!sdk || !postId) return [];
+      if (!readSdk || !postId) return [];
       const cacheKey = `post_likes:${postId}`;
       try {
-        const likes = await sdk.getPostLikes(new PublicKey(postId));
-        // Cache if we got results
+        const likes = await readSdk.getPostLikes(new PublicKey(postId));
         if (likes && likes.length > 0) {
           await CacheManager.setCachedMetadata(cacheKey, likes);
         }
@@ -394,12 +329,12 @@ export const usePostLikes = (postId?: string) => {
         const cached = await CacheManager.getCachedMetadata(cacheKey);
         if (cached) {
           console.log('📱 Using cached post likes (error fallback)');
-          return cached as any;
+          return cached as ReturnType<typeof readSdk.getPostLikes> extends Promise<infer T> ? T : never;
         }
         return [];
       }
     },
-    enabled: !!sdk && !!postId,
+    enabled: !!readSdk && !!postId,
   });
 };
 
@@ -407,16 +342,15 @@ export const usePostLikes = (postId?: string) => {
  * Get post comments
  */
 export const usePostComments = (postId?: string) => {
-  const { sdk } = useSocialFi();
+  const readSdk = useReadOnlySdk();
 
   return useQuery({
     queryKey: ['post_comments', postId],
     queryFn: async () => {
-      if (!sdk || !postId) return [];
+      if (!readSdk || !postId) return [];
       const cacheKey = `post_comments:${postId}`;
       try {
-        const comments = await sdk.getPostComments(new PublicKey(postId));
-        // Cache if we got results
+        const comments = await readSdk.getPostComments(new PublicKey(postId));
         if (comments && comments.length > 0) {
           await CacheManager.setCachedMetadata(cacheKey, comments);
         }
@@ -426,12 +360,12 @@ export const usePostComments = (postId?: string) => {
         const cached = await CacheManager.getCachedMetadata(cacheKey);
         if (cached) {
           console.log('📱 Using cached post comments (error fallback)');
-          return cached as any;
+          return cached as Awaited<ReturnType<typeof readSdk.getPostComments>>;
         }
         return [];
       }
     },
-    enabled: !!sdk && !!postId,
+    enabled: !!readSdk && !!postId,
   });
 };
 
@@ -439,86 +373,124 @@ export const usePostComments = (postId?: string) => {
  * Check if user has liked a post
  */
 export const useHasLikedPost = (postId?: string) => {
-  const { sdk } = useSocialFi();
+  const readSdk = useReadOnlySdk();
+  const { publicKey } = useWallet();
 
   return useQuery({
-    queryKey: ['has_liked', sdk?.wallet.publicKey?.toBase58(), postId],
+    queryKey: ['has_liked', publicKey?.toBase58(), postId],
     queryFn: async () => {
-      if (!sdk || !postId) return false;
-      return await sdk.hasLikedPost(new PublicKey(postId));
+      if (!readSdk || !postId || !publicKey) return false;
+      return await readSdk.hasLikedPost(new PublicKey(postId), publicKey);
     },
-    enabled: !!sdk && !!postId,
+    enabled: !!readSdk && !!postId && !!publicKey,
   });
 };
 
 /**
- * Trending topics (placeholder - can be computed from posts)
+ * Lazy-load engagement stats per post (likes, comments, reposts)
+ */
+export const usePostEngagement = (postId?: string) => {
+  const readSdk = useReadOnlySdk();
+  const { publicKey } = useWallet();
+
+  return useQuery({
+    queryKey: ['post_engagement', postId, publicKey?.toBase58()],
+    queryFn: async () => {
+      if (!readSdk || !postId) {
+        return { likes: 0, comments: 0, reposts: 0, isLiked: false };
+      }
+      const postPubkey = new PublicKey(postId);
+      const [likes, comments, reposts, isLiked] = await Promise.all([
+        readSdk.getPostLikes(postPubkey),
+        readSdk.getPostComments(postPubkey),
+        readSdk.getPostReposts(postPubkey),
+        publicKey ? readSdk.hasLikedPost(postPubkey, publicKey) : Promise.resolve(false),
+      ]);
+      return {
+        likes: likes.length,
+        comments: comments.length,
+        reposts: reposts.length,
+        isLiked,
+      };
+    },
+    enabled: !!readSdk && !!postId,
+    staleTime: 1000 * 60 * 2,
+  });
+};
+
+/**
+ * Trending hashtags derived from the shared timeline cache (no extra RPC).
  */
 export const useTrendingTopics = () => {
-  return useQuery({
-    queryKey: ['trending_topics'],
-    queryFn: async () => {
-      // Placeholder
-      return [
-        { tag: '#SocialFi', count: 234, trend: 'up' as const },
-        { tag: '#Solana', count: 189, trend: 'stable' as const },
-        { tag: '#Governance', count: 156, trend: 'up' as const },
-      ];
-    },
-  });
+  const { data: timeline = [], isPending, isError } = useTimeline();
+
+  const data = useMemo(() => {
+    const tagCounts = new Map<string, number>();
+
+    for (const post of timeline.slice(0, 50)) {
+      const matches = (post.content || '').match(/#\w+/g) || [];
+      for (const tag of matches) {
+        const normalized = tag.toLowerCase();
+        tagCounts.set(normalized, (tagCounts.get(normalized) || 0) + 1);
+      }
+    }
+
+    return Array.from(tagCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([tag, count]) => ({
+        tag: tag.replace('#', ''),
+        count,
+        trend: 'up' as const,
+      }));
+  }, [timeline]);
+
+  return { data, isPending, isError };
 };
 
 /**
- * Suggested users (can be computed from follows data)
+ * Suggested users from recent on-chain profiles
  */
 export const useSuggestedUsers = () => {
+  const readSdk = useReadOnlySdk();
+
   return useQuery({
     queryKey: ['suggested_users'],
     queryFn: async () => {
-      // Placeholder
-      return [
-        { address: 'user1.sol', username: 'creator1', followerCount: 1234 },
-        { address: 'user2.sol', username: 'creator2', followerCount: 567 },
-        { address: 'user3.sol', username: 'creator3', followerCount: 890 },
-      ];
+      if (!readSdk) return [];
+      try {
+        const profiles = await readSdk.program.account.userProfile.all();
+        return profiles.slice(0, 5).map((p) => ({
+          address: p.account.owner.toBase58(),
+          username: p.account.username,
+          followerCount: p.account.followersCount.toNumber(),
+        }));
+      } catch {
+        return [];
+      }
     },
+    enabled: !!readSdk,
+    staleTime: 1000 * 60 * 10,
   });
 };
 
 /**
- * Get user posts
+ * Get user posts — derived from the shared timeline source.
  */
 export const useUserPosts = (userAddress?: string) => {
-  const { sdk } = useSocialFi();
+  const { data: timeline = [], isPending, isError, error } = useTimeline();
 
-  return useQuery({
-    queryKey: ['user_posts', userAddress],
-    queryFn: async () => {
-      if (!sdk || !userAddress) return [];
-      const allPosts: RawPost[] = await sdk.getAllPosts();
-      // Filter filtering on client side for now as contract doesn't have indexed user posts
-      const userPosts = allPosts.filter(p => p.author === userAddress);
-      
-      // Enrich
-      const enriched = await Promise.all(userPosts.map(async p => {
-         const metadata = await fetchMetadata(p.uri);
-         return {
-            id: p.publicKey,
-            author: p.author,
-            content: metadata.content,
-            imageUrls: metadata.images || [],
-            createdAt: p.createdAt * 1000,
-            likes: 0, 
-            comments: 0,
-            reposts: 0,
-            tips: 0,
-         };
-      }));
-      
-      return enriched.sort((a, b) => b.createdAt - a.createdAt);
-    },
-    enabled: !!sdk && !!userAddress,
-  });
+  const userPosts = useMemo(() => {
+    if (!userAddress) return [];
+    return timeline.filter((p) => p.author === userAddress);
+  }, [timeline, userAddress]);
+
+  return {
+    data: userPosts,
+    isPending,
+    isError,
+    error,
+  };
 };
 
 /**

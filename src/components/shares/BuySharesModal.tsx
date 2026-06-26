@@ -16,7 +16,7 @@ export function BuySharesModal({
   creatorUsername,
 }: BuySharesModalProps) {
   const [amount, setAmount] = useState('1');
-  const [slippage, setSlippage] = useState('5'); // 5% default
+  const [slippage, setSlippage] = useState('5');
   const { buyShares, isBuying, calculatePriceForAmount } = useShares(creatorPubkey);
   const [calculatedPrice, setCalculatedPrice] = useState<number>(0);
 
@@ -25,7 +25,7 @@ export function BuySharesModal({
     const amountNum = parseInt(value);
     if (amountNum > 0) {
       const price = await calculatePriceForAmount(amountNum);
-      setCalculatedPrice(price / 1e9); // Convert to SOL
+      setCalculatedPrice(price);
     }
   };
 
@@ -38,13 +38,13 @@ export function BuySharesModal({
     }
 
     try {
-      // Calculate max price with slippage
-      const maxPrice = calculatedPrice * (1 + parseFloat(slippage) / 100);
-      await buyShares({ amount: amountNum, maxPrice });
+      const maxPricePerShare =
+        (calculatedPrice * (1 + parseFloat(slippage) / 100)) / amountNum;
+      await buyShares({ amount: amountNum, maxPrice: maxPricePerShare });
       setAmount('1');
       onClose();
     } catch (error) {
-      console.error('Buy shares failed:', error);
+      console.error('Support creator failed:', error);
     }
   };
 
@@ -54,17 +54,16 @@ export function BuySharesModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div className="bg-slate-900 rounded-xl p-8 max-w-md w-full mx-4 border border-slate-700">
         <h2 className="text-2xl font-bold text-white mb-2">
-          Buy @{creatorUsername} Shares
+          Support @{creatorUsername}
         </h2>
         <p className="text-slate-400 text-sm mb-6">
-          Invest in this creator's success
+          Buy Supporter Shares to unlock exclusive content
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Amount Input */}
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-slate-300 mb-2">
-              Number of Shares
+              Number of Supporter Shares
             </label>
             <input
               type="number"
@@ -93,10 +92,9 @@ export function BuySharesModal({
             </div>
           </div>
 
-          {/* Slippage Tolerance */}
           <div>
             <label htmlFor="slippage" className="block text-sm font-medium text-slate-300 mb-2">
-              Slippage Tolerance (%)
+              Price protection (%)
             </label>
             <input
               type="number"
@@ -112,7 +110,6 @@ export function BuySharesModal({
             />
           </div>
 
-          {/* Price Estimate */}
           <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
             <div className="flex justify-between items-center mb-2">
               <span className="text-slate-400 text-sm">Estimated Cost</span>
@@ -121,14 +118,13 @@ export function BuySharesModal({
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-400 text-sm">Max Price (with slippage)</span>
+              <span className="text-slate-400 text-sm">Max price (with protection)</span>
               <span className="text-[var(--color-solana-green)] font-semibold">
                 {(calculatedPrice * (1 + parseFloat(slippage) / 100)).toFixed(4)} SOL
               </span>
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-4">
             <button
               type="button"
@@ -143,14 +139,13 @@ export function BuySharesModal({
               disabled={isBuying || !amount || parseInt(amount) <= 0}
               className="flex-1 px-6 py-3 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isBuying ? 'Buying...' : 'Buy Shares'}
+              {isBuying ? 'Supporting...' : 'Support Creator'}
             </button>
           </div>
         </form>
 
-        {/* Info */}
         <p className="text-xs text-slate-400 mt-4 text-center">
-          Price increases as more shares are bought (bonding curve)
+          Price grows as more supporters join
         </p>
       </div>
     </div>

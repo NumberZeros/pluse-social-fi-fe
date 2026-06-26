@@ -1,14 +1,17 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useAnchorWallet, useConnection } from '../lib/wallet-adapter';
 import { SocialFiSDK } from '../services/socialfi-sdk';
 import { toast } from 'react-hot-toast';
 import { withAnchorToast } from '../utils/error-handler';
+import { assertPlatformNotPaused } from '../utils/platformPauseGuard';
 import { PublicKey } from '@solana/web3.js';
 import { CacheManager } from '../services/storage';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const usePost = () => {
   const wallet = useAnchorWallet();
   const { connection } = useConnection();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   // Memoize SDK instance - only recreate when wallet or connection changes
@@ -21,6 +24,24 @@ export const usePost = () => {
       return null;
     }
   }, [wallet, connection]);
+
+  const invalidatePostEngagement = useCallback(
+    (postId?: string) => {
+      queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['feed_engagement'] });
+      queryClient.invalidateQueries({ queryKey: ['post_likes'] });
+      queryClient.invalidateQueries({ queryKey: ['post_comments'] });
+      queryClient.invalidateQueries({ queryKey: ['has_liked'] });
+      queryClient.invalidateQueries({ queryKey: ['post_engagement'] });
+      queryClient.invalidateQueries({ queryKey: ['user_replies'] });
+      if (postId) {
+        queryClient.invalidateQueries({ queryKey: ['single_post', postId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['single_post'] });
+      }
+    },
+    [queryClient],
+  );
 
   /**
    * Create a post
@@ -36,6 +57,7 @@ export const usePost = () => {
     setLoading(true);
 
     try {
+      await assertPlatformNotPaused(sdk);
       const result = await withAnchorToast(
         () => sdk.createPost(uri),
         {
@@ -46,12 +68,17 @@ export const usePost = () => {
       
       // Clear cache to force refresh
       await CacheManager.clearCache();
+      queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['creator_posts'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['feed_engagement'] });
+      queryClient.invalidateQueries({ queryKey: ['trending_topics'] });
       
       return result;
     } finally {
       setLoading(false);
     }
-  }, [sdk]);
+  }, [sdk, queryClient]);
 
   /**
    * Like a post
@@ -66,6 +93,7 @@ export const usePost = () => {
     setLoading(true);
 
     try {
+      await assertPlatformNotPaused(sdk);
       const pubkey = typeof postPubkey === 'string' 
         ? new PublicKey(postPubkey) 
         : postPubkey;
@@ -78,6 +106,7 @@ export const usePost = () => {
         }
       );
 
+      invalidatePostEngagement(pubkey.toBase58());
       return result;
     } catch (error) {
       console.error('Error liking post:', error);
@@ -88,7 +117,7 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk]);
+  }, [sdk, invalidatePostEngagement]);
 
   /**
    * Unlike a post
@@ -103,6 +132,7 @@ export const usePost = () => {
     setLoading(true);
 
     try {
+      await assertPlatformNotPaused(sdk);
       const pubkey = typeof postPubkey === 'string' 
         ? new PublicKey(postPubkey) 
         : postPubkey;
@@ -115,6 +145,7 @@ export const usePost = () => {
         }
       );
 
+      invalidatePostEngagement(pubkey.toBase58());
       return result;
     } catch (error) {
       console.error('Error unliking post:', error);
@@ -125,7 +156,7 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk]);
+  }, [sdk, invalidatePostEngagement]);
 
   /**
    * Repost a post
@@ -140,6 +171,7 @@ export const usePost = () => {
     setLoading(true);
 
     try {
+      await assertPlatformNotPaused(sdk);
       const pubkey = typeof originalPostPubkey === 'string' 
         ? new PublicKey(originalPostPubkey) 
         : originalPostPubkey;
@@ -188,6 +220,7 @@ export const usePost = () => {
     setLoading(true);
 
     try {
+      await assertPlatformNotPaused(sdk);
       const pubkey = typeof postPubkey === 'string' 
         ? new PublicKey(postPubkey) 
         : postPubkey;
@@ -200,6 +233,7 @@ export const usePost = () => {
         }
       );
 
+      invalidatePostEngagement(pubkey.toBase58());
       return result;
     } catch (error) {
       console.error('Error creating comment:', error);
@@ -210,7 +244,7 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk]);
+  }, [sdk, invalidatePostEngagement]);
 
   /**
    * Send a tip to a post author
@@ -236,6 +270,7 @@ export const usePost = () => {
     setLoading(true);
 
     try {
+      await assertPlatformNotPaused(sdk);
       const pubkey = typeof authorPubkey === 'string' 
         ? new PublicKey(authorPubkey) 
         : authorPubkey;
@@ -250,6 +285,8 @@ export const usePost = () => {
         }
       );
 
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      invalidatePostEngagement();
       return result;
     } catch (error) {
       console.error('Error sending tip:', error);
@@ -260,7 +297,7 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk]);
+  }, [sdk, queryClient, invalidatePostEngagement]);
 
   /**
    * Get a specific post

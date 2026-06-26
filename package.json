@@ -2,15 +2,22 @@
   "name": "social-fi-fe",
   "private": true,
   "version": "0.0.0",
+  "packageManager": "pnpm@11.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "type-check": "tsc -b --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,md}\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "smoke:devnet": "tsx scripts/smoke-supporter-flow.ts",
+    "smoke:check": "tsx scripts/smoke-supporter-flow.ts --check-only",
+    "sync-idl": "cp ../social-fi-contract/target/idl/social_fi_contract.json src/idl/social_fi_contract.json 2>/dev/null || echo 'Build contract first: cd ../social-fi-contract && anchor build'",
+    "generate:og": "node scripts/generate-og-images.mjs",
+    "validate:seo": "tsx scripts/validate-seo.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "0.32.1",
@@ -38,9 +45,11 @@
     "react-router-dom": "^7.10.1",
     "unstorage": "^1.17.3",
     "zod": "^4.1.13",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.9",
+    "@vercel/og": "^0.6.5"
   },
   "devDependencies": {
+    "@vercel/node": "^5.0.2",
     "@eslint/js": "^9.39.1",
     "@tailwindcss/postcss": "^4.1.17",
     "@tailwindcss/typography": "^0.5.19",
@@ -57,13 +66,9 @@
     "postcss": "^8.5.6",
     "prettier": "^3.7.4",
     "tailwindcss": "^4.1.17",
+    "tsx": "^4.22.4",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "npm:rolldown-vite@7.2.5"
-  },
-  "pnpm": {
-    "overrides": {
-      "vite": "npm:rolldown-vite@7.2.5"
-    }
   }
 }

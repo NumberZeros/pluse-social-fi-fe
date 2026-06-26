@@ -1,26 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
+import { useReadOnlySdk } from '../services/read-only-sdk';
+import { useWallet } from '../lib/wallet-adapter';
 import { toast } from 'react-hot-toast';
+import { assertPlatformNotPaused } from '../utils/platformPauseGuard';
 import { CacheManager } from '../services/storage';
 
 /**
  * Hook to check if current user is following another user
  */
 export const useIsFollowing = (followingAddress?: string) => {
-  const { sdk } = useSocialFi();
+  const readSdk = useReadOnlySdk();
+  const { publicKey } = useWallet();
 
   return useQuery({
-    queryKey: ['is_following', sdk?.wallet.publicKey?.toBase58(), followingAddress],
+    queryKey: ['is_following', publicKey?.toBase58(), followingAddress],
     queryFn: async () => {
-      if (!sdk || !followingAddress) return false;
-      try {
-        return await sdk.isFollowing(new PublicKey(followingAddress));
-      } catch {
-        return false;
-      }
+      if (!readSdk || !followingAddress || !publicKey) return false;
+      return await readSdk.isFollowing(new PublicKey(followingAddress), publicKey);
     },
-    enabled: !!sdk && !!followingAddress,
+    enabled: !!readSdk && !!followingAddress && !!publicKey,
   });
 };
 
@@ -28,32 +28,30 @@ export const useIsFollowing = (followingAddress?: string) => {
  * Hook to get followers of a user (on-chain)
  */
 export const useFollowers = (targetAddress?: string) => {
-  const { sdk } = useSocialFi();
+  const readSdk = useReadOnlySdk();
 
   return useQuery({
     queryKey: ['followers', targetAddress],
     queryFn: async () => {
-      if (!sdk || !targetAddress) return [];
+      if (!readSdk || !targetAddress) return [];
       const cacheKey = `followers:${targetAddress}`;
       try {
-        const followers = await sdk.getFollowers(new PublicKey(targetAddress));
-        // Cache if we got results
+        const followers = await readSdk.getFollowers(new PublicKey(targetAddress));
         if (followers && followers.length > 0) {
           await CacheManager.setCachedMetadata(cacheKey, followers);
         }
         return followers || [];
       } catch (error) {
         console.error('Error fetching followers:', error);
-        // Try to return cached followers on error
         const cached = await CacheManager.getCachedMetadata(cacheKey);
         if (cached) {
           console.log('📱 Using cached followers (error fallback)');
-          return cached as any;
+          return cached as Awaited<ReturnType<typeof readSdk.getFollowers>>;
         }
         return [];
       }
     },
-    enabled: !!sdk && !!targetAddress,
+    enabled: !!readSdk && !!targetAddress,
   });
 };
 
@@ -61,32 +59,30 @@ export const useFollowers = (targetAddress?: string) => {
  * Hook to get users that a user is following (on-chain)
  */
 export const useFollowing = (targetAddress?: string) => {
-  const { sdk } = useSocialFi();
+  const readSdk = useReadOnlySdk();
 
   return useQuery({
     queryKey: ['following', targetAddress],
     queryFn: async () => {
-      if (!sdk || !targetAddress) return [];
+      if (!readSdk || !targetAddress) return [];
       const cacheKey = `following:${targetAddress}`;
       try {
-        const following = await sdk.getFollowing(new PublicKey(targetAddress));
-        // Cache if we got results
+        const following = await readSdk.getFollowing(new PublicKey(targetAddress));
         if (following && following.length > 0) {
           await CacheManager.setCachedMetadata(cacheKey, following);
         }
         return following || [];
       } catch (error) {
         console.error('Error fetching following:', error);
-        // Try to return cached following on error
         const cached = await CacheManager.getCachedMetadata(cacheKey);
         if (cached) {
           console.log('📱 Using cached following (error fallback)');
-          return cached as any;
+          return cached as Awaited<ReturnType<typeof readSdk.getFollowing>>;
         }
         return [];
       }
     },
-    enabled: !!sdk && !!targetAddress,
+    enabled: !!readSdk && !!targetAddress,
   });
 };
 
@@ -99,15 +95,16 @@ export const useFollowUser = () => {
 
   return useMutation({
     mutationFn: async ({ followingId }: { followerId: string; followingId: string }) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      
+      await assertPlatformNotPaused(sdk);
+
       const toastId = toast.loading('Following user...');
       try {
-        const result = await sdk.followUser(new PublicKey(followingId));
+        const result = await sdk!.followUser(new PublicKey(followingId));
         toast.success('Followed!', { id: toastId });
         return result;
-      } catch (error: any) {
-        toast.error(error.message || 'Failed to follow', { id: toastId });
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Failed to follow';
+        toast.error(message, { id: toastId });
         throw error;
       }
     },
@@ -128,15 +125,16 @@ export const useUnfollowUser = () => {
 
   return useMutation({
     mutationFn: async ({ followingId }: { followerId: string; followingId: string }) => {
-      if (!sdk) throw new Error('SDK not initialized');
-      
+      await assertPlatformNotPaused(sdk);
+
       const toastId = toast.loading('Unfollowing user...');
       try {
-        const result = await sdk.unfollowUser(new PublicKey(followingId));
+        const result = await sdk!.unfollowUser(new PublicKey(followingId));
         toast.success('Unfollowed!', { id: toastId });
         return result;
-      } catch (error: any) {
-        toast.error(error.message || 'Failed to unfollow', { id: toastId });
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Failed to unfollow';
+        toast.error(message, { id: toastId });
         throw error;
       }
     },

@@ -1,16 +1,16 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '../components/layout/AppLayout';
+import { SEO } from '../components/SEO';
+import { PAGE_SEO_CONFIG } from '../lib/seo/page-config';
+import { buildGuidePageSchema } from '../lib/seo/schema';
+import { FAQ_ITEMS, GUIDE_SECTIONS } from '../lib/seo/guide-data';
 import {
   User,
   TrendingUp,
   MessageSquare,
   Crown,
-  Users,
-  Vote,
   DollarSign,
-  Gift,
-  Tag,
   BookOpen,
   ArrowRight,
   Search,
@@ -77,185 +77,27 @@ const QuickTip = ({ text, delay }: { text: string; delay: number }) => (
   </motion.div>
 );
 
-// Guide data defined outside component to prevent recreation on every render
-const guides = [
-  {
-    id: 'username-nft',
-    icon: <User className="w-8 h-8" />,
-    title: 'Username NFT - Own Your Identity',
-    description: 'Mint your unique @username as an on-chain NFT. Portable across all Solana apps.',
-    keywords: ['username', 'nft', 'identity', 'mint', 'handle', 'marketplace'],
-    steps: [
-        'Connect your Solana wallet using the button in the top right corner',
-        'Navigate to Marketplace page from the main navigation',
-        'Click "Mint Username" and enter your desired @handle',
-        'Confirm the transaction - your username is now an NFT in your wallet',
-        'Your username appears in your profile and can be traded on the marketplace',
-      ],
-    },
-    {
-      id: 'creator-shares',
-      icon: <TrendingUp className="w-8 h-8" />,
-      title: 'Creator Shares - Invest in Creators',
-      description: 'Buy and sell creator shares with algorithmic pricing. Early supporters get the best deals.',
-      keywords: ['shares', 'creator', 'invest', 'buy', 'sell', 'bonding curve', 'trading'],
-      steps: [
-        'Go to the Shares page to browse all creators',
-        'Search for a creator or browse the market tab',
-        'Click "Buy" on any creator card to open the purchase modal',
-        'Enter the amount of shares you want to buy (price increases with each share)',
-        'Confirm transaction - you now own creator shares that can be sold anytime',
-        'View your portfolio in the "Portfolio" tab to track your investments',
-      ],
-    },
-    {
-      id: 'social-feed',
-      icon: <MessageSquare className="w-8 h-8" />,
-      title: 'Social Feed - Post & Engage',
-      description: 'Create posts, like, repost, and tip other users. Build your on-chain social presence.',
-      keywords: ['feed', 'post', 'like', 'repost', 'engage', 'social', 'create'],
-      steps: [
-        'Click the green "Create" button in the header or navigate to Feed page',
-        'Write your post content in the text area (supports up to 280 characters)',
-        'Optionally add images by clicking the image icon',
-        'Toggle "Subscriber Only" if you want to gate content to paying subscribers',
-        'Click "Post" to publish on-chain',
-        'Engage with others by liking (heart icon), reposting, or sending tips',
-      ],
-    },
-    {
-      id: 'subscriptions',
-      icon: <Crown className="w-8 h-8" />,
-      title: 'Subscriptions - Monetize Your Content',
-      description: 'Create subscription tiers for exclusive content. Fans pay monthly for special access.',
-      keywords: ['subscription', 'tier', 'monetize', 'exclusive', 'subscriber', 'creator dashboard'],
-      steps: [
-        'Navigate to Creator Dashboard from your profile dropdown',
-        'Click "Create New Tier" button',
-        'Set tier name (e.g., "Silver", "Gold", "Platinum")',
-        'Set monthly price in SOL',
-        'Add description of benefits subscribers receive',
-        'Confirm transaction to create the tier',
-        'When posting, toggle "Subscriber Only" and select which tier can access',
-      ],
-    },
-    {
-      id: 'groups',
-      icon: <Users className="w-8 h-8" />,
-      title: 'Groups - Build Communities',
-      description: 'Create or join groups. Share posts within communities. Moderate your own space.',
-      keywords: ['groups', 'community', 'create', 'join', 'moderate', 'members'],
-      steps: [
-        'Go to Groups page from the main navigation',
-        'Click "Create Group" button (green plus icon)',
-        'Fill in group name, description, and upload banner image',
-        'Choose privacy: Public (anyone can join) or Private (requires approval)',
-        'Set entry requirements: Free, SOL payment, or NFT ownership',
-        'Click "Create" to publish your group on-chain',
-        'Manage members, post in the group, and assign moderator roles',
-      ],
-    },
-    {
-      id: 'governance',
-      icon: <Vote className="w-8 h-8" />,
-      title: 'Governance - Vote on Decisions',
-      description: 'Stake $PULSE tokens to gain voting power. Create proposals and shape the platform.',
-      keywords: ['governance', 'vote', 'stake', 'proposal', 'voting power', 'pulse token'],
-      steps: [
-        'Navigate to Governance page',
-        'In the "Stake" tab, enter amount of $PULSE you want to stake',
-        'Select lock period (longer lock = more voting power multiplier)',
-        'Confirm staking transaction',
-        'Switch to "Proposals" tab to view active proposals',
-        'Click on any proposal to read details and cast your vote (Yes/No)',
-        'To create a proposal: Click "Create Proposal", fill in title, description, and category',
-      ],
-    },
-    {
-      id: 'tipping',
-      icon: <DollarSign className="w-8 h-8" />,
-      title: 'Tipping - Support Creators',
-      description: 'Send SOL directly to creators you love. Instant, on-chain, no middleman.',
-      keywords: ['tip', 'tipping', 'support', 'creator', 'sol', 'send'],
-      steps: [
-        'Find a post or profile you want to tip',
-        'Click the tip icon (dollar sign) on any post or profile',
-        'Enter the amount of SOL you want to send',
-        'Optionally add a message with your tip',
-        'Confirm the transaction',
-        'The creator receives SOL instantly in their wallet',
-      ],
-    },
-    {
-      id: 'airdrop',
-      icon: <Gift className="w-8 h-8" />,
-      title: 'Airdrop - Earn $PULSE Tokens',
-      description: 'Complete daily tasks to earn airdrop points. Refer friends for bonus rewards.',
-      keywords: ['airdrop', 'earn', 'rewards', 'tasks', 'referral', 'points'],
-      steps: [
-        'Navigate to Airdrop Dashboard',
-        'View your current points and progress towards milestones',
-        'Complete tasks: Create posts, follow users, subscribe to creators',
-        'Copy your referral link from the dashboard',
-        'Share your referral link - you earn bonus points for each friend who signs up',
-        'Check back daily to mark your daily active streak',
-        'Track your rank on the leaderboard',
-      ],
-    },
-    {
-      id: 'marketplace',
-      icon: <Tag className="w-8 h-8" />,
-      title: 'Marketplace - Trade Usernames',
-      description: 'List your username NFTs for sale or buy premium handles from others.',
-      keywords: ['marketplace', 'trade', 'buy', 'sell', 'list', 'username', 'nft'],
-      steps: [
-        'Go to Marketplace page',
-        'Browse available usernames in the "Buy" tab',
-        'Use search and filters to find premium handles',
-        'Click "Buy Now" on any listing to purchase',
-        'To sell: Switch to "Sell" tab and click "List Username"',
-        'Select which username NFT to list and set your price',
-        'Confirm transaction - your username is now listed for sale',
-      ],
-    },
-];
+const iconMap: Record<string, React.ReactNode> = {
+  'create-profile': <User className="w-8 h-8" />,
+  'supporter-shares': <TrendingUp className="w-8 h-8" />,
+  'exclusive-posts': <MessageSquare className="w-8 h-8" />,
+  'support-creator': <Crown className="w-8 h-8" />,
+  tipping: <DollarSign className="w-8 h-8" />,
+};
+
+const guides = GUIDE_SECTIONS.map((section) => ({
+  ...section,
+  icon: iconMap[section.id] ?? <BookOpen className="w-8 h-8" />,
+}));
+
+const faqs = FAQ_ITEMS;
 
 const quickTips = [
-  'Always check transaction details before confirming in your wallet',
-  'Your username NFT can be used across any Solana app that integrates with Pulse',
-  'Early creator share buyers get the best prices due to the bonding curve',
-  'Subscriber-only posts are gated on-chain - only verified subscribers can access',
-  'Group entry fees go directly to the group creator',
-  'Longer governance token lock periods give you higher voting power multipliers',
-  'Tips are sent peer-to-peer with no platform fees',
-  'Airdrop points are snapshotted periodically for token distribution',
-];
-
-const faqs = [
-    {
-      q: 'Is my wallet safe when connecting to Pulse?',
-      a: 'Yes! Pulse uses standard Solana wallet adapters. We never ask for your private keys or seed phrase. Always verify you are on the official Pulse domain before connecting.',
-    },
-    {
-      q: 'What are gas fees on Solana?',
-      a: 'Solana transactions typically cost less than $0.01. This makes it affordable to post, tip, and trade without worrying about high fees.',
-    },
-    {
-      q: 'Can I get my username back if I sell it?',
-      a: 'Once sold, the username NFT transfers to the buyer. You would need to buy it back from them if they list it for sale again.',
-    },
-    {
-      q: 'How does the bonding curve work for creator shares?',
-      a: 'Price increases quadratically with each share: price = supply². The 1st share might cost $0.01, but the 100th costs $1.00. This rewards early believers.',
-    },
-    {
-      q: 'Are my posts stored on-chain?',
-      a: 'Post metadata and references are on-chain. Larger content like images may be stored on Arweave or Shadow Drive for permanence.',
-    },
-    {
-      q: 'What happens if I lose access to my wallet?',
-      a: 'Your wallet controls all your assets. Keep your seed phrase safe and backed up. If lost, there is no recovery - this is the nature of decentralized ownership.',
-    },
+  'Use Dashboard onboarding to go from zero to first post in minutes',
+  'Supporter-only posts are enforced client-side with on-chain share verification',
+  'Pinata (VITE_PINATA_JWT) is required for production post storage',
+  'Tips are peer-to-peer with no platform fee',
+  'Press D to jump to Dashboard, F for Feed, E for Explore',
 ];
 
 export default function UserGuide() {
@@ -288,8 +130,19 @@ export default function UserGuide() {
     );
   }, [searchQuery]);
 
+  const guideConfig = PAGE_SEO_CONFIG['/guide'];
+  const schema = buildGuidePageSchema(guideConfig.breadcrumbs ?? []);
+
   return (
     <AppLayout>
+      <SEO
+        title={guideConfig.title}
+        description={guideConfig.description}
+        keywords={guideConfig.keywords}
+        image={guideConfig.ogImage}
+        url="/guide"
+        schema={schema}
+      />
       {/* Content */}
       <div className="max-w-6xl mx-auto pb-20">
         {/* Hero */}
@@ -310,7 +163,7 @@ export default function UserGuide() {
             <span className="text-gradient-lens">Pulse Social</span>
           </h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed mb-12">
-            Your comprehensive guide to minting usernames, trading shares, and building communities on Solana's most social platform.
+            Learn how Supporter Shares work — from launching your pool to gating exclusive posts for fans on Solana.
           </p>
 
           {/* Search Box */}
@@ -446,7 +299,7 @@ export default function UserGuide() {
                 No guides found for "{searchQuery}"
               </p>
               <p className="text-gray-500 mt-2">
-                Try different keywords like "username", "tip", "vote", or "share"
+                Try different keywords like "supporter", "tip", "exclusive", or "dashboard"
               </p>
             </motion.div>
           )}
@@ -502,6 +355,39 @@ export default function UserGuide() {
               </motion.div>
             ))}
           </div>
+        </div>
+
+        {/* Coming soon (deferred MVP features) */}
+        <div id="coming-soon" className="mb-20 scroll-mt-24">
+          <motion.h2
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-3xl md:text-4xl font-bold mb-8 flex items-center gap-4"
+          >
+            Coming later
+            <div className="h-px flex-1 bg-white/10" />
+          </motion.h2>
+          <p className="text-gray-400 mb-6 max-w-2xl">
+            These features exist in the smart contract but are intentionally deferred from the MVP
+            so we can focus on the supporter loop: buy shares → unlock content → creators earn.
+          </p>
+          <ul className="grid sm:grid-cols-2 gap-3 text-sm text-gray-400">
+            {[
+              'Username marketplace',
+              'Groups & communities',
+              'Governance & staking',
+              'Subscription tiers',
+              'Post NFT minting',
+              'Reposts & airdrop',
+            ].map((item) => (
+              <li
+                key={item}
+                className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-gray-300"
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Need Help */}

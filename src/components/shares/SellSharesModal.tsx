@@ -3,6 +3,9 @@ import { PublicKey } from '@solana/web3.js';
 import { useShares } from '../../hooks/useShares';
 import { toast } from 'react-hot-toast';
 
+/** Percent of sell proceeds retained in the creator pool vault (not a platform cut). */
+export const SELL_POOL_FEE_PERCENT = 10;
+
 interface SellSharesModalProps {
   creatorPubkey: PublicKey;
   creatorUsername: string;
@@ -23,39 +26,40 @@ export const SellSharesModal = ({ creatorPubkey, creatorUsername, onClose }: Sel
 
     const amountNum = parseFloat(amount);
     
-    // Check if user has enough shares
     if (amountNum > userBalance) {
-      toast.error(`You only have ${userBalance} shares`);
+      toast.error(`You only have ${userBalance} Supporter Shares`);
       return;
     }
 
     try {
-      // Calculate minimum price after slippage
       const estimatedPriceValue = await calculatePriceForAmount(amountNum);
       const slippagePercent = parseFloat(slippage);
-      const minPrice = estimatedPriceValue * (1 - slippagePercent / 100);
-      
-      await sellShares({ 
+      const minPricePerShare =
+        (estimatedPriceValue * (1 - slippagePercent / 100)) / amountNum;
+
+      await sellShares({
         amount: amountNum,
-        minPrice 
+        minPrice: minPricePerShare,
       });
       
-      toast.success(`Successfully sold ${amountNum} shares!`);
+      toast.success(`Cashed out ${amountNum} Supporter Shares`);
       setAmount('');
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sell shares failed:', error);
-      toast.error(error.message || 'Failed to sell shares');
+      const message = error instanceof Error ? error.message : 'Failed to sell shares';
+      toast.error(message);
     }
   };
 
-  // For display, we'll use a simplified calculation
-  const estimatedPrice = amount && parseFloat(amount) > 0 
+  const estimatedGross = amount && parseFloat(amount) > 0 
     ? parseFloat(amount) * (shares?.basePrice ? Number(shares.basePrice) / 1e9 : 0)
     : 0;
 
-  const slippageAmount = estimatedPrice * (parseFloat(slippage) / 100);
-  const minReceive = estimatedPrice - slippageAmount;
+  const poolFee = estimatedGross * (SELL_POOL_FEE_PERCENT / 100);
+  const estimatedAfterPoolFee = estimatedGross - poolFee;
+  const slippageAmount = estimatedAfterPoolFee * (parseFloat(slippage) / 100);
+  const minReceive = estimatedAfterPoolFee - slippageAmount;
 
   return (
     <div 
@@ -68,24 +72,23 @@ export const SellSharesModal = ({ creatorPubkey, creatorUsername, onClose }: Sel
       >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">
-            Sell {creatorUsername}'s Shares
+            Cash out support — @{creatorUsername}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white transition"
+            aria-label="Close"
           >
             ✕
           </button>
         </div>
 
         <div className="space-y-4">
-          {/* Your Balance */}
           <div className="bg-gray-800 rounded-lg p-4">
             <p className="text-gray-400 text-sm mb-1">Your Balance</p>
-            <p className="text-white text-xl font-bold">{userBalance} shares</p>
+            <p className="text-white text-xl font-bold">{userBalance} Supporter Shares</p>
           </div>
 
-          {/* Current Price */}
           <div className="bg-gray-800 rounded-lg p-4">
             <p className="text-gray-400 text-sm mb-1">Base Price</p>
             <p className="text-white text-xl font-bold">
@@ -93,10 +96,9 @@ export const SellSharesModal = ({ creatorPubkey, creatorUsername, onClose }: Sel
             </p>
           </div>
 
-          {/* Amount Input */}
           <div>
             <label className="block text-gray-300 text-sm mb-2">
-              Amount to Sell
+              Amount to sell
             </label>
             <div className="relative">
               <input
@@ -118,10 +120,9 @@ export const SellSharesModal = ({ creatorPubkey, creatorUsername, onClose }: Sel
             </div>
           </div>
 
-          {/* Slippage Tolerance */}
           <div>
             <label className="block text-gray-300 text-sm mb-2">
-              Slippage Tolerance (%)
+              Price protection (%)
             </label>
             <div className="flex gap-2">
               {['0.5', '1.0', '2.0'].map((preset) => (
@@ -149,31 +150,36 @@ export const SellSharesModal = ({ creatorPubkey, creatorUsername, onClose }: Sel
             </div>
           </div>
 
-          {/* Price Details */}
           {amount && parseFloat(amount) > 0 && (
             <div className="bg-gray-800 rounded-lg p-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Estimated Receive</span>
-                <span className="text-white font-medium">{estimatedPrice.toFixed(4)} SOL</span>
+                <span className="text-gray-400">Estimated gross</span>
+                <span className="text-white font-medium">{estimatedGross.toFixed(4)} SOL</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Slippage ({slippage}%)</span>
-                <span className="text-white font-medium">{slippageAmount.toFixed(4)} SOL</span>
+                <span className="text-gray-400">Pool fee ({SELL_POOL_FEE_PERCENT}%)</span>
+                <span className="text-amber-400 font-medium">−{poolFee.toFixed(4)} SOL</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Price protection ({slippage}%)</span>
+                <span className="text-white font-medium">−{slippageAmount.toFixed(4)} SOL</span>
               </div>
               <div className="border-t border-gray-700 pt-2 flex justify-between">
-                <span className="text-gray-300 font-medium">Minimum Receive</span>
+                <span className="text-gray-300 font-medium">Minimum receive</span>
                 <span className="text-white font-bold">{minReceive.toFixed(4)} SOL</span>
               </div>
+              <p className="text-xs text-gray-500 pt-1">
+                The {SELL_POOL_FEE_PERCENT}% pool fee stays in @{creatorUsername}&apos;s supporter pool — not a platform cut.
+              </p>
             </div>
           )}
 
-          {/* Sell Button */}
           <button
             onClick={handleSell}
             disabled={!amount || parseFloat(amount) <= 0 || isSelling || parseFloat(amount) > userBalance}
             className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-3 px-6 rounded-lg transition"
           >
-            {isSelling ? 'Selling...' : 'Sell Shares'}
+            {isSelling ? 'Cashing out...' : 'Cash out support'}
           </button>
         </div>
       </div>

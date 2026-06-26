@@ -3,6 +3,7 @@ import type { Idl } from '@coral-xyz/anchor';
 import { Connection, PublicKey, SystemProgram, Keypair, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token';
 import { Buffer } from 'buffer';
+import bs58 from 'bs58';
 import type { AnchorWallet } from '../lib/wallet-adapter';
 import idlJson from '../idl/social_fi_contract.json';
 import type { SocialFiContract } from '../idl/social_fi_contract';
@@ -19,15 +20,38 @@ export class SocialFiSDK {
   provider: AnchorProvider;
   wallet: AnchorWallet;
 
-  constructor(wallet: AnchorWallet, connection?: Connection) {
+  private memcmpDiscriminator(
+    accountName: 'follow' | 'like' | 'comment' | 'repost',
+  ): { memcmp: { offset: number; bytes: string } } {
+    const idlName = accountName.charAt(0).toUpperCase() + accountName.slice(1);
+    const account = (
+      idlJson as { accounts: { name: string; discriminator: number[] }[] }
+    ).accounts.find((a) => a.name === idlName);
+    if (!account) {
+      throw new Error(`Unknown account discriminator: ${accountName}`);
+    }
+    return {
+      memcmp: {
+        offset: 0,
+        bytes: bs58.encode(Buffer.from(account.discriminator)),
+      },
+    };
+  }
+
+  constructor(
+    wallet: AnchorWallet,
+    connection?: Connection,
+    options?: { registerGlobalProvider?: boolean },
+  ) {
     this.wallet = wallet;
     this.connection = connection || new Connection(RPC_ENDPOINTS[NETWORK], DEFAULT_COMMITMENT);
     this.provider = new AnchorProvider(this.connection, wallet, {
       commitment: DEFAULT_COMMITMENT,
     });
-    
-    // Set global provider for Anchor
-    setProvider(this.provider);
+
+    if (options?.registerGlobalProvider !== false) {
+      setProvider(this.provider);
+    }
     
     // Anchor v0.32.1: Pass provider directly for transaction signing
     // See: https://www.anchor-lang.com/docs/clients/typescript
@@ -535,6 +559,62 @@ export class SocialFiSDK {
   }
 
   /**
+   * Get a holder's Supporter Share balance for a specific creator.
+   */
+  async getShareHolding(holderPubkey: PublicKey, creatorPubkey: PublicKey) {
+    const [shareHolding] = PDAs.getShareHolding(holderPubkey, creatorPubkey);
+
+    try {
+      const account = await this.program.account.shareHolding.fetch(shareHolding);
+      return {
+        publicKey: shareHolding.toBase58(),
+        holder: account.holder.toBase58(),
+        creator: account.creator.toBase58(),
+        amount: account.amount.toNumber(),
+        averagePrice: account.averagePrice.toNumber(),
+        createdAt: account.createdAt.toNumber(),
+      };
+    } catch (error) {
+      if (isAccountNotFoundError(error)) {
+        return {
+          publicKey: shareHolding.toBase58(),
+          holder: holderPubkey.toBase58(),
+          creator: creatorPubkey.toBase58(),
+          amount: 0,
+          averagePrice: 0,
+          createdAt: 0,
+        };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * List all supporters (share holders) for a creator.
+   */
+  async getCreatorShareHolders(creatorPubkey: PublicKey) {
+    try {
+      const holdings = await this.program.account.shareHolding.all();
+      return holdings
+        .filter(
+          (h) =>
+            h.account.creator.equals(creatorPubkey) && h.account.amount.toNumber() > 0,
+        )
+        .map((h) => ({
+          publicKey: h.publicKey.toBase58(),
+          holder: h.account.holder.toBase58(),
+          creator: h.account.creator.toBase58(),
+          amount: h.account.amount.toNumber(),
+          averagePrice: h.account.averagePrice.toNumber(),
+          createdAt: h.account.createdAt.toNumber(),
+        }));
+    } catch (error) {
+      console.error('Error fetching creator share holders:', error);
+      return [];
+    }
+  }
+
+  /**
    * Calculate current price for amount of shares
    * Matches contract logic: price = base_price * (supply_scaled^2)
    * where supply_scaled = supply / PRICE_SCALE (100)
@@ -722,8 +802,9 @@ export class SocialFiSDK {
   /**
    * Check if user is following another user
    */
-  async isFollowing(followingPubkey: PublicKey): Promise<boolean> {
-    const [follow] = PDAs.getFollow(this.wallet.publicKey, followingPubkey);
+  async isFollowing(followingPubkey: PublicKey, followerPubkey?: PublicKey): Promise<boolean> {
+    const follower = followerPubkey ?? this.wallet.publicKey;
+    const [follow] = PDAs.getFollow(follower, followingPubkey);
     try {
       await this.program.account.follow.fetch(follow);
       return true;
@@ -735,8 +816,9 @@ export class SocialFiSDK {
   /**
    * Check if user has liked a post
    */
-  async hasLikedPost(postPubkey: PublicKey): Promise<boolean> {
-    const [like] = PDAs.getLike(this.wallet.publicKey, postPubkey);
+  async hasLikedPost(postPubkey: PublicKey, userPubkey?: PublicKey): Promise<boolean> {
+    const user = userPubkey ?? this.wallet.publicKey;
+    const [like] = PDAs.getLike(user, postPubkey);
     try {
       await this.program.account.like.fetch(like);
       return true;
@@ -788,7 +870,7 @@ export class SocialFiSDK {
       return postData;
     } catch (error) {
       console.error('⚠️ Error fetching posts from blockchain:', error);
-      return [];
+      throw error;
     }
   }
 
@@ -802,9 +884,10 @@ export class SocialFiSDK {
       
       const follows = await this.connection.getProgramAccounts(this.program.programId, {
         filters: [
+          this.memcmpDiscriminator('follow'),
           {
             memcmp: {
-              offset: 8 + 32, // Skip discriminator (8) + follower (32), get to 'following' field
+              offset: 8 + 32,
               bytes: userPubkey.toBase58(),
             },
           },
@@ -842,9 +925,10 @@ export class SocialFiSDK {
       
       const follows = await this.connection.getProgramAccounts(this.program.programId, {
         filters: [
+          this.memcmpDiscriminator('follow'),
           {
             memcmp: {
-              offset: 8, // Skip discriminator, get to 'follower' field
+              offset: 8,
               bytes: userPubkey.toBase58(),
             },
           },
@@ -882,9 +966,10 @@ export class SocialFiSDK {
       
       const likes = await this.connection.getProgramAccounts(this.program.programId, {
         filters: [
+          this.memcmpDiscriminator('like'),
           {
             memcmp: {
-              offset: 8 + 32, // Skip discriminator (8) + user (32), get to 'post' field
+              offset: 8 + 32,
               bytes: postPubkey.toBase58(),
             },
           },
@@ -922,9 +1007,10 @@ export class SocialFiSDK {
       
       const comments = await this.connection.getProgramAccounts(this.program.programId, {
         filters: [
+          this.memcmpDiscriminator('comment'),
           {
             memcmp: {
-              offset: 8 + 32, // Skip discriminator (8) + author (32), get to 'post' field
+              offset: 8 + 32,
               bytes: postPubkey.toBase58(),
             },
           },
@@ -952,6 +1038,51 @@ export class SocialFiSDK {
       console.warn('⚠️ Error fetching comments:', error);
       return [];
     }
+  }
+
+  /**
+   * Build engagement counts for all posts in a single batch (3 RPC calls).
+   */
+  async buildEngagementIndex(userPubkey?: PublicKey) {
+    const [likes, comments, reposts] = await Promise.all([
+      this.program.account.like.all(),
+      this.program.account.comment.all(),
+      this.program.account.repost.all(),
+    ]);
+
+    const index = new Map<
+      string,
+      { likes: number; comments: number; reposts: number; isLiked: boolean }
+    >();
+
+    const ensure = (postId: string) => {
+      const existing = index.get(postId);
+      if (existing) return existing;
+      const entry = { likes: 0, comments: 0, reposts: 0, isLiked: false };
+      index.set(postId, entry);
+      return entry;
+    };
+
+    for (const like of likes) {
+      const postId = like.account.post.toBase58();
+      const entry = ensure(postId);
+      entry.likes += 1;
+      if (userPubkey && like.account.user.equals(userPubkey)) {
+        entry.isLiked = true;
+      }
+    }
+
+    for (const comment of comments) {
+      const postId = comment.account.post.toBase58();
+      ensure(postId).comments += 1;
+    }
+
+    for (const repost of reposts) {
+      const postId = repost.account.originalPost.toBase58();
+      ensure(postId).reposts += 1;
+    }
+
+    return index;
   }
 
   /**
@@ -984,9 +1115,10 @@ export class SocialFiSDK {
       
       const reposts = await this.connection.getProgramAccounts(this.program.programId, {
         filters: [
+          this.memcmpDiscriminator('repost'),
           {
             memcmp: {
-              offset: 8 + 32, // Skip discriminator (8) + user (32), get to 'original_post' field
+              offset: 8 + 32,
               bytes: originalPostPubkey.toBase58(),
             },
           },
@@ -1285,7 +1417,7 @@ export class SocialFiSDK {
 
   /**
    * Update member role in group (admin only)
-   * Role: 0 = Member, 1 = Moderator, 2 = Admin
+   * Role: 0 = Owner, 1 = Admin, 2 = Moderator, 3 = Member
    */
   async updateMemberRole(groupPubkey: PublicKey, targetMemberPubkey: PublicKey, newRole: number) {
     const [adminMember] = PDAs.getGroupMember(groupPubkey, this.wallet.publicKey);
@@ -1329,9 +1461,9 @@ export class SocialFiSDK {
   /**
    * Stake tokens for governance voting power
    */
-  async stakeTokens(amountInSol: number, lockDaysUnix?: number) {
+  async stakeTokens(amountInSol: number, lockPeriodDays: number = 0) {
     const amountInLamports = new BN(Math.floor(amountInSol * 1e9));
-    const lockPeriod = new BN(lockDaysUnix || 7 * 24 * 60 * 60); // Default 7 days in seconds
+    const lockPeriod = new BN(lockPeriodDays);
     
     const [stakePosition] = PDAs.getStakePosition(this.wallet.publicKey);
     const [platformConfig] = PDAs.getPlatformConfig();
@@ -1401,12 +1533,12 @@ export class SocialFiSDK {
   /**
    * Cast vote on proposal (true = for, false = against)
    */
-  async castVote(proposalPubkey: PublicKey, support: boolean) {
+  async castVote(proposalPubkey: PublicKey, support: boolean, abstain = false) {
     const [vote] = PDAs.getVotePDA(proposalPubkey, this.wallet.publicKey);
     const [stakePosition] = PDAs.getStakePosition(this.wallet.publicKey);
 
-    // Vote types: 0 = Against, 1 = For, 2 = Abstain
-    const voteType = support ? 1 : 0;
+    // Vote types: 0 = For, 1 = Against, 2 = Abstain
+    const voteType = abstain ? 2 : support ? 0 : 1;
 
     const tx = await this.program.methods
       .castVote(voteType)
@@ -1460,6 +1592,51 @@ export class SocialFiSDK {
       return account;
     } catch (_error) {
       return null;
+    }
+  }
+
+  async getVotesByVoter(voterPubkey: PublicKey) {
+    try {
+      const votes = await this.program.account.vote.all();
+      return votes
+        .filter((v) => v.account.voter.equals(voterPubkey))
+        .map((v) => ({
+          proposal: v.account.proposal.toBase58(),
+          voteType: v.account.voteType,
+        }));
+    } catch (error) {
+      console.error('Error fetching voter votes:', error);
+      return [];
+    }
+  }
+
+  async getCommentsByAuthor(authorPubkey: PublicKey) {
+    try {
+      const comments = await this.program.account.comment.all();
+      return comments
+        .filter((c) => c.account.author.equals(authorPubkey))
+        .map((c) => ({
+          publicKey: c.publicKey.toBase58(),
+          author: c.account.author.toBase58(),
+          post: c.account.post.toBase58(),
+          content: c.account.content,
+          createdAt: c.account.createdAt.toNumber(),
+        }));
+    } catch (error) {
+      console.error('Error fetching author comments:', error);
+      return [];
+    }
+  }
+
+  async getMemberGroupIds(memberPubkey: PublicKey): Promise<string[]> {
+    try {
+      const members = await this.program.account.groupMember.all();
+      return members
+        .filter((m) => m.account.wallet.equals(memberPubkey) && !m.account.banned)
+        .map((m) => m.account.group.toBase58());
+    } catch (error) {
+      console.error('Error fetching member groups:', error);
+      return [];
     }
   }
 
@@ -1560,7 +1737,7 @@ export class SocialFiSDK {
       
       let collection = collectionMint;
       if (!collection) {
-        const { getCollectionMint } = await import('../utils/constants');
+        const { getCollectionMint } = await import('../utils/constants-nft.post-mvp');
         collection = getCollectionMint();
       }
 
@@ -1814,6 +1991,182 @@ export class SocialFiSDK {
     return tx;
   }
 
+  // ==================== INDEXERS ====================
+
+  async resolveUsernameToPubkey(username: string): Promise<PublicKey | null> {
+    const normalized = username.replace(/^@/, '').toLowerCase();
+    try {
+      const accounts = await this.program.account.userProfile.all();
+      const match = accounts.find(
+        (a) => a.account.username.toLowerCase() === normalized,
+      );
+      return match ? match.account.owner : null;
+    } catch (error) {
+      console.error('Error resolving username:', error);
+      throw error;
+    }
+  }
+
+  async getAllProposals() {
+    try {
+      const proposals = await this.program.account.proposal.all();
+      return proposals.map((p) => ({
+        publicKey: p.publicKey.toBase58(),
+        proposer: p.account.proposer.toBase58(),
+        title: p.account.title,
+        description: p.account.description,
+        category: p.account.category,
+        status: p.account.status,
+        votesFor: p.account.votesFor.toNumber(),
+        votesAgainst: p.account.votesAgainst.toNumber(),
+        votesAbstain: p.account.votesAbstain.toNumber(),
+        createdAt: p.account.createdAt.toNumber(),
+        votingEndsAt: p.account.votingEndsAt.toNumber(),
+        executionDelay: p.account.executionDelay.toNumber(),
+      }));
+    } catch (error) {
+      console.error('Error fetching proposals:', error);
+      return [];
+    }
+  }
+
+  async getAllGroups() {
+    try {
+      const groups = await this.program.account.group.all();
+      return groups.map((g) => ({
+        publicKey: g.publicKey.toBase58(),
+        name: g.account.name,
+        description: g.account.description,
+        creator: g.account.creator.toBase58(),
+        privacy: g.account.privacy,
+        memberCount: g.account.memberCount.toNumber(),
+        entryRequirement: g.account.entryRequirement,
+        entryPrice: g.account.entryPrice ? g.account.entryPrice.toNumber() : 0,
+        createdAt: g.account.createdAt.toNumber(),
+      }));
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+      return [];
+    }
+  }
+
+  async getGroupMembers(groupPubkey: PublicKey) {
+    try {
+      const members = await this.program.account.groupMember.all();
+      return members
+        .filter((m) => m.account.group.equals(groupPubkey))
+        .map((m) => ({
+          publicKey: m.publicKey.toBase58(),
+          group: m.account.group.toBase58(),
+          wallet: m.account.wallet.toBase58(),
+          role: m.account.role,
+          joinedAt: m.account.joinedAt.toNumber(),
+          banned: m.account.banned,
+        }));
+    } catch (error) {
+      console.error('Error fetching group members:', error);
+      return [];
+    }
+  }
+
+  async getAllCreatorPools() {
+    try {
+      const pools = await this.program.account.creatorPool.all();
+      return pools.map((p) => ({
+        publicKey: p.publicKey.toBase58(),
+        creator: p.account.creator.toBase58(),
+        supply: p.account.supply.toNumber(),
+        holdersCount: p.account.holdersCount.toNumber(),
+        basePrice: p.account.basePrice.toNumber(),
+        totalVolume: p.account.totalVolume.toNumber(),
+        createdAt: p.account.createdAt.toNumber(),
+      }));
+    } catch (error) {
+      console.error('Error fetching creator pools:', error);
+      return [];
+    }
+  }
+
+  async getUserShareHoldings(holderPubkey: PublicKey) {
+    try {
+      const holdings = await this.program.account.shareHolding.all();
+      return holdings
+        .filter((h) => h.account.holder.equals(holderPubkey))
+        .map((h) => ({
+          publicKey: h.publicKey.toBase58(),
+          holder: h.account.holder.toBase58(),
+          creator: h.account.creator.toBase58(),
+          amount: h.account.amount.toNumber(),
+          averagePrice: h.account.averagePrice.toNumber(),
+          createdAt: h.account.createdAt.toNumber(),
+        }));
+    } catch (error) {
+      console.error('Error fetching share holdings:', error);
+      return [];
+    }
+  }
+
+  async getSubscriptionsForSubscriber(subscriberPubkey: PublicKey) {
+    try {
+      const subs = await this.program.account.subscription.all();
+      return subs
+        .filter((s) => s.account.subscriber.equals(subscriberPubkey))
+        .map((s) => ({
+          publicKey: s.publicKey.toBase58(),
+          subscriber: s.account.subscriber.toBase58(),
+          creator: s.account.creator.toBase58(),
+          tierId: s.account.tierId.toNumber(),
+          startDate: s.account.startDate.toNumber(),
+          endDate: s.account.endDate.toNumber(),
+          status: s.account.status,
+          autoRenew: s.account.autoRenew,
+          createdAt: s.account.createdAt.toNumber(),
+        }));
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error);
+      return [];
+    }
+  }
+
+  async getSubscriptionsForCreator(creatorPubkey: PublicKey) {
+    try {
+      const subs = await this.program.account.subscription.all();
+      return subs
+        .filter((s) => s.account.creator.equals(creatorPubkey))
+        .map((s) => ({
+          publicKey: s.publicKey.toBase58(),
+          subscriber: s.account.subscriber.toBase58(),
+          creator: s.account.creator.toBase58(),
+          tierId: s.account.tierId.toNumber(),
+          startDate: s.account.startDate.toNumber(),
+          endDate: s.account.endDate.toNumber(),
+          status: s.account.status,
+          autoRenew: s.account.autoRenew,
+          createdAt: s.account.createdAt.toNumber(),
+        }));
+    } catch (error) {
+      console.error('Error fetching creator subscriptions:', error);
+      return [];
+    }
+  }
+
+  async getAllOffers() {
+    try {
+      const offers = await this.program.account.offer.all();
+      return offers.map((o) => ({
+        publicKey: o.publicKey.toBase58(),
+        listing: o.account.listing.toBase58(),
+        buyer: o.account.buyer.toBase58(),
+        amount: o.account.amount.toNumber() / 1e9,
+        createdAt: o.account.createdAt.toNumber(),
+        expiresAt: o.account.expiresAt.toNumber(),
+      }));
+    } catch (error) {
+      console.error('Error fetching offers:', error);
+      return [];
+    }
+  }
+
   // ==================== MODERATION ====================
 
   /**
@@ -1856,6 +2209,15 @@ export class SocialFiSDK {
     // Note: Ban system not yet implemented
     return false;
   }
+}
+
+function isAccountNotFoundError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes('Account does not exist') ||
+    message.includes('could not find account') ||
+    message.includes('AccountNotFound')
+  );
 }
 
 export default SocialFiSDK;

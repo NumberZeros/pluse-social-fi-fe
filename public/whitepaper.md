@@ -1,123 +1,100 @@
 # Pulse Social Whitepaper
-**Version 1.0 | December 2025**
+**Version 1.1 | MVP — Supporter Shares**
+
+> **MVP focus:** This document describes the live product loop — **fans buy Supporter Shares to unlock exclusive creator content on Solana**. Broader protocol features (governance, username NFTs, groups) are deferred post-MVP but remain in the smart contract for future releases.
 
 ## Executive Summary
 
-Pulse Social is building the decentralized social layer for Solana, combining ZK Compression technology with permanent storage to create a censorship-resistant, portable social graph.
+Pulse Social is a **creator-first social platform on Solana**. The MVP centers on one loop:
 
-**Key Innovation**: By leveraging Solana's ZK Compression, Pulse reduces the cost of social interactions by 1000x while maintaining Solana's speed and composability.
+**Fans buy Supporter Shares → unlock supporters-only posts → creators earn via shares and tips.**
+
+Creators launch a Supporter Shares pool from their dashboard, post public or gated content (metadata on IPFS, `accessLevel: supporters`), and fans verify access on-chain before content is revealed. Tips are peer-to-peer SOL transfers with no platform fee.
 
 ## 1. Problem Statement
 
 ### Web2 Social Media Failures
-- **Platform Risk**: Users can be deplatformed, losing years of content
-- **Data Silos**: Social graphs trapped in walled gardens
-- **Value Extraction**: Platforms capture 100% of ad revenue
-- **Privacy Violations**: User data sold without consent
-- **Censorship**: Arbitrary moderation with no appeals
+- **Platform Risk**: Creators can lose audiences and income overnight
+- **Value Extraction**: Platforms take large cuts of creator earnings
+- **No Direct Support**: Fans cannot easily back creators they believe in
+- **Gated Content Friction**: Paywalls are opaque and platform-controlled
 
-### Web3 Social Challenges
-- **High Costs**: $0.10-$1.00 per post on existing platforms
-- **Poor UX**: Complex wallet interactions
-- **No Monetization**: Creators lack native tipping tools
-- **Fragmented Identity**: Different username per platform
+### What Creators Need
+- A simple way to monetize a loyal fan base
+- Transparent, on-chain proof of support
+- Content gating that fans can trust
+- Low fees and fast settlement
 
-## 2. The Pulse Solution
+## 2. The Pulse MVP Solution
 
 ### Core Principles
-1. **User Sovereignty**: Users own their data and identity
-2. **Permissionless**: Anyone can build on Pulse primitives
-3. **Portable**: Identity travels across all Solana apps
-4. **Affordable**: ZK Compression = $0.0001 per post
-5. **Creator-First**: Native monetization built-in
+1. **Creator-First**: Supporter Shares + tips, not ads
+2. **On-Chain Support**: Share holdings are verifiable on Solana
+3. **Content Gating**: IPFS metadata + on-chain access checks
+4. **Affordable**: Solana transaction costs are fractions of a cent
+5. **Focused Scope**: MVP ships one loop well before expanding
 
-### Technical Architecture
+### Product Architecture (MVP)
 
-**Layer 1: Identity Protocol**
-- ZK Compressed Usernames (~0.01 SOL)
-- On-Chain Verification on Solana
-- Cross-App Compatibility
+**Identity & Social**
+- On-chain profiles with usernames
+- Feed, follows, likes, comments
+- Explore discovery
 
-**Layer 2: Social Graph Protocol**
-- Compressed Accounts (Merkle trees)
-- Verifiable Interactions (cryptographically signed)
-- Portable Reputation
+**Supporter Shares**
+- `initializeCreatorPool` — creator launches pool
+- `buyShares` / `sellShares` — fans support or cash out
+- Price scales with pool supply on-chain
 
-**Layer 3: Content Layer**
-- Hybrid Storage (Solana + Arweave/Shadow Drive)
-- Immutable Posts
-- Rich Media Support
+**Content**
+- Post metadata on Pinata IPFS
+- `accessLevel: "public" | "supporters"`
+- Client verifies `getShareHolding(fan, creator) > 0` before render
 
-**Layer 4: Monetization Layer**
-- 1-Click Tipping (no wallet popups)
-- Token-Gated Groups
-- Subscription Protocol
-- Creator Shares (Friend.tech style)
+**Monetization**
+- Direct SOL tips (100% to creator wallet)
+- Supporter Shares revenue via pool mechanics
 
-## 3. Technology Stack
+## 3. Technology Stack (MVP)
 
-- **Solana L1**: 65,000 TPS, 400ms confirmation
-- **ZK Compression**: 1000x cost reduction
-- **Helius RPC**: Enterprise-grade reliability
-- **Arweave**: Permanent content storage
-- **Shadow Drive**: DePIN storage network
-- **Metaplex Bubblegum**: Compressed NFTs
+- **Solana**: Profiles, posts, shares, tips, follows
+- **Anchor**: Smart contract framework
+- **Pinata IPFS**: Post content and media (required in production)
+- **React + Vite**: Frontend on Vercel
+- **Wallet Adapter**: Phantom, Solflare, etc.
 
-## 4. $PULSE Token
+**Program ID (devnet):** `FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL`
 
-### Total Supply: 1,000,000,000 (Fixed)
+## 4. Deferred Features (Post-MVP)
 
-**Distribution**:
-- Airdrop (25%): 250M
-- Community Rewards (20%): 200M
-- Ecosystem Fund (15%): 150M
-- Team & Advisors (15%): 150M
-- Liquidity (10%): 100M
-- Treasury (10%): 100M
-- Investors (5%): 50M
+The contract includes additional modules not exposed in the MVP UI:
 
-### Token Utility
-- **Governance**: Vote on protocol upgrades
-- **Staking**: 15-25% APY + premium features
-- **Platform Currency**: Premium usernames, promoted posts
-- **Creator Monetization**: 0% fee on $PULSE tips
+- Username NFT marketplace
+- Subscription tiers
+- Groups & communities
+- Governance staking & proposals
+- Post NFT minting
+- Reposts & airdrop mechanics
 
-### Airdrop Season 1: 250M $PULSE
-
-**Earn Points**:
-- Create Posts (10 posts): 100 points
-- Send Tips (5 tips): 150 points
-- Mint Username: 200 points
-- Active Days (7 days): 250 points
-- Engagement (20 actions): 100 points
-
-**Max**: 800 points per user
-
-**Formula**: Your_Allocation = (Your_Points / Total_Points) × 250M
+Legacy URLs redirect to `/guide#coming-soon`.
 
 ## 5. Roadmap
 
-### Q1 2026: MVP & Airdrop
-- ✅ Username minting
-- ✅ 1-click tipping
-- ✅ Airdrop dashboard
-- 🔄 $PULSE token launch
-- 🔄 Airdrop distribution
+### Phase 1: Supporter Shares MVP ✅
+- Scope freeze and USP-focused UI
+- Supporter-only gating (IPFS + on-chain)
+- Creator dashboard + onboarding wizard
+- Production Pinata requirement
 
-### Q2 2026: Monetization
-- Token-gated groups
-- Subscription protocol
-- Creator shares
-- Promoted posts
+### Phase 2: Mainnet Launch
+- Security audit (shares module)
+- Mainnet deployment
+- Event indexing for faster feeds
 
-### Q3 2026: Expansion
+### Phase 3: Protocol Expansion
+- Re-enable marketplace, groups, governance based on traction
 - Mobile apps
-- Browser extension
-- Developer API & SDK
-
-### Q4 2026: DAO
-- DAO governance live
-- Full decentralization
+- Developer API
 
 ## 6. Team
 
@@ -127,12 +104,12 @@ Pulse Social is building the decentralized social layer for Solana, combining ZK
 
 ## Conclusion
 
-Pulse Social represents the next evolution of social media: decentralized, creator-owned, and built for billions of users on Solana.
+Pulse Social MVP proves that fans can support creators directly on-chain — with exclusive content as the reward, not speculation-first trading.
 
-**Join the Pulse. Own your social graph.**
+**Support creators. Unlock exclusive content. Built on Solana.**
 
 ---
 
 **Disclaimer**: This whitepaper is for informational purposes only and does not constitute financial advice.
 
-**Last Updated**: December 12, 2025
+**Last Updated**: June 2026
