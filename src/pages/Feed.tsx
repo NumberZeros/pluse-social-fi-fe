@@ -183,30 +183,7 @@ export function Feed() {
         schema={schema}
       />
 
-      <div className="mb-6 flex justify-end">
-        <motion.div
-          animate={{ opacity: isOnline ? 1 : 0.8 }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
-            isOnline
-              ? 'bg-green-500/10 text-green-400 border-green-500/20'
-              : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-          }`}
-        >
-          {isOnline ? (
-            <>
-              <Wifi className="w-4 h-4" />
-              <span className="text-sm font-medium">Online</span>
-            </>
-          ) : (
-            <>
-              <WifiOff className="w-4 h-4" />
-              <span className="text-sm font-medium">Offline (Using Cache)</span>
-            </>
-          )}
-        </motion.div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-6 lg:pb-12">
         <div className="hidden lg:block lg:col-span-3">
           <div className="sticky top-28 space-y-6">
             <div className="glass-card rounded-2xl p-6 border border-white/10">
@@ -241,20 +218,43 @@ export function Feed() {
           >
             <CreatePost />
 
-            <div className="flex gap-2 p-1 bg-white/5 rounded-full border border-white/10 w-fit">
-              {(['following', 'all'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setFeedTab(tab)}
-                  className={`px-5 py-2 rounded-full text-sm font-bold transition-colors ${
-                    feedTab === tab
-                      ? 'bg-[var(--color-solana-green)] text-black'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  {tab === 'following' ? 'Following' : 'All'}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex gap-2 p-1 bg-white/5 rounded-full border border-white/10 w-fit">
+                {(['following', 'all'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setFeedTab(tab)}
+                    className={`px-5 py-2 rounded-full text-sm font-bold transition-colors ${
+                      feedTab === tab
+                        ? 'bg-[var(--color-solana-green)] text-black'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {tab === 'following' ? 'Following' : 'All'}
+                  </button>
+                ))}
+              </div>
+
+              <motion.div
+                animate={{ opacity: isOnline ? 1 : 0.8 }}
+                className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border shrink-0 ${
+                  isOnline
+                    ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                }`}
+              >
+                {isOnline ? (
+                  <>
+                    <Wifi className="w-4 h-4" />
+                    <span className="text-sm font-medium">Online</span>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="w-4 h-4" />
+                    <span className="text-sm font-medium">Offline (Using Cache)</span>
+                  </>
+                )}
+              </motion.div>
             </div>
 
             {isPending ? (
@@ -312,7 +312,7 @@ export function Feed() {
           </motion.div>
         </div>
 
-        <div className="lg:col-span-3">
+        <div className="hidden lg:block lg:col-span-3">
           <div className="sticky top-28 space-y-6">
             <TrendingSidebar />
           </div>

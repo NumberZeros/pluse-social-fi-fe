@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navbar } from './Navbar';
+import { MobileBottomNav } from './MobileBottomNav';
 import Footer from './Footer';
 import { App3DBackground } from './App3DBackground';
 import { PlatformPauseBanner } from './PlatformPauseBanner';
@@ -19,8 +20,8 @@ export function SiteLayout({
   mainClassName = '',
 }: SiteLayoutProps) {
   const mainClasses = fullBleed
-    ? `flex-grow pt-24 w-full ${mainClassName}`
-    : `flex-grow pt-24 px-4 max-w-[1400px] mx-auto w-full ${mainClassName}`;
+    ? `flex-grow pt-20 pb-24 lg:pb-0 w-full ${mainClassName}`
+    : `flex-grow pt-20 pb-24 lg:pb-0 px-4 max-w-[1400px] mx-auto w-full ${mainClassName}`;
 
   return (
     <div className="bg-[#000000] min-h-screen text-white relative overflow-x-hidden selection:bg-[var(--color-solana-green)] selection:text-black">
@@ -31,6 +32,8 @@ export function SiteLayout({
         <PlatformPauseBanner />
 
         <main className={mainClasses}>{children}</main>
+
+        <MobileBottomNav />
 
         {showFooter && <Footer />}
       </div>

@@ -1,7 +1,89 @@
-import { Link } from 'react-router-dom';
+import { useState, type ReactNode } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { PulseMark } from '../icons/PulseIcons';
 
+const LEARN_CHIPS = [
+  { label: 'What is Pulse?', href: '/what' },
+  { label: 'Why Pulse?', href: '/why' },
+  { label: 'User Guide', href: '/guide' },
+] as const;
+
+type AccordionSection = 'product' | 'community' | 'developers';
+
+function FooterLink({
+  href,
+  label,
+  external,
+}: {
+  href: string;
+  label: string;
+  external?: boolean;
+}) {
+  const className =
+    'text-gray-400 hover:text-[var(--color-solana-green)] transition-colors text-sm';
+
+  if (external || href.startsWith('http')) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+        {label}
+      </a>
+    );
+  }
+
+  return (
+    <Link to={href} className={className}>
+      {label}
+    </Link>
+  );
+}
+
+function AccordionSection({
+  title,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  title: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="border-b border-white/10 last:border-b-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between py-4 text-left"
+        aria-expanded={isOpen}
+      >
+        <h3 className="font-bold text-white">{title}</h3>
+        <svg
+          className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {isOpen && <ul className="space-y-3 pb-4">{children}</ul>}
+    </div>
+  );
+}
+
 export function Footer() {
+  const location = useLocation();
+  const [openSections, setOpenSections] = useState<Record<AccordionSection, boolean>>({
+    product: false,
+    community: false,
+    developers: false,
+  });
+
+  const toggleSection = (section: AccordionSection) => {
+    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
   const footerLinks = {
     product: [
       { label: 'Feed', href: '/feed' },
@@ -69,23 +151,96 @@ export function Footer() {
     },
   ];
 
+  const isLearnChipActive = (href: string) => {
+    const path = href.split('#')[0];
+    return location.pathname === path;
+  };
+
+  const hasMobileNav = location.pathname !== '/';
+
   return (
-    <footer className="bg-black border-t border-white/10 pt-20 pb-10 relative overflow-hidden">
+    <footer
+      className={`bg-black border-t border-white/10 pt-12 lg:pt-20 relative overflow-hidden ${
+        hasMobileNav
+          ? 'pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-10'
+          : 'pb-8 lg:pb-10'
+      }`}
+    >
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-[var(--color-solana-green)]/5 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="max-w-[1400px] mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-8 lg:gap-12 mb-10 lg:mb-16">
           <div className="lg:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-6 group">
+            <Link to="/" className="flex items-center gap-2 mb-4 lg:mb-6 group">
               <PulseMark className="w-8 h-8" />
               <span className="text-2xl font-display font-bold tracking-tighter text-white">
                 Pulse
               </span>
             </Link>
-            <p className="text-gray-400 mb-8 max-w-sm leading-relaxed">
+            <p className="text-gray-400 mb-6 lg:mb-8 max-w-sm leading-relaxed text-sm lg:text-base">
               The creator platform where fans become supporters — built on Solana.
             </p>
-            <div className="flex gap-3">
+
+            <div className="lg:hidden mb-6 glass-card rounded-2xl p-4 border border-white/10">
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Learn</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+                {LEARN_CHIPS.map((chip) => (
+                  <Link
+                    key={chip.href}
+                    to={chip.href}
+                    className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                      isLearnChipActive(chip.href)
+                        ? 'bg-[var(--color-solana-green)]/10 border-[var(--color-solana-green)]/30 text-[var(--color-solana-green)]'
+                        : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {chip.label}
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-4 border-t border-white/10">
+                <AccordionSection
+                  title="Product"
+                  isOpen={openSections.product}
+                  onToggle={() => toggleSection('product')}
+                >
+                  {footerLinks.product.map((link) => (
+                    <li key={link.label}>
+                      <FooterLink href={link.href} label={link.label} />
+                    </li>
+                  ))}
+                </AccordionSection>
+                <AccordionSection
+                  title="Community"
+                  isOpen={openSections.community}
+                  onToggle={() => toggleSection('community')}
+                >
+                  {footerLinks.community.map((link) => (
+                    <li key={link.label}>
+                      <FooterLink href={link.href} label={link.label} external />
+                    </li>
+                  ))}
+                </AccordionSection>
+                <AccordionSection
+                  title="Developers"
+                  isOpen={openSections.developers}
+                  onToggle={() => toggleSection('developers')}
+                >
+                  {footerLinks.developers.map((link) => (
+                    <li key={link.label}>
+                      <FooterLink
+                        href={link.href}
+                        label={link.label}
+                        external={link.href.startsWith('http')}
+                      />
+                    </li>
+                  ))}
+                </AccordionSection>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-start">
               {socialLinks.map((social) => (
                 <a
                   key={social.label}
@@ -101,18 +256,13 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="lg:col-span-4 grid grid-cols-2 sm:grid-cols-4 gap-8">
+          <div className="hidden lg:col-span-4 lg:grid grid-cols-4 gap-8">
             <div>
               <h3 className="font-bold text-white mb-6">Product</h3>
               <ul className="space-y-4">
                 {footerLinks.product.map((link) => (
                   <li key={link.label}>
-                    <Link
-                      to={link.href}
-                      className="text-gray-400 hover:text-[var(--color-solana-green)] transition-colors text-sm"
-                    >
-                      {link.label}
-                    </Link>
+                    <FooterLink href={link.href} label={link.label} />
                   </li>
                 ))}
               </ul>
@@ -122,12 +272,7 @@ export function Footer() {
               <ul className="space-y-4">
                 {footerLinks.learn.map((link) => (
                   <li key={link.label}>
-                    <Link
-                      to={link.href}
-                      className="text-gray-400 hover:text-[var(--color-solana-green)] transition-colors text-sm"
-                    >
-                      {link.label}
-                    </Link>
+                    <FooterLink href={link.href} label={link.label} />
                   </li>
                 ))}
               </ul>
@@ -137,14 +282,7 @@ export function Footer() {
               <ul className="space-y-4">
                 {footerLinks.community.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-400 hover:text-[var(--color-solana-green)] transition-colors text-sm"
-                    >
-                      {link.label}
-                    </a>
+                    <FooterLink href={link.href} label={link.label} external />
                   </li>
                 ))}
               </ul>
@@ -154,46 +292,33 @@ export function Footer() {
               <ul className="space-y-4">
                 {footerLinks.developers.map((link) => (
                   <li key={link.label}>
-                    {link.href.startsWith('http') ? (
-                      <a
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-400 hover:text-[var(--color-solana-green)] transition-colors text-sm"
-                      >
-                        {link.label}
-                      </a>
-                    ) : (
-                      <Link
-                        to={link.href}
-                        className="text-gray-400 hover:text-[var(--color-solana-green)] transition-colors text-sm"
-                      >
-                        {link.label}
-                      </Link>
-                    )}
+                    <FooterLink
+                      href={link.href}
+                      label={link.label}
+                      external={link.href.startsWith('http')}
+                    />
                   </li>
                 ))}
               </ul>
             </div>
           </div>
+
         </div>
 
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-gray-500 text-sm">
+        <div className="pt-6 lg:pt-8 border-t border-white/10 flex flex-col items-center gap-3 lg:flex-row lg:justify-between lg:gap-4">
+          <div className="text-gray-500 text-xs lg:text-sm text-center lg:text-left">
             © 2025 Pulse Social. All rights reserved.
           </div>
-          <div className="flex items-center gap-6 text-sm text-gray-500">
-            <span>
-              Designed & Built by{' '}
-              <a
-                href="https://www.linkedin.com/in/th%E1%BB%8D-nguy%E1%BB%85n-941348360/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white hover:text-[var(--color-solana-green)] transition-colors font-medium"
-              >
-                Tho Nguyen
-              </a>
-            </span>
+          <div className="text-xs lg:text-sm text-gray-500 text-center">
+            Designed & Built by{' '}
+            <a
+              href="https://www.linkedin.com/in/th%E1%BB%8D-nguy%E1%BB%85n-941348360/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white hover:text-[var(--color-solana-green)] transition-colors font-medium"
+            >
+              Tho Nguyen
+            </a>
           </div>
         </div>
       </div>

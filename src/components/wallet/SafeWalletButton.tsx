@@ -6,7 +6,13 @@ import { useEffect, useState } from 'react';
  * Safe wallet button that handles connection errors gracefully
  * Updated to use our custom RainbowKit-inspired wallet adapter
  */
-export function SafeWalletButton({ className }: { className?: string }) {
+export function SafeWalletButton({
+  className,
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
   const { connecting, connected } = useWallet();
   const [error, setError] = useState<string | null>(null);
 
@@ -32,14 +38,14 @@ export function SafeWalletButton({ className }: { className?: string }) {
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className={compact ? 'inline-flex items-center' : 'flex flex-col items-center gap-2'}>
       <WalletButton className={className} />
-      {error && !connected && (
+      {error && !connected && !compact && (
         <div className="text-xs text-amber-400 bg-amber-500/10 px-3 py-1 rounded-md max-w-xs text-center">
           {error}
         </div>
       )}
-      {connecting && (
+      {connecting && !compact && (
         <div className="text-xs text-blue-400">
           Connecting to wallet...
         </div>
