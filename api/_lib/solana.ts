@@ -1,8 +1,8 @@
 import { Program, AnchorProvider } from '@coral-xyz/anchor';
 import type { Idl } from '@coral-xyz/anchor';
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
-import idlJson from '../../src/idl/social_fi_contract.json';
-import { getUserProfilePda } from './pda';
+import idlJson from '../../src/idl/social_fi_contract.json' with { type: 'json' };
+import { getUserProfilePda } from './pda.js';
 
 const RPC_URL =
   process.env.SOLANA_RPC_URL ||

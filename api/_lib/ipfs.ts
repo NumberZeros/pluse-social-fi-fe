@@ -1,4 +1,4 @@
-import type { PostAccessLevel } from '../../src/services/ipfs';
+export type PostAccessLevel = 'public' | 'supporters';
 
 export interface PostMetadata {
   content: string;

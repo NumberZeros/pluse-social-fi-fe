@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { renderBotHtml } from '../../_lib/bot-html';
-import { buildStaticPageMeta } from '../../_lib/meta-builder';
-import { buildSchemaForStaticPage } from '../../_lib/schema-builder';
+import { renderBotHtml } from '../../_lib/bot-html.js';
+import { buildStaticPageMeta } from '../../_lib/meta-builder.js';
+import { buildSchemaForStaticPage } from '../../_lib/schema-builder.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const page = req.query.page as string;

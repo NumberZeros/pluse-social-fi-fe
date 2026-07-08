@@ -1,7 +1,7 @@
-import { buildPostMeta, buildProfileMeta, buildStaticPageMeta } from './meta-builder';
-import { fetchPostMetadata } from './ipfs';
-import { fetchPost, fetchProfile, resolveUsername } from './solana';
-import { absoluteUrl } from './constants';
+import { buildPostMeta, buildProfileMeta, buildStaticPageMeta } from './meta-builder.js';
+import { fetchPostMetadata } from './ipfs.js';
+import { fetchPost, fetchProfile, resolveUsername } from './solana.js';
+import { absoluteUrl } from './constants.js';
 
 export async function buildSchemaForStaticPage(page: string): Promise<object> {
   const meta = buildStaticPageMeta(page);

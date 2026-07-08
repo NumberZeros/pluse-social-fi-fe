@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { SITE_URL } from '../_lib/constants';
-import { fetchAllPostIds, fetchAllProfileUsernames } from '../_lib/solana';
+import { SITE_URL } from './_lib/constants.js';
+import { fetchAllPostIds, fetchAllProfileUsernames } from './_lib/solana.js';
 
 const STATIC_URLS = [
   { loc: '/', priority: '1.0', changefreq: 'daily' },

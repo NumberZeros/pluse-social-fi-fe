@@ -1,8 +1,8 @@
 import { PublicKey } from '@solana/web3.js';
-import { sanitizeImageUrl } from './sanitize-image-url';
-import { absoluteUrl, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, OG_HEIGHT, OG_WIDTH, SITE_NAME } from './constants';
-import { fetchPostMetadata } from './ipfs';
-import { fetchPost, fetchProfile, resolveUsername } from './solana';
+import { sanitizeImageUrl } from './sanitize-image-url.js';
+import { absoluteUrl, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, OG_HEIGHT, OG_WIDTH, SITE_NAME } from './constants.js';
+import { fetchPostMetadata } from './ipfs.js';
+import { fetchPost, fetchProfile, resolveUsername } from './solana.js';
 
 export interface PageMeta {
   title: string;

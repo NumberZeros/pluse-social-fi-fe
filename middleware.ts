@@ -1,3 +1,5 @@
+import { rewrite } from '@vercel/functions';
+
 const BOT_UA =
   /facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|TelegramBot|Slackbot|Discordbot|Googlebot|bingbot|Applebot|Slurp|DuckDuckBot|ia_archiver|Pinterestbot|Embedly|Quora Link Preview|Showyoubot|outbrain|W3C_Validator|redditbot|Rogerbot|vkShare|facebot/i;
 
@@ -46,17 +48,17 @@ export default async function middleware(request: Request) {
 
   const postMatch = pathname.match(/^\/post\/([^/]+)$/);
   if (postMatch) {
-    return Response.rewrite(new URL(`/api/og/post/${postMatch[1]}`, request.url));
+    return rewrite(new URL(`/api/og/post/${postMatch[1]}`, request.url));
   }
 
   const staticPage = STATIC_PAGES[pathname];
   if (staticPage) {
-    return Response.rewrite(new URL(`/api/og/static/${staticPage}`, request.url));
+    return rewrite(new URL(`/api/og/static/${staticPage}`, request.url));
   }
 
   const profileMatch = pathname.match(/^\/([^/]+)$/);
   if (profileMatch && !RESERVED.has(profileMatch[1].toLowerCase())) {
-    return Response.rewrite(
+    return rewrite(
       new URL(`/api/og/profile/${encodeURIComponent(profileMatch[1])}`, request.url),
     );
   }

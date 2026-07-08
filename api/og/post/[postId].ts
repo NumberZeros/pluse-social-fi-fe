@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { renderBotHtml } from '../../_lib/bot-html';
-import { buildPostMeta } from '../../_lib/meta-builder';
-import { buildSchemaForPost } from '../../_lib/schema-builder';
+import { renderBotHtml } from '../../_lib/bot-html.js';
+import { buildPostMeta } from '../../_lib/meta-builder.js';
+import { buildSchemaForPost } from '../../_lib/schema-builder.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const postId = req.query.postId as string;

@@ -1,5 +1,5 @@
-import { TWITTER_HANDLE } from './constants';
-import type { PageMeta } from './meta-builder';
+import { TWITTER_HANDLE } from './constants.js';
+import type { PageMeta } from './meta-builder.js';
 
 function escapeHtml(str: string): string {
   return str
