@@ -8,6 +8,7 @@ import { CacheManager } from '../services/storage';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRequireWallet } from './useRequireWallet';
 import { toast } from 'react-hot-toast';
+import { trackEvent } from '../lib/analytics';
 
 export const usePost = () => {
   const wallet = useAnchorWallet();
@@ -238,6 +239,13 @@ export const usePost = () => {
           success: `🎉 Sent ${amountInSol} SOL!`,
         }
       );
+
+      if (result) {
+        trackEvent('tip_sent', {
+          amount: amountInSol,
+          creator: pubkey.toBase58(),
+        });
+      }
 
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       invalidatePostEngagement();

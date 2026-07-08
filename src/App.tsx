@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryProvider } from './providers/QueryProvider';
 import { SolanaProvider } from './providers/SolanaProvider';
@@ -31,7 +33,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center">
       <LoadingSpinner size="lg" />
     </div>
   );
@@ -116,12 +118,14 @@ function App() {
               toastOptions={{
                 duration: 3000,
                 style: {
-                  background: '#1e293b',
-                  color: '#fff',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'var(--color-surface)',
+                  color: 'var(--color-foreground)',
+                  border: '1px solid var(--color-border)',
                 },
               }}
             />
+            <Analytics />
+            <SpeedInsights />
           </SolanaProvider>
         </QueryProvider>
       </ErrorBoundary>

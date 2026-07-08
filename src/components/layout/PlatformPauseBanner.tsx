@@ -9,8 +9,8 @@ export function PlatformPauseBanner() {
   }
 
   return (
-    <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-3">
-      <div className="max-w-[1400px] mx-auto flex items-center gap-3 text-amber-300 text-sm">
+    <div className="bg-warning/10 border-b border-warning/30 px-4 py-3">
+      <div className="max-w-[1400px] mx-auto flex items-center gap-3 text-warning text-sm">
         <AlertTriangle className="w-5 h-5 flex-shrink-0" />
         <span>
           Platform is temporarily paused. On-chain actions are disabled until the admin

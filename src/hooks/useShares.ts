@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
 import { useReadOnlySdk } from '../services/read-only-sdk';
+import { trackEvent } from '../lib/analytics';
 
 export const useAllCreatorPools = () => {
   const readSdk = useReadOnlySdk();
@@ -81,7 +82,11 @@ export function useShares(creatorPubkey?: PublicKey) {
       if (!creatorPubkey) throw new Error('Creator pubkey not set');
       return await buyShares(creatorPubkey, amount, maxPrice);
     },
-    onSuccess: () => {
+    onSuccess: (_data, { amount }) => {
+      trackEvent('buy_shares', {
+        creator: creatorPubkey?.toBase58(),
+        amount,
+      });
       queryClient.invalidateQueries({ queryKey: ['shares', creatorPubkey?.toBase58()] });
       queryClient.invalidateQueries({ queryKey: ['sharePrice'] });
       queryClient.invalidateQueries({ queryKey: ['user_share_holdings'] });

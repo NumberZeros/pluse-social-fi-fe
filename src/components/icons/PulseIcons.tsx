@@ -1,53 +1,10 @@
+export { PulseMark } from '../../design-system';
+
 import type { SVGProps } from 'react';
-import { useId } from 'react';
 
 type IconProps = SVGProps<SVGSVGElement> & {
   title?: string;
 };
-
-export function PulseMark({ title = 'Pulse', ...props }: IconProps) {
-  const ribbonGradId = useId();
-  const highlightGradId = useId();
-
-  return (
-    <svg viewBox="0 0 64 64" fill="none" aria-label={title} role="img" {...props}>
-      <defs>
-        <linearGradient id={ribbonGradId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#14F195" />
-          <stop offset="50%" stopColor="#9945FF" />
-          <stop offset="100%" stopColor="#7A2CCD" />
-        </linearGradient>
-        <linearGradient id={highlightGradId} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity={0.9} />
-          <stop offset="100%" stopColor="#FFFFFF" stopOpacity={0} />
-        </linearGradient>
-      </defs>
-
-      {/* Back Stem */}
-      <path d="M20 12 L20 56 L32 48 L32 20 Z" fill="#9945FF" opacity={0.6} />
-
-      {/* Main Loop */}
-      <path 
-        d="M20 12 H40 C 52 12, 58 24, 50 36 C 44 44, 32 48, 20 56 V 12 Z" 
-        fill={`url(#${ribbonGradId})`}
-        stroke="white" 
-        strokeWidth="0.5" 
-        strokeOpacity="0.3" 
-      />
-
-      {/* Fold Highlight */}
-      <path 
-        d="M20 12 L40 12 C 45 12, 48 16, 46 20 L 20 36 V 12 Z" 
-        fill={`url(#${highlightGradId})`} 
-        opacity={0.4} 
-      />
-
-      {/* Heart/Pulse Dot */}
-      <circle cx="34" cy="28" r="4" fill="#14F195" />
-      <circle cx="34" cy="28" r="2" fill="white" />
-    </svg>
-  );
-}
 
 function BaseIcon({
   title,

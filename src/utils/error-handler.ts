@@ -1,4 +1,5 @@
 import { toast } from 'react-hot-toast';
+import { captureTxError } from '../lib/sentry';
 
 /**
  * Higher-order function that wraps async operations with toast notifications
@@ -28,11 +29,12 @@ export async function withToast<T>(
     const result = await operation();
     toast.success(messages.success, { id: toastId });
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Operation failed:', error);
+    captureTxError(messages.loading, error);
 
-    const errorMessage = typeof messages.error === 'function' 
-      ? messages.error(error) 
+    const errorMessage = typeof messages.error === 'function'
+      ? messages.error(error)
       : messages.error;
 
     toast.error(errorMessage, { id: toastId });

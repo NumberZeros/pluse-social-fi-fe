@@ -1,5 +1,5 @@
 export const SITE_URL =
-  import.meta.env.VITE_SITE_URL?.replace(/\/$/, '') || 'https://pulse.social';
+  import.meta.env.VITE_SITE_URL?.replace(/\/$/, '') || 'https://pulsesol.xyz';
 
 export const SITE_NAME = 'Pulse Social';
 

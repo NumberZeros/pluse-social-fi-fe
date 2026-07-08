@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useProfile } from '../../hooks/useProfile';
@@ -9,6 +8,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTimeline } from '../../hooks/useFeed';
 import { ProfileCreationModal } from '../profile/ProfileCreationModal';
 import { Check, ChevronRight, User, TrendingUp, MessageSquare } from 'lucide-react';
+import { Button, MotionCard } from '../../design-system';
+import { trackEvent } from '../../lib/analytics';
 
 type WizardStep = 'profile' | 'pool' | 'post';
 
@@ -28,6 +29,7 @@ export function CreatorOnboardingWizard({ onComplete }: { onComplete?: () => voi
   const { data: timeline = [] } = useTimeline();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isInitializingPool, setIsInitializingPool] = useState(false);
+  const trackedStepsRef = useRef<Set<WizardStep>>(new Set());
 
   const postCount = publicKey
     ? timeline.filter((p) => p.author === publicKey.toBase58()).length
@@ -42,6 +44,21 @@ export function CreatorOnboardingWizard({ onComplete }: { onComplete?: () => voi
       onComplete?.();
     }
   }, [isComplete, onComplete]);
+
+  useEffect(() => {
+    const completed: { step: WizardStep; done: boolean }[] = [
+      { step: 'profile', done: hasProfile },
+      { step: 'pool', done: hasPool },
+      { step: 'post', done: hasFirstPost },
+    ];
+
+    for (const { step, done } of completed) {
+      if (done && !trackedStepsRef.current.has(step)) {
+        trackedStepsRef.current.add(step);
+        trackEvent('wizard_step_completed', { step });
+      }
+    }
+  }, [hasProfile, hasPool, hasFirstPost]);
 
   const currentStep: WizardStep = !hasProfile
     ? 'profile'
@@ -75,13 +92,14 @@ export function CreatorOnboardingWizard({ onComplete }: { onComplete?: () => voi
   }
 
   return (
-    <motion.div
+    <MotionCard
+      variant="glass"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card rounded-[2rem] p-8 border border-[var(--color-solana-green)]/30 mb-12"
+      className="rounded-[2rem] p-8 border border-primary/30 mb-12"
     >
       <h2 className="text-2xl font-black mb-2">Get started as a creator</h2>
-      <p className="text-gray-400 mb-8">Complete these steps to launch your supporter community.</p>
+      <p className="text-muted mb-8">Complete these steps to launch your supporter community.</p>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
         {STEPS.map((step, index) => {
@@ -96,15 +114,15 @@ export function CreatorOnboardingWizard({ onComplete }: { onComplete?: () => voi
               key={step.id}
               className={`flex-1 flex items-center gap-3 p-4 rounded-xl border ${
                 done
-                  ? 'border-[var(--color-solana-green)]/40 bg-[var(--color-solana-green)]/10'
+                  ? 'border-primary/40 bg-primary/10'
                   : active
-                    ? 'border-white/20 bg-white/5'
-                    : 'border-white/5 opacity-50'
+                    ? 'border-border bg-surface-2'
+                    : 'border-border opacity-50'
               }`}
             >
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  done ? 'bg-[var(--color-solana-green)] text-black' : 'bg-white/10 text-gray-400'
+                  done ? 'bg-primary text-background' : 'bg-surface-2 text-muted'
                 }`}
               >
                 {done ? <Check className="w-5 h-5" /> : step.icon}
@@ -115,60 +133,54 @@ export function CreatorOnboardingWizard({ onComplete }: { onComplete?: () => voi
         })}
       </div>
 
-      <div className="bg-black/30 rounded-xl p-6 border border-white/10">
+      <div className="bg-background/30 rounded-xl p-6 border border-border">
         {currentStep === 'profile' && (
           <div>
             <h3 className="font-bold text-lg mb-2">Step 1: Create your profile</h3>
-            <p className="text-gray-400 text-sm mb-4">
+            <p className="text-muted text-sm mb-4">
               Claim your on-chain username so fans can find you.
             </p>
-            <button
-              onClick={() => setShowProfileModal(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-solana-green)] text-black rounded-xl font-bold"
-            >
+            <Button onClick={() => setShowProfileModal(true)} size="sm">
               Create profile
               <ChevronRight className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         )}
 
         {currentStep === 'pool' && (
           <div>
             <h3 className="font-bold text-lg mb-2">Step 2: Launch Supporter Shares</h3>
-            <p className="text-gray-400 text-sm mb-4">
+            <p className="text-muted text-sm mb-4">
               Initialize your supporter pool so fans can back you and unlock exclusive content.
             </p>
-            <button
+            <Button
               onClick={handleInitPool}
               disabled={isInitializingPool || poolLoading}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-solana-green)] text-black rounded-xl font-bold disabled:opacity-50"
+              size="sm"
             >
               {isInitializingPool ? 'Launching...' : 'Launch Supporter Shares'}
               <ChevronRight className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         )}
 
         {currentStep === 'post' && !hasFirstPost && (
           <div>
             <h3 className="font-bold text-lg mb-2">Step 3: Post your first update</h3>
-            <p className="text-gray-400 text-sm mb-4">
+            <p className="text-muted text-sm mb-4">
               Share a public welcome post or gate exclusive content to supporters only.
             </p>
-            <button
-              onClick={() => navigate('/feed')}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-solana-green)] text-black rounded-xl font-bold"
-            >
+            <Button onClick={() => navigate('/feed')} size="sm">
               Go to Feed
               <ChevronRight className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         )}
 
         {currentStep === 'post' && hasFirstPost && (
           <div>
             <h3 className="font-bold text-lg mb-2">All set!</h3>
-            <p className="text-gray-400 text-sm">
+            <p className="text-muted text-sm">
               Your profile, Supporter Shares pool, and first post are live. Head to your dashboard
               to track your community.
             </p>
@@ -185,6 +197,6 @@ export function CreatorOnboardingWizard({ onComplete }: { onComplete?: () => voi
           }}
         />
       )}
-    </motion.div>
+    </MotionCard>
   );
 }

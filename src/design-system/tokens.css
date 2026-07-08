@@ -1,0 +1,80 @@
+@theme {
+  /* ── Canonical colors ── */
+  --color-primary: #14f195;
+  --color-primary-hover: #1affa8;
+  --color-secondary: #9945ff;
+  --color-background: #06080a;
+  --color-surface: #0b1015;
+  --color-surface-2: #121922;
+  --color-foreground: #ffffff;
+  --color-muted: #b8c0cc;
+  --color-border: #1b2632;
+  --color-success: #14f195;
+  --color-warning: #ffc83d;
+  --color-danger: #ff5d73;
+  --color-info: #3ba7ff;
+
+  /* Social platform accents (third-party brand buttons) */
+  --color-discord: #5865f2;
+  --color-discord-hover: #4752c4;
+  --color-telegram: #229ed9;
+  --color-telegram-hover: #1b8bc2;
+
+  /* Gradients */
+  --gradient-logo: linear-gradient(135deg, #9945ff 0%, #14f195 100%);
+  --gradient-cta: linear-gradient(90deg, #14f195 0%, #37ffc0 100%);
+  --gradient-green-end: #37ffc0;
+
+  /* Typography */
+  --font-sans: 'Geist Variable', 'Inter', sans-serif;
+  --font-display: 'Geist Variable', 'Inter', sans-serif;
+
+  /* Spacing scale: 4|8|12|16|24|32|40|48|64 */
+  --spacing-ds-1: 0.25rem;
+  --spacing-ds-2: 0.5rem;
+  --spacing-ds-3: 0.75rem;
+  --spacing-ds-4: 1rem;
+  --spacing-ds-6: 1.5rem;
+  --spacing-ds-8: 2rem;
+  --spacing-ds-10: 2.5rem;
+  --spacing-ds-12: 3rem;
+  --spacing-ds-16: 4rem;
+
+  /* Radius: 8|12|16|20|24|9999 */
+  --radius-ds-sm: 0.5rem;
+  --radius-ds-md: 0.75rem;
+  --radius-ds-lg: 1rem;
+  --radius-ds-xl: 1.25rem;
+  --radius-ds-2xl: 1.5rem;
+  --radius-pill: 9999px;
+
+  /* Shadows & effects */
+  --shadow-ds: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 40px color-mix(in srgb, var(--color-primary) 25%, transparent);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.05);
+
+  /* Animations */
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+}

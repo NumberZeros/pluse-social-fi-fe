@@ -78,12 +78,12 @@ function ShareMenu({
   ];
 
   return (
-    <div className="absolute bottom-full left-0 mb-2 z-50 min-w-[180px] rounded-xl border border-white/10 bg-[#0A0A0A] shadow-xl py-2">
+    <div className="absolute bottom-full left-0 mb-2 z-50 min-w-[180px] rounded-xl border border-border bg-surface shadow-xl py-2">
       {links.map((link) => (
         <button
           key={link.label}
           onClick={link.action}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted hover:bg-surface-2 hover:text-foreground transition-colors"
         >
           {link.icon}
           {link.label}
@@ -119,10 +119,10 @@ export function SharePostButton({ postId, title = 'Pulse Social Post', text = ''
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 hover:text-blue-400 transition-colors group"
+        className="flex items-center gap-2 hover:text-info transition-colors group"
         aria-label="Share post"
       >
-        <div className="p-2 rounded-full group-hover:bg-blue-400/10">
+        <div className="p-2 rounded-pill group-hover:bg-info/10">
           <Share2 className="w-5 h-5" />
         </div>
       </button>
@@ -145,7 +145,7 @@ export function ShareProfileButton({
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 text-sm text-gray-300 hover:border-[var(--color-solana-green)]/50 hover:text-white transition-colors"
+        className="flex items-center gap-2 px-4 py-2 rounded-pill border border-border text-sm text-muted hover:border-primary/50 hover:text-foreground transition-colors"
         aria-label="Share profile"
       >
         <Share2 className="w-4 h-4" />

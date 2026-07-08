@@ -6,6 +6,7 @@ import { usePlatformAction } from '../../hooks/usePlatformAction';
 import { useRequireWallet } from '../../hooks/useRequireWallet';
 import { toast } from 'react-hot-toast';
 import { MessageCircle, Send } from 'lucide-react';
+import { Button, Input } from '../../design-system';
 
 interface CommentThreadProps {
   postId: string;
@@ -47,9 +48,9 @@ export function CommentThread({ postId, commentCount }: CommentThreadProps) {
     <div>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 hover:text-blue-400 transition-colors group text-gray-500"
+        className="flex items-center gap-2 hover:text-info transition-colors group text-muted"
       >
-        <div className="p-2 rounded-full group-hover:bg-blue-400/10 transition-colors">
+        <div className="p-2 rounded-pill group-hover:bg-info/10 transition-colors">
           <MessageCircle className="w-5 h-5" />
         </div>
         <span className="text-sm font-medium">{commentCount ?? comments.length}</span>
@@ -61,33 +62,36 @@ export function CommentThread({ postId, commentCount }: CommentThreadProps) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-4 pt-4 border-t border-white/10 space-y-3"
+            className="mt-4 pt-4 border-t border-border space-y-3"
           >
             {publicKey && (
               <div className="flex gap-2">
-                <input
+                <Input
                   type="text"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Write a comment..."
                   maxLength={280}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm outline-none focus:border-[var(--color-solana-green)]"
+                  className="flex-1 h-auto py-2 text-sm"
                   onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                 />
-                <button
+                <Button
+                  type="button"
+                  size="sm"
                   onClick={handleSubmit}
                   disabled={createComment.isPending || !content.trim()}
-                  className="p-2 bg-[var(--color-solana-green)] text-black rounded-xl disabled:opacity-50"
+                  className="px-3"
+                  aria-label="Post comment"
                 >
                   <Send className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             )}
 
             {isLoading ? (
-              <p className="text-sm text-gray-500">Loading comments...</p>
+              <p className="text-sm text-muted">Loading comments...</p>
             ) : comments.length === 0 ? (
-              <p className="text-sm text-gray-500">No comments yet. Be the first!</p>
+              <p className="text-sm text-muted">No comments yet. Be the first!</p>
             ) : (
               comments.map((comment: { publicKey: string; author: string; content: string; created_at: number }) => (
                 <div key={comment.publicKey} className="flex gap-3 text-sm">
@@ -96,11 +100,11 @@ export function CommentThread({ postId, commentCount }: CommentThreadProps) {
                     alt=""
                     className="w-8 h-8 rounded-full"
                   />
-                  <div className="flex-1 bg-white/5 rounded-xl px-3 py-2">
-                    <span className="font-bold text-gray-300">
+                  <div className="flex-1 bg-surface-2 rounded-xl px-3 py-2">
+                    <span className="font-bold text-muted">
                       {comment.author.slice(0, 4)}...{comment.author.slice(-4)}
                     </span>
-                    <p className="text-gray-200 mt-1">{comment.content}</p>
+                    <p className="text-foreground mt-1">{comment.content}</p>
                   </div>
                 </div>
               ))

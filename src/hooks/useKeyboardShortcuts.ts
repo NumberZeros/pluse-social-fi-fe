@@ -105,9 +105,9 @@ Actions:
   toast.success(shortcuts, {
     duration: 5000,
     style: {
-      background: '#1a1a1a',
-      color: '#fff',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
+      background: 'var(--color-surface)',
+      color: 'var(--color-foreground)',
+      border: '1px solid var(--color-border)',
       padding: '20px',
       whiteSpace: 'pre-line',
       textAlign: 'left',

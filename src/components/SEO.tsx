@@ -135,7 +135,7 @@ export function SEO({
       <meta name="googlebot" content={robotsContent} />
       <meta name="language" content="English" />
 
-      <meta name="theme-color" content="#ABFE2C" />
+      <meta name="theme-color" content="rgb(20, 241, 149)" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       <meta name="apple-mobile-web-app-title" content="Pulse" />

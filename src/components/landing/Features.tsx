@@ -6,10 +6,10 @@ export function Features() {
   return (
     <section id="for-creators" className="relative z-10 py-32 px-6 max-w-[1400px] mx-auto">
       <div className="text-center mb-20">
-        <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
-          Built for <span className="text-[var(--color-solana-green)]">creators</span>
+        <h2 className="text-h2 font-display mb-6">
+          Built for <span className="text-primary">creators</span>
         </h2>
-        <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+        <p className="text-xl text-muted max-w-2xl mx-auto">
           One loop: post exclusive content → fans support you → supporters unlock access.
         </p>
       </div>
@@ -38,7 +38,7 @@ export function Features() {
       <div className="text-center mt-16">
         <Link
           to="/what"
-          className="inline-flex items-center gap-2 text-[var(--color-solana-green)] hover:text-white transition-colors border-b border-[var(--color-solana-green)]/30 hover:border-white pb-1"
+          className="inline-flex items-center gap-2 text-primary hover:text-foreground transition-colors border-b border-primary/30 hover:border-border pb-1"
         >
           Learn how Supporter Shares work <span>→</span>
         </Link>
@@ -65,13 +65,13 @@ function FeatureCard({
       viewport={{ once: true, margin: '-100px' }}
       transition={{ delay, duration: 0.5 }}
       whileHover={{ y: -5 }}
-      className="group p-8 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-[var(--color-solana-green)]/30 transition-all duration-300"
+      className="group p-8 rounded-3xl bg-surface-2 border border-border hover:bg-surface-2 hover:border-primary/30 transition-all duration-300"
     >
-      <div className="w-16 h-16 rounded-2xl bg-[var(--color-solana-green)]/10 flex items-center justify-center mb-6 text-[var(--color-solana-green)] group-hover:scale-110 transition-transform duration-300">
+      <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 text-primary group-hover:scale-110 transition-transform duration-300">
         {icon}
       </div>
       <h3 className="text-2xl font-bold mb-4">{title}</h3>
-      <p className="text-base text-gray-400 leading-relaxed">{description}</p>
+      <p className="text-base text-muted leading-relaxed">{description}</p>
     </motion.div>
   );
 }

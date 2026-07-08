@@ -23,8 +23,10 @@ import { toast } from 'react-hot-toast';
 import { Crown, Grid, MessageSquare, Image as ImageIcon, Users } from 'lucide-react';
 import { buildProfilePageGraph } from '../lib/seo/schema';
 import { AppLayout } from '../components/layout/AppLayout';
+import { trackEvent } from '../lib/analytics';
 import { SEO } from '../components/SEO';
 import { ShareProfileButton } from '../components/feed/SharePostButton';
+import { Button, Card, getButtonClassName, MotionCard } from '../design-system';
 
 const getAvatarUrl = (address: string) => {
   return `https://api.dicebear.com/7.x/avataaars/svg?seed=${address}`;
@@ -207,7 +209,15 @@ export function Profile() {
   };
 
   const handleSupport = () => {
-    guardAction(() => setShowSupport(true));
+    guardAction(() => {
+      if (effectivePubkey) {
+        trackEvent('gating_cta_click', {
+          creator: effectivePubkey.toBase58(),
+          source: 'profile',
+        });
+      }
+      setShowSupport(true);
+    });
   };
 
   const handleLikePost = (postId: string, isLiked: boolean) => {
@@ -257,8 +267,8 @@ export function Profile() {
     return (
       <AppLayout>
         <div className="max-w-5xl mx-auto px-4 py-20 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-[var(--color-solana-green)] border-t-transparent mx-auto" />
-          <p className="text-gray-400 mt-4">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-primary border-t-transparent mx-auto" />
+          <p className="text-muted mt-4">Loading profile...</p>
         </div>
       </AppLayout>
     );
@@ -268,14 +278,11 @@ export function Profile() {
     return (
       <AppLayout>
         <div className="max-w-5xl mx-auto px-4 py-20 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Failed to load profile</h1>
-          <p className="text-gray-400 mb-8">
+          <h1 className="text-h2 text-foreground mb-4">Failed to load profile</h1>
+          <p className="text-muted mb-8">
             Could not resolve this profile. Check your connection and try again.
           </p>
-          <Link
-            to="/explore"
-            className="inline-block px-8 py-3 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black font-bold rounded-full transition-all"
-          >
+          <Link to="/explore" className={getButtonClassName('primary', 'md')}>
             Explore Profiles
           </Link>
         </div>
@@ -287,16 +294,13 @@ export function Profile() {
     return (
       <AppLayout>
         <div className="max-w-5xl mx-auto px-4 py-20 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Create Your Profile</h1>
-          <p className="text-gray-400 mb-8">
+          <h1 className="text-h2 text-foreground mb-4">Create Your Profile</h1>
+          <p className="text-muted mb-8">
             You don&apos;t have a profile yet. Create one to get started!
           </p>
-          <button
-            onClick={() => setShowCreateProfile(true)}
-            className="inline-block px-8 py-3 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black font-bold rounded-full transition-all shadow-[0_0_20px_rgba(20,241,149,0.3)] hover:shadow-[0_0_30px_rgba(20,241,149,0.5)]"
-          >
+          <Button onClick={() => setShowCreateProfile(true)} className="shadow-glow">
             Create Profile
-          </button>
+          </Button>
         </div>
         {showCreateProfile && (
           <ProfileCreationModal isOpen onClose={() => setShowCreateProfile(false)} />
@@ -309,14 +313,11 @@ export function Profile() {
     return (
       <AppLayout>
         <div className="max-w-5xl mx-auto px-4 py-20 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Profile Not Found</h1>
-          <p className="text-gray-400 mb-8">
+          <h1 className="text-h2 text-foreground mb-4">Profile Not Found</h1>
+          <p className="text-muted mb-8">
             This user hasn&apos;t created a profile yet.
           </p>
-          <Link
-            to="/explore"
-            className="inline-block px-8 py-3 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black font-bold rounded-full transition-all"
-          >
+          <Link to="/explore" className={getButtonClassName('primary', 'md')}>
             Explore Profiles
           </Link>
         </div>
@@ -361,7 +362,7 @@ export function Profile() {
           animate={{ opacity: 1 }}
           className="relative h-72 rounded-b-3xl overflow-hidden shadow-2xl"
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
           {displayUser.banner && (
             <img src={displayUser.banner} alt="Banner" className="w-full h-full object-cover" />
           )}
@@ -375,23 +376,23 @@ export function Profile() {
               transition={{ delay: 0.2 }}
               className="relative group"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-solana-green)] to-blue-500 rounded-full blur opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary to-info rounded-full blur opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
               <img
                 src={displayUser.avatar}
                 alt={displayUser.username}
-                className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-black bg-gray-900 relative z-10 object-cover"
+                className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-background bg-surface-2 relative z-10 object-cover"
               />
               {displayUser.verified && (
-                <div className="absolute bottom-2 right-2 w-10 h-10 bg-[var(--color-solana-green)] rounded-full flex items-center justify-center border-4 border-black z-20 shadow-lg">
-                  <IconVerified className="w-5 h-5 text-black" />
+                <div className="absolute bottom-2 right-2 w-10 h-10 bg-primary rounded-full flex items-center justify-center border-4 border-background z-20 shadow-lg">
+                  <IconVerified className="w-5 h-5 text-background" />
                 </div>
               )}
             </motion.div>
 
             <div className="flex-1 flex flex-col md:flex-row justify-between items-center md:items-start gap-4 w-full md:w-auto mt-4 md:mt-24">
               <div className="text-center md:text-left">
-                <h1 className="text-4xl font-bold mb-1 text-white">{displayUser.username}</h1>
-                <p className="text-gray-400 font-mono text-sm bg-white/5 px-3 py-1 rounded-full inline-block border border-white/10">
+                <h1 className="text-h2 mb-1 text-foreground">{displayUser.username}</h1>
+                <p className="text-muted font-mono text-sm bg-surface-2 px-3 py-1 rounded-full inline-block border border-border">
                   {displayUser.address.slice(0, 4)}...{displayUser.address.slice(-4)}
                 </p>
               </div>
@@ -408,7 +409,7 @@ export function Profile() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={handleSendTip}
-                      className="px-6 py-2.5 bg-gradient-to-r from-[var(--color-social-cyan)] to-[var(--color-primary-green)] text-black rounded-full font-bold shadow-[0_0_20px_rgba(20,241,149,0.3)] hover:shadow-[0_0_30px_rgba(20,241,149,0.5)] transition-all"
+                      className={getButtonClassName('cta', 'md', 'shadow-glow')}
                     >
                       💎 Tip
                     </motion.button>
@@ -418,10 +419,10 @@ export function Profile() {
                       whileTap={{ scale: 0.95 }}
                       onClick={handleFollow}
                       disabled={isFollowingLoading || isFollowingError || followMutation.isPending || unfollowMutation.isPending}
-                      className={`px-6 py-2.5 rounded-full font-bold transition-all border disabled:opacity-50 ${
+                      className={`${getButtonClassName('secondary', 'md')} ${
                         isFollowing
-                          ? 'bg-white/5 text-white border-white/20 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500'
-                          : 'bg-white text-black border-white hover:bg-gray-200'
+                          ? 'hover:bg-danger/10 hover:border-danger/50 hover:text-danger'
+                          : '!bg-foreground !text-background border-border hover:!bg-surface-2'
                       }`}
                     >
                       {isFollowingLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
@@ -431,7 +432,11 @@ export function Profile() {
                       whileTap={{ scale: 0.95 }}
                       onClick={handleSupport}
                       disabled={isSupporter}
-                      className="flex items-center gap-2 px-6 py-2.5 bg-[var(--color-solana-green)]/20 text-[var(--color-solana-green)] border border-[var(--color-solana-green)]/30 rounded-full font-bold hover:bg-[var(--color-solana-green)]/30 disabled:opacity-50"
+                      className={getButtonClassName(
+                        'secondary',
+                        'md',
+                        'bg-primary/20 text-primary border-primary/30 hover:bg-primary/30',
+                      )}
                     >
                       <Crown className="w-4 h-4" />
                       {isSupporter ? 'Supporting' : 'Support Creator'}
@@ -441,7 +446,7 @@ export function Profile() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setShowSell(true)}
-                        className="px-6 py-2.5 bg-white/10 text-white border border-white/20 rounded-full font-bold hover:bg-white/20"
+                        className={getButtonClassName('secondary', 'md')}
                       >
                         Cash out support
                       </motion.button>
@@ -452,7 +457,7 @@ export function Profile() {
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="flex items-center gap-2 px-6 py-2.5 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-full font-bold transition-all shadow-[0_0_20px_rgba(20,241,149,0.3)]"
+                      className={getButtonClassName('primary', 'md', 'shadow-glow')}
                     >
                       <Crown className="w-5 h-5" />
                       Dashboard
@@ -463,60 +468,57 @@ export function Profile() {
             </div>
           </div>
 
-          <div className="glass-card p-8 rounded-3xl border border-white/10 mt-8 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-solana-green)]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-[var(--color-solana-green)]/10 transition-colors duration-700" />
-            <p className="text-xl text-gray-200 mb-6 leading-relaxed relative z-10">{displayUser.bio}</p>
+          <Card variant="glass" className="p-8 rounded-3xl border border-border mt-8 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors duration-700" />
+            <p className="text-xl text-foreground mb-6 leading-relaxed relative z-10">{displayUser.bio}</p>
             <div className="flex gap-8 text-sm flex-wrap relative z-10">
               <div className="flex flex-col">
-                <span className="font-bold text-2xl text-white">{displayUser.following}</span>
-                <span className="text-gray-400">Following</span>
+                <span className="font-bold text-2xl text-foreground">{displayUser.following}</span>
+                <span className="text-muted">Following</span>
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-2xl text-white">{displayUser.followers}</span>
-                <span className="text-gray-400">Followers</span>
+                <span className="font-bold text-2xl text-foreground">{displayUser.followers}</span>
+                <span className="text-muted">Followers</span>
               </div>
               {displayUser.tipsReceived && (
                 <div className="flex flex-col">
-                  <span className="font-bold text-2xl text-[var(--color-social-cyan)]">
+                  <span className="font-bold text-2xl text-info">
                     {displayUser.tipsReceived} SOL
                   </span>
-                  <span className="text-gray-400">Tips Received</span>
+                  <span className="text-muted">Tips Received</span>
                 </div>
               )}
               {displayUser.tipsSent && isOwnProfile && (
                 <div className="flex flex-col">
-                  <span className="font-bold text-2xl text-gray-400">{displayUser.tipsSent} SOL</span>
-                  <span className="text-gray-500">Tips Sent</span>
+                  <span className="font-bold text-2xl text-muted">{displayUser.tipsSent} SOL</span>
+                  <span className="text-muted">Tips Sent</span>
                 </div>
               )}
             </div>
-          </div>
+          </Card>
         </div>
 
         {creatorPool && (
           <div className="px-6 py-4">
-            <div className="glass-card rounded-2xl p-5 border border-[var(--color-solana-green)]/20 flex flex-wrap items-center gap-6">
-              <div className="flex items-center gap-2 text-[var(--color-solana-green)]">
+            <Card variant="glass" className="rounded-2xl p-5 border border-primary/20 flex flex-wrap items-center gap-6">
+              <div className="flex items-center gap-2 text-primary">
                 <Users className="w-5 h-5" />
                 <span className="font-bold">Supporter Shares active</span>
               </div>
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-muted">
                 {Number(creatorPool.supply)} Supporter Shares ·{' '}
                 {creatorPool.holdersCount != null ? Number(creatorPool.holdersCount) : '—'} supporters
               </div>
               {!isOwnProfile && !isSupporter && (
-                <button
-                  onClick={handleSupport}
-                  className="ml-auto px-5 py-2 bg-[var(--color-solana-green)] text-black rounded-full font-bold text-sm"
-                >
+                <Button onClick={handleSupport} size="sm" className="ml-auto">
                   Become a supporter
-                </button>
+                </Button>
               )}
-            </div>
+            </Card>
           </div>
         )}
 
-        <div className="sticky top-20 z-30 bg-[#000000]/80 backdrop-blur-xl border-b border-white/10 mt-8">
+        <div className="sticky top-20 z-30 bg-background/80 backdrop-blur-xl border-b border-border mt-8">
           <div className="flex px-6 max-w-[1000px] mx-auto">
             {[
               { id: 'posts', label: 'Posts', icon: Grid },
@@ -527,17 +529,17 @@ export function Profile() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as 'posts' | 'replies' | 'media')}
                 className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 font-bold transition-colors relative ${
-                  activeTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-gray-300'
+                  activeTab === tab.id ? 'text-foreground' : 'text-muted hover:text-muted'
                 }`}
               >
                 <tab.icon
-                  className={`w-5 h-5 ${activeTab === tab.id ? 'text-[var(--color-solana-green)]' : ''}`}
+                  className={`w-5 h-5 ${activeTab === tab.id ? 'text-primary' : ''}`}
                 />
                 {tab.label}
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--color-solana-green)] rounded-t-full"
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"
                   />
                 )}
               </button>
@@ -556,34 +558,35 @@ export function Profile() {
             ) : activeTab === 'replies' ? (
               userReplies.length === 0 ? (
                 <div className="text-center py-20">
-                  <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6">
-                    <MessageSquare className="w-10 h-10 text-gray-500" />
+                  <div className="w-20 h-20 rounded-full bg-surface-2 flex items-center justify-center mx-auto mb-6">
+                    <MessageSquare className="w-10 h-10 text-muted" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-300">No replies yet</h3>
+                  <h3 className="text-xl font-bold text-muted">No replies yet</h3>
                 </div>
               ) : (
                 userReplies.map((reply, index) => (
-                  <motion.div
+                  <MotionCard
                     key={reply.publicKey}
+                    variant="glass"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="glass-card rounded-2xl p-6 border border-white/10"
+                    className="rounded-2xl p-6 border border-border"
                   >
-                    <p className="text-gray-200 whitespace-pre-wrap">{reply.content}</p>
-                    <p className="text-sm text-gray-500 mt-2">
+                    <p className="text-foreground whitespace-pre-wrap">{reply.content}</p>
+                    <p className="text-sm text-muted mt-2">
                       {new Date(reply.createdAt * 1000).toLocaleDateString()}
                     </p>
-                  </motion.div>
+                  </MotionCard>
                 ))
               )
             ) : feedPosts.length === 0 ? (
               <div className="text-center py-20">
-                <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6">
-                  <Grid className="w-10 h-10 text-gray-500" />
+                <div className="w-20 h-20 rounded-full bg-surface-2 flex items-center justify-center mx-auto mb-6">
+                  <Grid className="w-10 h-10 text-muted" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-300">No posts yet</h3>
-                <p className="text-gray-500 mt-2">
+                <h3 className="text-xl font-bold text-muted">No posts yet</h3>
+                <p className="text-muted mt-2">
                   When {displayUser.username} posts, it will show up here.
                 </p>
               </div>

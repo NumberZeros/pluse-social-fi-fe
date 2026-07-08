@@ -2,6 +2,11 @@ import './polyfills';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
+import { initSentry } from './lib/sentry';
+import { initAnalytics } from './lib/analytics';
+
+initSentry();
+initAnalytics();
 
 // Suppress harmless Phantom wallet extension errors
 const originalError = console.error;

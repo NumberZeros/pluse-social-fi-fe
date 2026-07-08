@@ -11,3 +11,5 @@ allowBuilds:
   protobufjs: set this to true or false
   tiny-secp256k1: set this to true or false
   usb: set this to true or false
+  sharp: set this to true or false
+  core-js: set this to true or false

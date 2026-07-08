@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node scripts/generate-og-images.mjs && pnpm build",
+  "buildCommand": "node scripts/generate-og-images.mjs && tsx scripts/generate-guide-md.ts && node scripts/generate-llms-full.mjs && pnpm build",
   "devCommand": "pnpm dev",
   "installCommand": "pnpm install",
   "framework": "vite",
@@ -11,7 +11,7 @@
       "destination": "/api/sitemap.xml"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/|llms\\.txt|llms-full\\.txt|.*\\.md$|robots\\.txt|sitemap-static\\.xml|og-image).*)",
       "destination": "/index.html"
     }
   ],
@@ -33,16 +33,29 @@
           "value": "public, max-age=86400"
         }
       ]
+    },
+    {
+      "source": "/(llms\\.txt|llms-full\\.txt)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
     }
   ],
   "env": {
-    "VITE_SITE_URL": "https://pulse.social",
-    "SITE_URL": "https://pulse.social",
-    "VITE_SOLANA_NETWORK": "devnet",
-    "VITE_SOLANA_RPC_URL": "https://api.devnet.solana.com",
-    "SOLANA_RPC_URL": "https://api.devnet.solana.com",
-    "VITE_PROGRAM_ID": "FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL",
-    "PROGRAM_ID": "FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL",
-    "VITE_COLLECTION_MINT": "11111111111111111111111111111111"
-  }
+    "VITE_SITE_URL": "https://pulsesol.xyz",
+    "SITE_URL": "https://pulsesol.xyz"
+  },
+  "crons": [
+    {
+      "path": "/api/sitemap.xml",
+      "schedule": "0 */6 * * *"
+    }
+  ]
 }

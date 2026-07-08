@@ -6,6 +6,8 @@ import { useSupporterAccess } from '../../hooks/useSupporterAccess';
 import { useGatedPostContent } from '../../hooks/useGatedPostContent';
 import { BuySharesModal } from '../shares/BuySharesModal';
 import type { PostAccessLevel } from '../../services/ipfs';
+import { Button } from '../../design-system';
+import { trackEvent } from '../../lib/analytics';
 
 interface SupporterGatedContentProps {
   creatorAddress: string;
@@ -33,7 +35,7 @@ function PostBody({
   return (
     <>
       <Link to={`/post/${postId}`} className="block">
-        <div className="text-gray-200 mb-4 leading-relaxed whitespace-pre-wrap hover:text-white transition-colors">
+        <div className="text-foreground mb-4 leading-relaxed whitespace-pre-wrap hover:text-foreground transition-colors">
           {content}
         </div>
       </Link>
@@ -53,7 +55,7 @@ function PostBody({
       {videos.length > 0 && (
         <div className="space-y-2 mb-4">
           {videos.map((video, i) => (
-            <video key={i} src={video} controls className="w-full max-h-96 object-contain bg-black rounded-xl" />
+            <video key={i} src={video} controls className="w-full max-h-96 object-contain bg-background rounded-xl" />
           ))}
         </div>
       )}
@@ -98,13 +100,13 @@ export function SupporterGatedContent({
 
   if (isLoading) {
     return (
-      <div className="rounded-xl bg-white/5 border border-white/10 p-6 animate-pulse h-24" />
+      <div className="rounded-xl bg-surface-2 border border-border p-6 animate-pulse h-24" />
     );
   }
 
   if (isError) {
     return (
-      <div className="rounded-xl bg-white/5 border border-red-500/20 p-6 text-center text-sm text-gray-400">
+      <div className="rounded-xl bg-surface-2 border border-danger/20 p-6 text-center text-sm text-muted">
         Could not verify supporter access. Try again later.
       </div>
     );
@@ -113,7 +115,7 @@ export function SupporterGatedContent({
   if (access?.hasAccess) {
     if (gatedContentUri && isGatedLoading) {
       return (
-        <div className="rounded-xl bg-white/5 border border-white/10 p-6 animate-pulse h-24" />
+        <div className="rounded-xl bg-surface-2 border border-border p-6 animate-pulse h-24" />
       );
     }
 
@@ -126,7 +128,7 @@ export function SupporterGatedContent({
 
   return (
     <>
-      <div className="relative rounded-xl overflow-hidden border border-[var(--color-solana-green)]/20">
+      <div className="relative rounded-xl overflow-hidden border border-primary/20">
         <div className="blur-md select-none pointer-events-none opacity-40 p-4 min-h-[80px]">
           <PostBody
             postId={postId}
@@ -135,18 +137,24 @@ export function SupporterGatedContent({
             videos={[]}
           />
         </div>
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm p-6 text-center">
-          <Lock className="w-8 h-8 text-[var(--color-solana-green)] mb-3" />
-          <p className="font-bold text-white mb-1">Supporters-only content</p>
-          <p className="text-sm text-gray-400 mb-4 max-w-xs">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/70 backdrop-blur-sm p-6 text-center">
+          <Lock className="w-8 h-8 text-primary mb-3" />
+          <p className="font-bold text-foreground mb-1">Supporters-only content</p>
+          <p className="text-sm text-muted mb-4 max-w-xs">
             Become a supporter of @{creatorUsername} to unlock this post.
           </p>
-          <button
-            onClick={() => setShowSupportModal(true)}
-            className="px-6 py-2.5 bg-[var(--color-solana-green)] text-black rounded-full font-bold hover:bg-[#9FE51C] transition-colors"
+          <Button
+            size="sm"
+            onClick={() => {
+              trackEvent('gating_cta_click', {
+                creator: creatorAddress,
+                post_id: postId,
+              });
+              setShowSupportModal(true);
+            }}
           >
             Become a supporter
-          </button>
+          </Button>
         </div>
       </div>
 

@@ -5,6 +5,8 @@ import { toast } from 'react-hot-toast';
 import { SocialFiSDK } from '../services/socialfi-sdk';
 import { assertPlatformNotPaused } from '../utils/platformPauseGuard';
 import { useRequireWallet } from './useRequireWallet';
+import { captureTxError } from '../lib/sentry';
+import { trackEvent } from '../lib/analytics';
 
 /**
  * Main hook for interacting with Social-Fi smart contract
@@ -41,8 +43,9 @@ export function useSocialFi() {
         const result = await sdk.createProfile(username);
         toast.success('Profile created successfully!', { id: 'create-profile' });
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Create profile error:', error);
+        captureTxError('createProfile', error);
         const message = parseAnchorError(error);
         toast.error(message, { id: 'create-profile' });
         throw error;
@@ -76,8 +79,9 @@ export function useSocialFi() {
         const signature = await sdk.sendTip(recipientPubkey, amount * 1e9);
         toast.success('Tip sent successfully!', { id: 'send-tip' });
         return signature;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Send tip error:', error);
+        captureTxError('sendTip', error);
         const message = parseAnchorError(error);
         toast.error(message, { id: 'send-tip' });
         throw error;
@@ -99,8 +103,9 @@ export function useSocialFi() {
         const signature = await sdk.buyShares(creatorPubkey, amount, maxPricePerShare * 1e9);
         toast.success(`You're now a supporter!`, { id: 'buy-shares' });
         return signature;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Buy shares error:', error);
+        captureTxError('buyShares', error, { creator: creatorPubkey.toBase58(), amount });
         const message = parseAnchorError(error);
         toast.error(message, { id: 'buy-shares' });
         throw error;
@@ -167,9 +172,11 @@ export function useSocialFi() {
       toast.loading('Launching Supporter Shares...', { id: 'init-pool' });
       const result = await sdk.initializeCreatorPool();
       toast.success('Supporter Shares pool launched!', { id: 'init-pool' });
+      trackEvent('pool_launched');
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Initialize pool error:', error);
+      captureTxError('initializeCreatorPool', error);
       const message = parseAnchorError(error);
       toast.error(message, { id: 'init-pool' });
       throw error;

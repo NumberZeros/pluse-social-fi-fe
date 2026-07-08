@@ -24,14 +24,14 @@
   /* Glassmorphism Default */
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
-  color: white;
+  color: var(--color-foreground);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .wallet-button:hover {
   transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.1);
-  border-color: var(--color-solana-green);
+  border-color: var(--color-primary);
   box-shadow: 0 0 20px rgba(20, 241, 149, 0.2);
 }
 
@@ -49,12 +49,12 @@
 .wallet-button--connected {
   background: rgba(20, 241, 149, 0.1);
   border-color: rgba(20, 241, 149, 0.2);
-  color: var(--color-solana-green);
+  color: var(--color-primary);
 }
 
 .wallet-button--connected:hover {
   background: rgba(20, 241, 149, 0.15);
-  border-color: var(--color-solana-green);
+  border-color: var(--color-primary);
 }
 
 .wallet-button__icon {
@@ -83,7 +83,7 @@
   min-width: 20rem;
   
   /* Dark Glass Theme */
-  background: #1a1b1f; /* RainbowKit dark bg */
+  background: var(--color-surface); /* RainbowKit dark bg */
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.25rem;
   box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.4);
@@ -130,13 +130,13 @@
 .wallet-account-menu__name {
   font-size: 1rem;
   font-weight: 700;
-  color: white;
+  color: var(--color-foreground);
   margin-bottom: 0.25rem;
 }
 
 .wallet-account-menu__address {
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: var(--color-muted);
   font-family: monospace;
 }
 
@@ -152,7 +152,7 @@
 
 .wallet-account-menu__balance-label {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--color-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -160,7 +160,7 @@
 .wallet-account-menu__balance-value {
   font-size: 0.9375rem;
   font-weight: 700;
-  color: var(--color-solana-green);
+  color: var(--color-primary);
   margin-left: auto;
 }
 
@@ -171,7 +171,7 @@
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
   background: rgba(255, 255, 255, 0.08);
-  color: #9ca3af;
+  color: var(--color-muted);
 }
 
 .wallet-account-menu__divider {
@@ -193,13 +193,13 @@
   transition: all 0.2s ease;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #d1d5db;
+  color: var(--color-muted);
   text-align: left;
 }
 
 .wallet-account-menu__item:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: white;
+  color: var(--color-foreground);
 }
 
 .wallet-account-menu__item svg {
@@ -213,12 +213,12 @@
 }
 
 .wallet-account-menu__item--danger {
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 .wallet-account-menu__item--danger:hover {
   background: rgba(239, 68, 68, 0.1);
-  color: #f87171;
+  color: var(--color-danger);
 }
 
 /* Modal Styles */
@@ -240,7 +240,7 @@
 }
 
 .wallet-modal {
-  background: #1a1b1f; /* RainbowKit dark bg */
+  background: var(--color-surface); /* RainbowKit dark bg */
   border-radius: 1.5rem;
   box-shadow: 
     0 0 0 1px rgba(255, 255, 255, 0.08),
@@ -262,9 +262,9 @@
   right: 0;
   height: 2px;
   background: linear-gradient(90deg, 
-    var(--color-solana-purple), 
-    var(--color-solana-green), 
-    var(--color-lens-lime)
+    var(--color-secondary), 
+    var(--color-primary), 
+    var(--color-primary)
   );
 }
 
@@ -289,7 +289,7 @@
 .wallet-modal__title {
   font-size: 1.25rem;
   font-weight: 800;
-  color: white;
+  color: var(--color-foreground);
   margin: 0;
   font-family: var(--font-display, sans-serif);
 }
@@ -297,7 +297,7 @@
 .wallet-modal__close {
   background: rgba(255, 255, 255, 0.05);
   border: none;
-  color: #9ca3af;
+  color: var(--color-muted);
   cursor: pointer;
   padding: 0.5rem;
   display: flex;
@@ -311,7 +311,7 @@
 
 .wallet-modal__close:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: var(--color-foreground);
   transform: rotate(90deg);
 }
 
@@ -348,7 +348,7 @@
 }
 
 .wallet-option:focus-visible {
-  border-color: var(--color-solana-green);
+  border-color: var(--color-primary);
 }
 
 .wallet-option--not-installed {
@@ -378,13 +378,13 @@
 .wallet-option__name {
   font-size: 1.125rem;
   font-weight: 700;
-  color: white;
+  color: var(--color-foreground);
   margin: 0 0 0.25rem 0;
 }
 
 .wallet-option__status {
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: var(--color-muted);
   margin: 0;
 }
 
@@ -400,13 +400,13 @@
 
 .wallet-option__badge--installed {
   background-color: rgba(20, 241, 149, 0.15);
-  color: var(--color-solana-green);
+  color: var(--color-primary);
   border: 1px solid rgba(20, 241, 149, 0.2);
 }
 
 .wallet-option__badge--not-detected {
   background-color: rgba(255, 255, 255, 0.05);
-  color: #6b7280;
+  color: var(--color-muted);
 }
 
 .wallet-option__download {
@@ -414,7 +414,7 @@
   align-items: center;
   gap: 0.25rem;
   margin-top: 0.25rem;
-  color: var(--color-solana-green);
+  color: var(--color-primary);
   font-size: 0.8125rem;
   font-weight: 600;
   text-decoration: none;

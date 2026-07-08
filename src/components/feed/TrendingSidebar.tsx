@@ -5,6 +5,7 @@ import { useIsFollowing, useFollowUser, useUnfollowUser } from '../../hooks/useF
 import { useWallet } from '@solana/wallet-adapter-react';
 import { usePlatformAction } from '../../hooks/usePlatformAction';
 import { useRequireWallet } from '../../hooks/useRequireWallet';
+import { getButtonClassName, MotionCard } from '../../design-system';
 
 export function TrendingSidebar() {
   const { publicKey } = useWallet();
@@ -13,18 +14,19 @@ export function TrendingSidebar() {
 
   return (
     <div className="space-y-6 sticky top-24">
-      <motion.div
+      <MotionCard
+        variant="glass"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-2xl p-6 border border-white/10"
+        className="rounded-2xl p-6 border border-border"
       >
         <h2 className="text-xl font-bold mb-4">Trending on Pulse</h2>
         {trendingPending ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted">
             <p className="text-sm">Loading topics...</p>
           </div>
         ) : trendingTopics.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted">
             <p className="text-sm">No trending topics yet</p>
             <p className="text-xs mt-2">Use hashtags in your posts!</p>
           </div>
@@ -38,28 +40,29 @@ export function TrendingSidebar() {
                 transition={{ delay: index * 0.1 }}
                 className="group cursor-pointer"
               >
-                <p className="text-sm text-gray-500">#{index + 1} Trending</p>
-                <p className="font-bold group-hover:text-[#ABFE2C] transition-colors">#{topic.tag}</p>
-                <p className="text-sm text-gray-500">{topic.count.toLocaleString()} posts</p>
+                <p className="text-sm text-muted">#{index + 1} Trending</p>
+                <p className="font-bold group-hover:text-primary transition-colors">#{topic.tag}</p>
+                <p className="text-sm text-muted">{topic.count.toLocaleString()} posts</p>
               </motion.div>
             ))}
           </div>
         )}
-      </motion.div>
+      </MotionCard>
 
-      <motion.div
+      <MotionCard
+        variant="glass"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="glass-card rounded-2xl p-6 border border-white/10"
+        className="rounded-2xl p-6 border border-border"
       >
         <h2 className="text-xl font-bold mb-4">Creators to support</h2>
         {suggestedPending ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted">
             <p className="text-sm">Loading suggestions...</p>
           </div>
         ) : suggestedUsers.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted">
             <p className="text-sm">No suggestions yet</p>
           </div>
         ) : (
@@ -69,23 +72,24 @@ export function TrendingSidebar() {
             ))}
           </div>
         )}
-      </motion.div>
+      </MotionCard>
 
-      <motion.div
+      <MotionCard
+        variant="glass"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
-        className="glass-card rounded-2xl p-6 border border-[var(--color-solana-green)]/30 bg-gradient-to-br from-[var(--color-solana-green)]/5 to-transparent"
+        className="rounded-2xl p-6 border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent"
       >
         <h2 className="text-lg font-bold mb-3">Become a Creator</h2>
-        <p className="text-sm text-gray-400 mb-4">Launch Supporter Shares and earn from tips</p>
+        <p className="text-sm text-muted mb-4">Launch Supporter Shares and earn from tips</p>
         <Link
           to="/dashboard"
-          className="block w-full py-2.5 text-center bg-gradient-to-r from-[var(--color-solana-green)] to-[var(--color-solana-green)] text-black rounded-xl font-bold hover:shadow-lg transition-all"
+          className="block w-full py-2.5 text-center bg-gradient-to-r from-primary to-primary text-background rounded-xl font-bold hover:shadow-lg transition-all"
         >
           Start Earning
         </Link>
-      </motion.div>
+      </MotionCard>
     </div>
   );
 }
@@ -130,7 +134,7 @@ function SuggestedUserRow({
         <img
           src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.address}`}
           alt={user.username}
-          className="w-12 h-12 rounded-full bg-gray-800"
+          className="w-12 h-12 rounded-full bg-surface-2"
         />
       </Link>
       <div className="flex-1 min-w-0">
@@ -138,7 +142,7 @@ function SuggestedUserRow({
           @{user.username}
         </Link>
         {user.followerCount > 0 && (
-          <p className="text-xs text-gray-500">{user.followerCount.toLocaleString()} followers</p>
+          <p className="text-xs text-muted">{user.followerCount.toLocaleString()} followers</p>
         )}
         {!isSelf && (
           <motion.button
@@ -146,11 +150,10 @@ function SuggestedUserRow({
             whileTap={{ scale: 0.95 }}
             onClick={handleFollow}
             disabled={isFollowingPending || isFollowingError}
-            className={`mt-2 px-4 py-1.5 rounded-full text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-              isFollowing
-                ? 'bg-white/10 text-white border border-white/20'
-                : 'bg-[#ABFE2C] text-black hover:bg-[#9FE51C]'
-            }`}
+            className={`mt-2 ${getButtonClassName(
+              isFollowing ? 'secondary' : 'primary',
+              'sm',
+            )}`}
           >
             {isFollowing ? 'Following' : 'Follow'}
           </motion.button>

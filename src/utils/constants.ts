@@ -16,7 +16,7 @@ export const MIN_SOL_BALANCE = IS_DEVNET ? 0.05 : 0.01;
 
 export const SITE_URL =
   (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') ||
-  'https://pulse.social';
+  'https://pulsesol.xyz';
 
 /** Known genesis hashes for network mismatch detection */
 export const EXPECTED_GENESIS_HASH: Record<string, string> = {

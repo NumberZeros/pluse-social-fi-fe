@@ -4,6 +4,7 @@ import { useUserStore } from '../stores/useUserStore';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProfile } from '../hooks/useProfile';
 import { WalletOnboardingSheet } from './wallet/WalletOnboardingSheet';
+import { identifyWallet, trackEvent } from '../lib/analytics';
 
 const WALLET_SCOPED_QUERY_KEYS = [
   'feed_timeline',
@@ -38,6 +39,7 @@ export function WalletConnectionManager() {
   const resetProfile = useUserStore((state) => state.resetProfile);
   const queryClient = useQueryClient();
   const prevPubkeyRef = useRef<string | null>(null);
+  const trackedWalletRef = useRef<string | null>(null);
   const { profile } = useProfile(publicKey ?? undefined);
 
   useEffect(() => {
@@ -51,6 +53,11 @@ export function WalletConnectionManager() {
 
     if (connected && pubkeyStr) {
       setWalletAddress(pubkeyStr);
+      if (trackedWalletRef.current !== pubkeyStr) {
+        trackedWalletRef.current = pubkeyStr;
+        identifyWallet(pubkeyStr);
+        trackEvent('wallet_connected', { wallet_address: pubkeyStr });
+      }
     }
 
     const prev = prevPubkeyRef.current;
@@ -64,6 +71,7 @@ export function WalletConnectionManager() {
     if (!connected) {
       resetProfile();
       prevPubkeyRef.current = null;
+      trackedWalletRef.current = null;
     }
   }, [connected, publicKey, setWalletAddress, resetProfile, queryClient]);
 

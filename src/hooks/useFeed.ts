@@ -8,6 +8,7 @@ import { CacheManager, isOnline } from '../services/storage';
 import { toast } from 'react-hot-toast';
 import { type PostAccessLevel, fetchMetadata } from '../services/ipfs';
 import { assertPlatformNotPaused } from '../utils/platformPauseGuard';
+import { trackEvent } from '../lib/analytics';
 
 export const FEED_PAGE_SIZE = 10;
 
@@ -261,7 +262,8 @@ export const useTipPost = () => {
 
       return await sdk!.sendTip(authorPubkey, amountInLamports);
     },
-    onSuccess: () => {
+    onSuccess: (_data, { amount, authorAddress }) => {
+      trackEvent('tip_sent', { amount, creator: authorAddress });
       queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['single_post'] });

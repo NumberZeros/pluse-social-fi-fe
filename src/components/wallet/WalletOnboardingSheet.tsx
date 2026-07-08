@@ -8,6 +8,7 @@ import { X, Droplets, UserPlus, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useWalletHealth } from '../../hooks/useWalletHealth';
 import { requestDevnetAirdrop } from '../../utils/devnet-airdrop';
+import { Button, getButtonClassName } from '../../design-system';
 
 const STORAGE_KEY = 'pulse-wallet-onboarding-dismissed';
 
@@ -69,7 +70,7 @@ export function WalletOnboardingSheet() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-background/60 backdrop-blur-sm"
             onClick={dismiss}
             aria-hidden
           />
@@ -81,46 +82,46 @@ export function WalletOnboardingSheet() {
             role="dialog"
             aria-labelledby="wallet-onboarding-title"
           >
-            <div className="bg-[#1a1b1f] border border-white/10 rounded-t-2xl lg:rounded-2xl shadow-2xl p-6 m-0 lg:m-0">
+            <div className="bg-surface border border-border rounded-t-2xl lg:rounded-2xl shadow-2xl p-6 m-0 lg:m-0">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[var(--color-solana-green)]/20 flex items-center justify-center">
-                    <Wallet className="w-5 h-5 text-[var(--color-solana-green)]" />
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Wallet className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h2 id="wallet-onboarding-title" className="font-bold text-white">
+                    <h2 id="wallet-onboarding-title" className="font-bold text-foreground">
                       Wallet connected
                     </h2>
-                    <p className="text-xs text-gray-400">{networkLabel}</p>
+                    <p className="text-xs text-muted">{networkLabel}</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={dismiss}
-                  className="p-1.5 rounded-full hover:bg-white/10 text-gray-400"
+                  className="p-1.5 rounded-full hover:bg-surface-2 text-muted"
                   aria-label="Dismiss"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <p className="text-sm text-gray-300 mb-4">
-                Balance: <strong className="text-white">{balanceSol.toFixed(4)} SOL</strong>
+              <p className="text-sm text-muted mb-4">
+                Balance: <strong className="text-foreground">{balanceSol.toFixed(4)} SOL</strong>
               </p>
 
               <ol className="space-y-3 mb-6">
                 {needsDevnetSol && (
                   <li className="flex gap-3 items-start text-sm">
-                    <Droplets className="w-4 h-4 text-[var(--color-solana-green)] mt-0.5 shrink-0" />
+                    <Droplets className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-gray-300">
+                      <p className="text-muted">
                         Get at least {minSolBalance} SOL for transactions on devnet.
                       </p>
                       <button
                         type="button"
                         onClick={handleAirdrop}
                         disabled={airdropping}
-                        className="mt-2 text-[var(--color-solana-green)] text-xs font-semibold hover:underline disabled:opacity-50"
+                        className="mt-2 text-primary text-xs font-semibold hover:underline disabled:opacity-50"
                       >
                         {airdropping ? 'Requesting...' : 'Request devnet airdrop'}
                       </button>
@@ -129,14 +130,14 @@ export function WalletOnboardingSheet() {
                 )}
                 {needsProfile && (
                   <li className="flex gap-3 items-start text-sm">
-                    <UserPlus className="w-4 h-4 text-[var(--color-solana-green)] mt-0.5 shrink-0" />
-                    <p className="text-gray-300">
+                    <UserPlus className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <p className="text-muted">
                       Create your on-chain profile to post and launch Supporter Shares.
                     </p>
                   </li>
                 )}
                 {!needsDevnetSol && !needsProfile && (
-                  <li className="text-sm text-gray-400">You&apos;re all set — start posting!</li>
+                  <li className="text-sm text-muted">You&apos;re all set — start posting!</li>
                 )}
               </ol>
 
@@ -145,18 +146,20 @@ export function WalletOnboardingSheet() {
                   <Link
                     to="/dashboard"
                     onClick={dismiss}
-                    className="flex-1 text-center py-2.5 bg-[var(--color-solana-green)] text-black rounded-xl font-bold text-sm hover:bg-[#9FE51C] transition-colors"
+                    className={getButtonClassName('primary', 'sm', 'flex-1 text-center')}
                   >
                     Go to Dashboard
                   </Link>
                 )}
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="sm"
                   onClick={dismiss}
-                  className={`py-2.5 px-4 rounded-xl text-sm font-medium border border-white/10 text-gray-300 hover:bg-white/5 ${needsProfile ? '' : 'flex-1'}`}
+                  className={needsProfile ? '' : 'flex-1'}
                 >
                   Got it
-                </button>
+                </Button>
               </div>
             </div>
           </motion.div>
