@@ -1,7 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { renderBotHtml } from '../../_lib/bot-html.js';
 import { buildPostMeta } from '../../_lib/meta-builder.js';
-import { buildSchemaForPost } from '../../_lib/schema-builder.js';
+import { buildSchemaFromPostMeta } from '../../_lib/schema-builder.js';
+
+export const config = {
+  maxDuration: 60,
+};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const postId = req.query.postId as string;
@@ -17,8 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const schema = await buildSchemaForPost(postId);
-    const html = renderBotHtml(meta, schema);
+    const html = renderBotHtml(meta, buildSchemaFromPostMeta(meta));
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     res.status(200).send(html);

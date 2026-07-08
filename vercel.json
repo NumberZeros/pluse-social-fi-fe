@@ -57,5 +57,16 @@
       "path": "/api/sitemap.xml",
       "schedule": "0 0 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "api/og/post/[postId].ts": {
+      "maxDuration": 60
+    },
+    "api/og/profile/[username].ts": {
+      "maxDuration": 60
+    },
+    "api/sitemap.xml.ts": {
+      "maxDuration": 60
+    }
+  }
 }

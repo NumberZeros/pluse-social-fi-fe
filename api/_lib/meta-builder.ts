@@ -84,8 +84,10 @@ export async function buildPostMeta(postId: string): Promise<PageMeta | null> {
   const post = await fetchPost(postId);
   if (!post) return null;
 
-  const metadata = await fetchPostMetadata(post.uri);
-  const profile = await fetchProfile(new PublicKey(post.author));
+  const [metadata, profile] = await Promise.all([
+    fetchPostMetadata(post.uri),
+    fetchProfile(new PublicKey(post.author)),
+  ]);
   const authorName = profile?.username || post.author.slice(0, 8);
   const isGated = metadata.accessLevel === 'supporters';
 

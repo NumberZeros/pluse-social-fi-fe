@@ -1,4 +1,5 @@
 import { buildPostMeta, buildProfileMeta, buildStaticPageMeta } from './meta-builder.js';
+import type { PageMeta } from './meta-builder.js';
 import { fetchPostMetadata } from './ipfs.js';
 import { absoluteUrl } from './constants.js';
 
@@ -119,6 +120,37 @@ function buildDefaultSchema(): object {
         '@id': `${absoluteUrl('/')}#organization`,
         name: 'Pulse Social',
         url: absoluteUrl('/'),
+      },
+    ],
+  };
+}
+
+export function buildSchemaFromPostMeta(meta: PageMeta): object {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${absoluteUrl('/')}#organization`,
+        name: 'Pulse Social',
+        url: absoluteUrl('/'),
+      },
+      {
+        '@type': 'SocialMediaPosting',
+        '@id': meta.url,
+        headline: meta.title,
+        description: meta.description,
+        url: meta.url,
+        ...(meta.publishedTime ? { datePublished: meta.publishedTime } : {}),
+        ...(meta.author
+          ? {
+              author: {
+                '@type': 'Person',
+                name: meta.author,
+                url: absoluteUrl(`/${meta.author}`),
+              },
+            }
+          : {}),
       },
     ],
   };
