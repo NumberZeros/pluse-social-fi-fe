@@ -2,7 +2,7 @@ import { Program, AnchorProvider } from '@coral-xyz/anchor';
 import type { Idl } from '@coral-xyz/anchor';
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import idlJson from '../../src/idl/social_fi_contract.json';
-import { PDAs } from '../../src/services/pda';
+import { getUserProfilePda } from './pda';
 
 const RPC_URL =
   process.env.SOLANA_RPC_URL ||
@@ -71,7 +71,7 @@ export async function fetchPost(postId: string): Promise<OnChainPost | null> {
 export async function fetchProfile(owner: PublicKey): Promise<OnChainProfile | null> {
   try {
     const prog = getProgram();
-    const [userProfile] = PDAs.getUserProfile(owner);
+    const [userProfile] = getUserProfilePda(owner);
     const account = await prog.account.userProfile.fetch(userProfile);
     return {
       username: account.username,

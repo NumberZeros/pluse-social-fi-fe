@@ -46,19 +46,18 @@ export default async function middleware(request: Request) {
 
   const postMatch = pathname.match(/^\/post\/([^/]+)$/);
   if (postMatch) {
-    return Response.redirect(new URL(`/api/og/post/${postMatch[1]}`, request.url), 302);
+    return Response.rewrite(new URL(`/api/og/post/${postMatch[1]}`, request.url));
   }
 
   const staticPage = STATIC_PAGES[pathname];
   if (staticPage) {
-    return Response.redirect(new URL(`/api/og/static/${staticPage}`, request.url), 302);
+    return Response.rewrite(new URL(`/api/og/static/${staticPage}`, request.url));
   }
 
   const profileMatch = pathname.match(/^\/([^/]+)$/);
   if (profileMatch && !RESERVED.has(profileMatch[1].toLowerCase())) {
-    return Response.redirect(
+    return Response.rewrite(
       new URL(`/api/og/profile/${encodeURIComponent(profileMatch[1])}`, request.url),
-      302,
     );
   }
 

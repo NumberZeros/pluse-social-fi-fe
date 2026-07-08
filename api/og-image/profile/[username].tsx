@@ -1,5 +1,5 @@
 import { ImageResponse } from '@vercel/og';
-import { OG_BACKGROUND, OG_COLORS, OG_MARK } from '../../_lib/og-brand.ts';
+import { OG_BACKGROUND, OG_COLORS, OG_MARK } from '../../_lib/og-brand';
 
 export const config = {
   runtime: 'nodejs',

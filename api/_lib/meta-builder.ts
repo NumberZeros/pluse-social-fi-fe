@@ -1,5 +1,5 @@
 import { PublicKey } from '@solana/web3.js';
-import { sanitizeImageUrl } from '../../src/lib/seo/sanitize-image-url';
+import { sanitizeImageUrl } from './sanitize-image-url';
 import { absoluteUrl, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, OG_HEIGHT, OG_WIDTH, SITE_NAME } from './constants';
 import { fetchPostMetadata } from './ipfs';
 import { fetchPost, fetchProfile, resolveUsername } from './solana';

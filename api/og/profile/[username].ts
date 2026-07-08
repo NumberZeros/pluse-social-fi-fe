@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { renderBotHtml } from '../_lib/bot-html';
-import { buildProfileMeta } from '../_lib/meta-builder';
-import { buildSchemaForProfile } from '../_lib/schema-builder';
+import { renderBotHtml } from '../../_lib/bot-html';
+import { buildProfileMeta } from '../../_lib/meta-builder';
+import { buildSchemaForProfile } from '../../_lib/schema-builder';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const username = req.query.username as string;
