@@ -1,11 +1,13 @@
-import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Program, AnchorProvider } from '@coral-xyz/anchor';
 import type { Idl } from '@coral-xyz/anchor';
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import { getUserProfilePda } from './pda.js';
 
-const require = createRequire(import.meta.url);
-const idlJson = require('./idl.json') as Idl;
+const idlPath = join(dirname(fileURLToPath(import.meta.url)), 'idl.json');
+const idlJson = JSON.parse(readFileSync(idlPath, 'utf8')) as Idl;
 
 const RPC_URL =
   process.env.SOLANA_RPC_URL ||
