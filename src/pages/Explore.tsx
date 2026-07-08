@@ -65,6 +65,7 @@ export function Explore() {
           accessLevel === 'supporters'
             ? 'Buy Supporter Shares to unlock this content.'
             : content.slice(0, 120),
+        shareText: content.slice(0, 200),
         author: post.author,
         authorUsername: post.authorUsername,
         authorShort: post.authorUsername || post.author.slice(0, 8),
@@ -296,7 +297,7 @@ export function Explore() {
                           <SharePostButton
                             postId={post.id}
                             title={post.title}
-                            text={post.excerpt}
+                            text={post.shareText}
                           />
                         </div>
                         <Link

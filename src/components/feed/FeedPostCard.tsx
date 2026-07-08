@@ -146,7 +146,7 @@ export function FeedPostCard({
           <SharePostButton
             postId={post.id}
             title={`Post by @${post.author.username}`}
-            text={post.content.slice(0, 100)}
+            text={post.content?.slice(0, 200) ?? ''}
           />
         )}
       </div>

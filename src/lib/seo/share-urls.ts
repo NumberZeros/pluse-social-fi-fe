@@ -20,7 +20,7 @@ export function getFacebookShareUrl(url: string): string {
 export function getTwitterShareUrl(url: string, text?: string): string {
   const params = new URLSearchParams({ url });
   if (text) params.set('text', text);
-  return `https://twitter.com/intent/tweet?${params.toString()}`;
+  return `https://x.com/intent/tweet?${params.toString()}`;
 }
 
 export function getLinkedInShareUrl(url: string): string {

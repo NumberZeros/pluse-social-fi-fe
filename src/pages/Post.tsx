@@ -14,6 +14,7 @@ import { usePlatformAction } from '../hooks/usePlatformAction';
 import { useRequireWallet } from '../hooks/useRequireWallet';
 import { buildPostPageSchema } from '../lib/seo/schema';
 import { PAGE_SEO_CONFIG } from '../lib/seo/page-config';
+import { sanitizeImageUrl } from '../lib/seo/sanitize-image-url';
 import { toast } from 'react-hot-toast';
 
 export function Post() {
@@ -42,9 +43,14 @@ export function Post() {
       : post.content.slice(0, 160)
     : 'View this post on Pulse Social';
 
-  const ogImage = postId
-    ? `/api/og-image/post/${postId}`
-    : PAGE_SEO_CONFIG['/feed'].ogImage;
+  const ogImage = (() => {
+    if (!postId) return PAGE_SEO_CONFIG['/feed'].ogImage;
+    if (post && isPublic && post.imageUrls[0]) {
+      const sanitized = sanitizeImageUrl(post.imageUrls[0]);
+      if (sanitized) return sanitized;
+    }
+    return `/api/og-image/post/${postId}`;
+  })();
 
   const schema =
     post && postId

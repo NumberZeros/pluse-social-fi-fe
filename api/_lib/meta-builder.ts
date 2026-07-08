@@ -1,5 +1,6 @@
 import { PublicKey } from '@solana/web3.js';
-import { absoluteUrl, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_NAME } from './constants';
+import { sanitizeImageUrl } from '../../src/lib/seo/sanitize-image-url';
+import { absoluteUrl, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, OG_HEIGHT, OG_WIDTH, SITE_NAME } from './constants';
 import { fetchPostMetadata } from './ipfs';
 import { fetchPost, fetchProfile, resolveUsername } from './solana';
 
@@ -8,6 +9,8 @@ export interface PageMeta {
   description: string;
   url: string;
   image: string;
+  imageWidth?: number;
+  imageHeight?: number;
   type: 'website' | 'article' | 'profile';
   robots: string;
   author?: string;
@@ -86,13 +89,29 @@ export async function buildPostMeta(postId: string): Promise<PageMeta | null> {
   const authorName = profile?.username || post.author.slice(0, 8);
   const isGated = metadata.accessLevel === 'supporters';
 
+  const cardImage = absoluteUrl(`/api/og-image/post/${postId}`);
+  let image = cardImage;
+  let imageWidth: number | undefined = OG_WIDTH;
+  let imageHeight: number | undefined = OG_HEIGHT;
+
+  if (!isGated && metadata.images[0]) {
+    const sanitized = sanitizeImageUrl(metadata.images[0]);
+    if (sanitized) {
+      image = sanitized;
+      imageWidth = undefined;
+      imageHeight = undefined;
+    }
+  }
+
   return {
     title: `${authorName}: ${isGated ? 'Supporters-only post' : metadata.content.slice(0, 60)} | ${SITE_NAME}`,
     description: isGated
       ? `Supporters-only post by @${authorName}. Buy Supporter Shares to unlock.`
       : metadata.content.slice(0, 160) || DEFAULT_DESCRIPTION,
     url: absoluteUrl(`/post/${postId}`),
-    image: absoluteUrl(`/api/og-image/post/${postId}`),
+    image,
+    imageWidth,
+    imageHeight,
     type: 'article',
     robots: isGated ? 'noindex, nofollow' : 'index, follow',
     author: authorName,
