@@ -2,7 +2,7 @@ import { ImageResponse } from '@vercel/og';
 import { OG_BACKGROUND, OG_COLORS, OG_MARK } from '../../_lib/og-brand.js';
 
 export const config = {
-  runtime: 'edge',
+  runtime: 'nodejs',
 };
 
 export default async function handler(req: Request) {
