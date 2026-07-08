@@ -37,7 +37,7 @@ function getProgram(): Program {
       signAllTransactions: async <T>(txs: T[]): Promise<T[]> => txs,
     };
     const provider = new AnchorProvider(conn, wallet, { commitment: 'confirmed' });
-    program = new Program(idlJson, new PublicKey(PROGRAM_ID), provider);
+    program = new Program(idlJson, provider);
   }
   return program;
 }
@@ -57,8 +57,8 @@ export interface OnChainProfile {
 
 export async function fetchPost(postId: string): Promise<OnChainPost | null> {
   try {
-    const prog = getProgram();
     const pubkey = new PublicKey(postId);
+    const prog = getProgram();
     const post = await prog.account.post.fetch(pubkey);
     return {
       publicKey: postId,
