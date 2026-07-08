@@ -7,7 +7,15 @@ import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import { getUserProfilePda } from './pda.js';
 
 const idlPath = join(dirname(fileURLToPath(import.meta.url)), 'idl.json');
-const idlJson = JSON.parse(readFileSync(idlPath, 'utf8')) as Idl;
+
+let idlJson: Idl | null = null;
+
+function loadIdl(): Idl {
+  if (!idlJson) {
+    idlJson = JSON.parse(readFileSync(idlPath, 'utf8')) as Idl;
+  }
+  return idlJson;
+}
 
 const RPC_URL =
   process.env.SOLANA_RPC_URL ||
@@ -39,7 +47,7 @@ function getProgram(): Program {
       signAllTransactions: async <T>(txs: T[]): Promise<T[]> => txs,
     };
     const provider = new AnchorProvider(conn, wallet, { commitment: 'confirmed' });
-    program = new Program(idlJson, provider);
+    program = new Program(loadIdl(), provider);
   }
   return program;
 }
