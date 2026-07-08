@@ -47,6 +47,11 @@ function hasDiscriminator(bytes: Uint8Array, discriminator: Uint8Array): boolean
   return discriminator.every((byte, index) => bytes[index] === byte);
 }
 
+function isOffCurve(pubkey: Uint8Array): boolean {
+  // PDAs must be off the ed25519 curve; high bit of last byte is set for valid off-curve points.
+  return (pubkey[31] & 0x80) !== 0;
+}
+
 function findPda(seeds: Uint8Array[]): string {
   const programId = bs58.decode(PROGRAM_ID);
   for (let bump = 255; bump >= 0; bump--) {
@@ -121,14 +126,18 @@ export async function fetchPost(postId: string): Promise<RpcPost | null> {
 }
 
 export async function fetchProfile(owner: string): Promise<RpcProfile | null> {
-  if (!isValidPubkey(owner)) return null;
+  try {
+    if (!isValidPubkey(owner)) return null;
 
-  const ownerBytes = bs58.decode(owner);
-  const profilePda = findPda([Buffer.from('user_profile'), ownerBytes]);
-  const data = await getAccountData(profilePda);
-  if (!data || !hasDiscriminator(data, USER_PROFILE_DISCRIMINATOR)) return null;
+    const ownerBytes = bs58.decode(owner);
+    const profilePda = findPda([Buffer.from('user_profile'), ownerBytes]);
+    const data = await getAccountData(profilePda);
+    if (!data || !hasDiscriminator(data, USER_PROFILE_DISCRIMINATOR)) return null;
 
-  let offset = 8 + 32; // discriminator + owner pubkey
-  const username = decodeString(data, offset);
-  return { username: username.value };
+    let offset = 8 + 32; // discriminator + owner pubkey
+    const username = decodeString(data, offset);
+    return { username: username.value };
+  } catch {
+    return null;
+  }
 }
