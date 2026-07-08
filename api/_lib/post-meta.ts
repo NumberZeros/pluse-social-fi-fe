@@ -1,4 +1,4 @@
-import { sanitizeImageUrl } from './sanitize-image-url.js';
+import { toOgImageUrl } from './og-image-url.js';
 import {
   absoluteUrl,
   DEFAULT_DESCRIPTION,
@@ -27,9 +27,9 @@ export async function buildPostMeta(postId: string): Promise<PageMeta | null> {
   let imageHeight: number | undefined = OG_HEIGHT;
 
   if (!isGated && metadata.images[0]) {
-    const sanitized = sanitizeImageUrl(metadata.images[0]);
-    if (sanitized) {
-      image = sanitized;
+    const proxied = toOgImageUrl(metadata.images[0]);
+    if (proxied) {
+      image = proxied;
       imageWidth = undefined;
       imageHeight = undefined;
     }

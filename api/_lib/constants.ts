@@ -1,4 +1,4 @@
-export const SITE_URL = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://pulsesol.xyz').replace(
+export const SITE_URL = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://www.pulsesol.xyz').replace(
   /\/$/,
   '',
 );

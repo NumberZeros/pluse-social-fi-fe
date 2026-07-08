@@ -49,8 +49,8 @@
     }
   ],
   "env": {
-    "VITE_SITE_URL": "https://pulsesol.xyz",
-    "SITE_URL": "https://pulsesol.xyz"
+    "VITE_SITE_URL": "https://www.pulsesol.xyz",
+    "SITE_URL": "https://www.pulsesol.xyz"
   },
   "crons": [
     {
@@ -67,6 +67,9 @@
     },
     "api/sitemap.xml.ts": {
       "maxDuration": 60
+    },
+    "api/image/ipfs/[cid].ts": {
+      "maxDuration": 30
     }
   }
 }
