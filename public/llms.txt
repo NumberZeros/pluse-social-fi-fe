@@ -1,0 +1,35 @@
+# Pulse Social
+
+> Creator-first social platform on Solana. Fans buy Supporter Shares to unlock exclusive content; creators earn via direct SOL tips and on-chain supporter pools — no platform middleman.
+
+Pulse Social v1.1 (MVP) ships one product loop: **fans buy Supporter Shares → unlock supporters-only posts → creators earn on-chain**. The live deployment runs on Solana Devnet. Post metadata and media use Pinata IPFS; access to gated content is verified on-chain via share holdings.
+
+Key terms:
+- **Supporter Shares**: on-chain pool fans buy into to support a creator; holdings gate exclusive posts.
+- **accessLevel**: post metadata field — `public` or `supporters`.
+- **MVP scope**: marketplace, governance, groups, and subscription tiers are deferred (UI hidden); focus is Supporter Shares.
+
+## Product
+
+- [What is Pulse Social](https://pulsesol.xyz/what.md): Platform overview, core features, and how Supporter Shares work for fans and creators.
+- [Why Pulse Social](https://pulsesol.xyz/why.md): Problems with Web2 social platforms and why on-chain creator support matters.
+- [User Guide](https://pulsesol.xyz/guide.md): Step-by-step onboarding — wallet, profile, pool, posts, and supporter access.
+- [Whitepaper](https://pulsesol.xyz/whitepaper.md): Full MVP protocol and product architecture in LLM-readable Markdown.
+
+## Platform
+
+- [Home](https://pulsesol.xyz/): Landing page and primary value proposition.
+- [Feed](https://pulsesol.xyz/feed): Social feed with public and supporter-gated posts.
+- [Explore](https://pulsesol.xyz/explore): Discover creators and trending content.
+- [Creator Dashboard](https://pulsesol.xyz/dashboard): Launch Supporter Shares pool, manage posts, and view supporter stats.
+
+## Developer
+
+- [GitHub Frontend](https://github.com/NumberZeros/pluse-social-fi-fe): Open-source React/Vite app, Anchor SDK integration, and deployment config.
+- [llms-full.txt](https://pulsesol.xyz/llms-full.txt): Complete concatenated context for LLM agents (single-fetch).
+- [Sitemap](https://pulsesol.xyz/sitemap.xml): Machine-readable index of static and on-chain profile/post URLs.
+
+## Optional
+
+- [Tokenomics](https://pulsesol.xyz/tokenomics.md): Post-MVP token model and economic design notes.
+- [robots.txt](https://pulsesol.xyz/robots.txt): Crawler directives; dashboard and legacy routes are disallowed.

@@ -1,14 +1,20 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useAnchorWallet, useConnection } from '../lib/wallet-adapter';
+import { useCallback, useMemo, useState } from 'react';
+import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import { SocialFiSDK } from '../services/socialfi-sdk';
-import { toast } from 'react-hot-toast';
 import { withAnchorToast } from '../utils/error-handler';
+import { assertPlatformNotPaused } from '../utils/platformPauseGuard';
 import { PublicKey } from '@solana/web3.js';
 import { CacheManager } from '../services/storage';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRequireWallet } from './useRequireWallet';
+import { toast } from 'react-hot-toast';
+import { trackEvent } from '../lib/analytics';
 
 export const usePost = () => {
   const wallet = useAnchorWallet();
   const { connection } = useConnection();
+  const queryClient = useQueryClient();
+  const requireWallet = useRequireWallet();
   const [loading, setLoading] = useState(false);
 
   // Memoize SDK instance - only recreate when wallet or connection changes
@@ -22,20 +28,37 @@ export const usePost = () => {
     }
   }, [wallet, connection]);
 
+  const invalidatePostEngagement = useCallback(
+    (postId?: string) => {
+      queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['feed_engagement'] });
+      queryClient.invalidateQueries({ queryKey: ['post_likes'] });
+      queryClient.invalidateQueries({ queryKey: ['post_comments'] });
+      queryClient.invalidateQueries({ queryKey: ['has_liked'] });
+      queryClient.invalidateQueries({ queryKey: ['post_engagement'] });
+      queryClient.invalidateQueries({ queryKey: ['user_replies'] });
+      if (postId) {
+        queryClient.invalidateQueries({ queryKey: ['single_post', postId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['single_post'] });
+      }
+    },
+    [queryClient],
+  );
+
   /**
    * Create a post
    * @param uri - URI pointing to post metadata (JSON with content, images, etc.)
    * @returns Post PDA and transaction signature
    */
   const createPost = useCallback(async (uri: string) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
 
     setLoading(true);
 
     try {
+      await assertPlatformNotPaused(sdk);
       const result = await withAnchorToast(
         () => sdk.createPost(uri),
         {
@@ -46,26 +69,30 @@ export const usePost = () => {
       
       // Clear cache to force refresh
       await CacheManager.clearCache();
+      queryClient.invalidateQueries({ queryKey: ['feed_timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['creator_posts'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['feed_engagement'] });
+      queryClient.invalidateQueries({ queryKey: ['trending_topics'] });
       
       return result;
     } finally {
       setLoading(false);
     }
-  }, [sdk]);
+  }, [sdk, queryClient, requireWallet]);
 
   /**
    * Like a post
    * @param postPubkey - Post PDA to like
    */
   const likePost = useCallback(async (postPubkey: string | PublicKey) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
 
     setLoading(true);
 
     try {
+      await assertPlatformNotPaused(sdk);
       const pubkey = typeof postPubkey === 'string' 
         ? new PublicKey(postPubkey) 
         : postPubkey;
@@ -78,6 +105,7 @@ export const usePost = () => {
         }
       );
 
+      invalidatePostEngagement(pubkey.toBase58());
       return result;
     } catch (error) {
       console.error('Error liking post:', error);
@@ -88,21 +116,20 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk]);
+  }, [sdk, invalidatePostEngagement, requireWallet]);
 
   /**
    * Unlike a post
    * @param postPubkey - Post PDA to unlike
    */
   const unlikePost = useCallback(async (postPubkey: string | PublicKey) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
 
     setLoading(true);
 
     try {
+      await assertPlatformNotPaused(sdk);
       const pubkey = typeof postPubkey === 'string' 
         ? new PublicKey(postPubkey) 
         : postPubkey;
@@ -115,6 +142,7 @@ export const usePost = () => {
         }
       );
 
+      invalidatePostEngagement(pubkey.toBase58());
       return result;
     } catch (error) {
       console.error('Error unliking post:', error);
@@ -125,44 +153,7 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk]);
-
-  /**
-   * Repost a post
-   * @param originalPostPubkey - Original post PDA to repost
-   */
-  const repostPost = useCallback(async (originalPostPubkey: string | PublicKey) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
-
-    setLoading(true);
-
-    try {
-      const pubkey = typeof originalPostPubkey === 'string' 
-        ? new PublicKey(originalPostPubkey) 
-        : originalPostPubkey;
-
-      const result = await withAnchorToast(
-        () => sdk.createRepost(pubkey),
-        {
-          loading: 'Reposting...',
-          success: '🔄 Reposted!',
-        }
-      );
-
-      return result;
-    } catch (error) {
-      console.error('Error reposting:', error);
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to repost'
-      );
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [sdk]);
+  }, [sdk, invalidatePostEngagement, requireWallet]);
 
   /**
    * Create a comment on a post
@@ -170,10 +161,8 @@ export const usePost = () => {
    * @param content - Comment content (max 280 characters)
    */
   const createComment = useCallback(async (postPubkey: string | PublicKey, content: string) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
 
     if (!content || content.trim().length === 0) {
       toast.error('Comment cannot be empty');
@@ -188,6 +177,7 @@ export const usePost = () => {
     setLoading(true);
 
     try {
+      await assertPlatformNotPaused(sdk);
       const pubkey = typeof postPubkey === 'string' 
         ? new PublicKey(postPubkey) 
         : postPubkey;
@@ -200,6 +190,7 @@ export const usePost = () => {
         }
       );
 
+      invalidatePostEngagement(pubkey.toBase58());
       return result;
     } catch (error) {
       console.error('Error creating comment:', error);
@@ -210,7 +201,7 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk]);
+  }, [sdk, invalidatePostEngagement, requireWallet]);
 
   /**
    * Send a tip to a post author
@@ -218,10 +209,8 @@ export const usePost = () => {
    * @param amountInSol - Amount in SOL (will be converted to lamports)
    */
   const tipPostAuthor = useCallback(async (authorPubkey: string | PublicKey, amountInSol: number) => {
-    if (!sdk) {
-      toast.error('Wallet not connected');
-      return null;
-    }
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
 
     if (amountInSol <= 0) {
       toast.error('Tip amount must be greater than 0');
@@ -236,6 +225,7 @@ export const usePost = () => {
     setLoading(true);
 
     try {
+      await assertPlatformNotPaused(sdk);
       const pubkey = typeof authorPubkey === 'string' 
         ? new PublicKey(authorPubkey) 
         : authorPubkey;
@@ -250,6 +240,15 @@ export const usePost = () => {
         }
       );
 
+      if (result) {
+        trackEvent('tip_sent', {
+          amount: amountInSol,
+          creator: pubkey.toBase58(),
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      invalidatePostEngagement();
       return result;
     } catch (error) {
       console.error('Error sending tip:', error);
@@ -260,7 +259,7 @@ export const usePost = () => {
     } finally {
       setLoading(false);
     }
-  }, [sdk]);
+  }, [sdk, queryClient, invalidatePostEngagement, requireWallet]);
 
   /**
    * Get a specific post
@@ -325,27 +324,6 @@ export const usePost = () => {
     }
   }, [sdk]);
 
-  /**
-   * Get reposts of a post
-   * @param postPubkey - Post PDA
-   */
-  const getPostReposts = useCallback(async (postPubkey: string | PublicKey) => {
-    if (!sdk) {
-      return [];
-    }
-
-    try {
-      const pubkey = typeof postPubkey === 'string' 
-        ? new PublicKey(postPubkey) 
-        : postPubkey;
-
-      return await sdk.getPostReposts(pubkey);
-    } catch (error) {
-      console.error('Error fetching reposts:', error);
-      return [];
-    }
-  }, [sdk]);
-
   return {
     // State
     loading,
@@ -357,13 +335,11 @@ export const usePost = () => {
     // Engagement operations
     likePost,
     unlikePost,
-    repostPost,
     createComment,
     tipPostAuthor,
 
     // Data fetching
     getPostLikes,
     getPostComments,
-    getPostReposts,
   };
 };

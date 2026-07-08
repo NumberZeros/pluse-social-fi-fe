@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" fill="none">
+  <defs>
+    <linearGradient id="pGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#37FFC0"/>
+      <stop offset="100%" stop-color="#14F195"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(68, 8)">
+    <path d="M18 0 H46 C55.941 0 64 8.059 64 18 V46 C64 55.941 55.941 64 46 64 H18 C8.059 64 0 55.941 0 46 V18 C0 8.059 8.059 0 18 0 Z" fill="#0B1015"/>
+    <path d="M18 0 H46 C55.941 0 64 8.059 64 18 V46 C64 55.941 55.941 64 46 64 H18 C8.059 64 0 55.941 0 46 V18 C0 8.059 8.059 0 18 0 Z" fill="none" stroke="#1B2632" stroke-width="1"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M22 11 H35 C43.837 11 51 17.716 51 26 C51 34.284 43.837 41 35 41 H31 L22 45 Z M31 20 H35 C38.866 20 42 22.686 42 26 C42 29.314 38.866 32 35 32 H31 Z" fill="url(#pGrad)"/>
+    <path d="M22 49.5 L31 45.5 L31 52.5 L22 56.5 Z" fill="url(#pGrad)"/>
+  </g>
+  <text x="100" y="100" text-anchor="middle" font-family="Geist, Inter, sans-serif" font-size="22" font-weight="700" fill="white" letter-spacing="-0.02em">Pulse Social</text>
+</svg>

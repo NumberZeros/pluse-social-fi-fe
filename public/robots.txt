@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /shares
+Disallow: /creator
+Disallow: /marketplace
+Disallow: /groups
+Disallow: /governance
+Disallow: /subscriptions
+Disallow: /airdrop
+Disallow: /moderation
+Disallow: /export
+Sitemap: https://pulsesol.xyz/sitemap.xml

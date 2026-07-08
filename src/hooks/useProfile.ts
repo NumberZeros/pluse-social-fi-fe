@@ -2,60 +2,59 @@ import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
+import { useReadOnlySdk } from '../services/read-only-sdk';
 import { CacheManager } from '../services/storage';
+import { trackEvent } from '../lib/analytics';
 
 /**
  * Hook for managing user profile operations
  */
 export function useProfile(ownerPubkey?: PublicKey) {
-  const { getUserProfile, createProfile, publicKey } = useSocialFi();
+  const { createProfile, publicKey } = useSocialFi();
+  const readSdk = useReadOnlySdk();
   const queryClient = useQueryClient();
   const targetPubkey = ownerPubkey || publicKey;
 
-  // Fetch profile data
   const {
     data: profile,
+    isPending,
     isLoading,
     error,
     refetch,
   } = useQuery({
     queryKey: ['profile', targetPubkey?.toBase58()],
     queryFn: async () => {
-      if (!targetPubkey) return null;
+      if (!readSdk || !targetPubkey) return null;
       try {
-        const result = await getUserProfile(targetPubkey);
-        // Cache profile if successful and not null
+        const result = await readSdk.getUserProfile(targetPubkey);
         if (result) {
           await CacheManager.setCachedMetadata(`profile:${targetPubkey.toBase58()}`, result);
         }
         return result;
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        // Try to return cached profile on error
+      } catch (err) {
+        console.error('Error fetching profile:', err);
         const cached = await CacheManager.getCachedMetadata(`profile:${targetPubkey.toBase58()}`);
         if (cached) {
           console.log('📱 Using cached profile (error fallback)');
-          return cached as any;
+          return cached as Awaited<ReturnType<typeof readSdk.getUserProfile>>;
         }
-        throw error;
+        throw err;
       }
     },
-    enabled: !!targetPubkey,
-    staleTime: 30000, // 30 seconds
+    enabled: !!readSdk && !!targetPubkey,
+    staleTime: 30000,
   });
 
-  // Create profile mutation
   const createProfileMutation = useMutation({
     mutationFn: async ({ username }: { username: string }) => {
       return await createProfile(username);
     },
-    onSuccess: () => {
-      // Invalidate profile query
+    onSuccess: (_data, { username }) => {
+      trackEvent('profile_created', { username });
       queryClient.invalidateQueries({ queryKey: ['profile', publicKey?.toBase58()] });
     },
   });
 
-  // Helper functions
   const hasProfile = useCallback(() => {
     return !!profile;
   }, [profile]);
@@ -65,17 +64,13 @@ export function useProfile(ownerPubkey?: PublicKey) {
   }, [publicKey, targetPubkey]);
 
   return {
-    // Profile data
     profile,
-    isLoading,
+    isLoading: isPending || isLoading,
+    isPending,
     error,
     refetch,
-
-    // Profile state
     hasProfile: hasProfile(),
     isOwnProfile: isOwnProfile(),
-
-    // Mutations
     createProfile: createProfileMutation.mutateAsync,
     isCreating: createProfileMutation.isPending,
   };

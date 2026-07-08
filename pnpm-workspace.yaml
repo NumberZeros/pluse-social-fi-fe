@@ -1,0 +1,15 @@
+# Single-app repo — not a monorepo.
+# pnpm 11+: project config (allowBuilds) must live here.
+strictDepBuilds: false
+allowBuilds:
+  esbuild: true
+  bigint-buffer: true
+  bufferutil: true
+  utf-8-validate: true
+  '@stellar/stellar-sdk': set this to true or false
+  blake-hash: set this to true or false
+  protobufjs: set this to true or false
+  tiny-secp256k1: set this to true or false
+  usb: set this to true or false
+  sharp: set this to true or false
+  core-js: set this to true or false

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PublicKey } from '@solana/web3.js';
 import { useShares } from '../../hooks/useShares';
+import { Button, Input } from '../../design-system';
 
 interface BuySharesModalProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ export function BuySharesModal({
   creatorUsername,
 }: BuySharesModalProps) {
   const [amount, setAmount] = useState('1');
-  const [slippage, setSlippage] = useState('5'); // 5% default
+  const [slippage, setSlippage] = useState('5');
   const { buyShares, isBuying, calculatePriceForAmount } = useShares(creatorPubkey);
   const [calculatedPrice, setCalculatedPrice] = useState<number>(0);
 
@@ -25,7 +26,7 @@ export function BuySharesModal({
     const amountNum = parseInt(value);
     if (amountNum > 0) {
       const price = await calculatePriceForAmount(amountNum);
-      setCalculatedPrice(price / 1e9); // Convert to SOL
+      setCalculatedPrice(price);
     }
   };
 
@@ -38,35 +39,34 @@ export function BuySharesModal({
     }
 
     try {
-      // Calculate max price with slippage
-      const maxPrice = calculatedPrice * (1 + parseFloat(slippage) / 100);
-      await buyShares({ amount: amountNum, maxPrice });
+      const maxPricePerShare =
+        (calculatedPrice * (1 + parseFloat(slippage) / 100)) / amountNum;
+      await buyShares({ amount: amountNum, maxPrice: maxPricePerShare });
       setAmount('1');
       onClose();
     } catch (error) {
-      console.error('Buy shares failed:', error);
+      console.error('Support creator failed:', error);
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="bg-slate-900 rounded-xl p-8 max-w-md w-full mx-4 border border-slate-700">
-        <h2 className="text-2xl font-bold text-white mb-2">
-          Buy @{creatorUsername} Shares
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+      <div className="bg-surface rounded-ds-xl p-8 max-w-md w-full mx-4 border border-border">
+        <h2 className="text-h3 text-foreground mb-2">
+          Support @{creatorUsername}
         </h2>
-        <p className="text-slate-400 text-sm mb-6">
-          Invest in this creator's success
+        <p className="text-muted text-sm mb-6">
+          Buy Supporter Shares to unlock exclusive content
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Amount Input */}
           <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-slate-300 mb-2">
-              Number of Shares
+            <label htmlFor="amount" className="block text-sm font-medium text-muted mb-2">
+              Number of Supporter Shares
             </label>
-            <input
+            <Input
               type="number"
               id="amount"
               value={amount}
@@ -76,7 +76,6 @@ export function BuySharesModal({
               step="1"
               required
               disabled={isBuying}
-              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-solana-green)] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <div className="flex gap-2 mt-2">
               {[1, 5, 10, 50].map((preset) => (
@@ -85,7 +84,7 @@ export function BuySharesModal({
                   type="button"
                   onClick={() => handleAmountChange(preset.toString())}
                   disabled={isBuying}
-                  className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded border border-slate-700 transition-colors disabled:opacity-50"
+                  className="px-3 py-1 bg-surface-2 hover:bg-surface text-muted text-sm rounded-ds-sm border border-border transition-colors disabled:opacity-50"
                 >
                   {preset}
                 </button>
@@ -93,12 +92,11 @@ export function BuySharesModal({
             </div>
           </div>
 
-          {/* Slippage Tolerance */}
           <div>
-            <label htmlFor="slippage" className="block text-sm font-medium text-slate-300 mb-2">
-              Slippage Tolerance (%)
+            <label htmlFor="slippage" className="block text-sm font-medium text-muted mb-2">
+              Price protection (%)
             </label>
-            <input
+            <Input
               type="number"
               id="slippage"
               value={slippage}
@@ -108,49 +106,46 @@ export function BuySharesModal({
               max="50"
               step="0.5"
               disabled={isBuying}
-              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-solana-green)] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
-          {/* Price Estimate */}
-          <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+          <div className="bg-surface-2 rounded-ds-md p-4 border border-border">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-slate-400 text-sm">Estimated Cost</span>
-              <span className="text-white font-semibold">
+              <span className="text-muted text-sm">Estimated Cost</span>
+              <span className="text-foreground font-semibold">
                 {calculatedPrice.toFixed(4)} SOL
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-400 text-sm">Max Price (with slippage)</span>
-              <span className="text-[var(--color-solana-green)] font-semibold">
+              <span className="text-muted text-sm">Max price (with protection)</span>
+              <span className="text-primary font-semibold">
                 {(calculatedPrice * (1 + parseFloat(slippage) / 100)).toFixed(4)} SOL
               </span>
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-4">
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={onClose}
               disabled={isBuying}
-              className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isBuying || !amount || parseInt(amount) <= 0}
-              className="flex-1 px-6 py-3 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1"
             >
-              {isBuying ? 'Buying...' : 'Buy Shares'}
-            </button>
+              {isBuying ? 'Supporting...' : 'Support Creator'}
+            </Button>
           </div>
         </form>
 
-        {/* Info */}
-        <p className="text-xs text-slate-400 mt-4 text-center">
-          Price increases as more shares are bought (bonding curve)
+        <p className="text-xs text-muted mt-4 text-center">
+          Price grows as more supporters join
         </p>
       </div>
     </div>

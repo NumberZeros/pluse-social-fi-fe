@@ -1,15 +1,73 @@
 import { PublicKey } from '@solana/web3.js';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+
+const DEFAULT_PROGRAM_ID = 'FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL';
 
 export const PROGRAM_ID = new PublicKey(
-  'FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL'
+  (import.meta.env.VITE_PROGRAM_ID as string) || DEFAULT_PROGRAM_ID
 );
 
 export const NETWORK = (import.meta.env.VITE_SOLANA_NETWORK as string) || 'devnet';
+
+export const IS_DEVNET =
+  NETWORK === 'devnet' || NETWORK === 'localnet' || NETWORK === 'testnet';
+
+export const MIN_SOL_BALANCE = IS_DEVNET ? 0.05 : 0.01;
+
+export const SITE_URL =
+  (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') ||
+  'https://pulsesol.xyz';
+
+/** Known genesis hashes for network mismatch detection */
+export const EXPECTED_GENESIS_HASH: Record<string, string> = {
+  devnet: 'EtWTRABZaYq6iMfeYKouRu1GW1SNx7w4CGTPHwnot95',
+  'mainnet-beta': '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  mainnet: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  testnet: '4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
+};
+
+export function getWalletAdapterNetwork(): WalletAdapterNetwork {
+  const n = NETWORK;
+  if (n === 'mainnet' || n === 'mainnet-beta') {
+    return WalletAdapterNetwork.Mainnet;
+  }
+  if (n === 'testnet') {
+    return WalletAdapterNetwork.Testnet;
+  }
+  return WalletAdapterNetwork.Devnet;
+}
+
+export function getNetworkLabel(): string {
+  if (NETWORK === 'mainnet' || NETWORK === 'mainnet-beta') return 'Mainnet';
+  if (NETWORK === 'testnet') return 'Testnet';
+  if (NETWORK === 'localnet') return 'Localnet';
+  return 'Devnet';
+}
+
+export function getExpectedGenesisHash(): string | undefined {
+  if (NETWORK === 'localnet') return undefined;
+  return EXPECTED_GENESIS_HASH[NETWORK] ?? EXPECTED_GENESIS_HASH.devnet;
+}
 
 export const RPC_ENDPOINTS: Record<string, string> = {
   localnet: 'http://localhost:8899',
   devnet: 'https://api.devnet.solana.com',
   mainnet: 'https://api.mainnet-beta.solana.com',
+};
+
+export function normalizeNetworkKey(n: string): keyof typeof RPC_ENDPOINTS {
+  if (n === 'mainnet' || n === 'mainnet-beta') return 'mainnet';
+  if (n in RPC_ENDPOINTS) return n as keyof typeof RPC_ENDPOINTS;
+  return 'devnet';
+}
+
+/** Resolve RPC URL: custom env override, then network default */
+export const getRpcEndpoint = (): string => {
+  const custom = import.meta.env.VITE_SOLANA_RPC_URL as string | undefined;
+  if (custom && custom.trim().length > 0) {
+    return custom.trim();
+  }
+  return RPC_ENDPOINTS[normalizeNetworkKey(NETWORK)];
 };
 
 export const EXPLORER_URL: Record<string, string> = {
@@ -21,110 +79,3 @@ export const EXPLORER_URL: Record<string, string> = {
 export const LAMPORTS_PER_SOL = 1_000_000_000;
 
 export const DEFAULT_COMMITMENT = 'confirmed';
-
-// ==================== METAPLEX CONSTANTS ====================
-
-/**
- * Metaplex Token Metadata Program ID
- * Standard across all Solana networks
- */
-export const TOKEN_METADATA_PROGRAM_ID = new PublicKey(
-  'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'
-);
-
-/**
- * SPL Token Program ID
- */
-export const TOKEN_PROGRAM_ID = new PublicKey(
-  'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'
-);
-
-/**
- * Associated Token Program ID
- */
-export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey(
-  'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'
-);
-
-/**
- * NFT Collection Configuration
- * Collection will be created once and reused for all username NFTs
- */
-export const COLLECTION_CONFIG = {
-  name: 'Social-Fi Usernames',
-  symbol: 'SOCIALFI',
-  description: 'Official Social-Fi platform username NFT collection. Trade on Magic Eden, OpenSea, and more.',
-  externalUrl: 'https://yourplatform.com',
-  sellerFeeBasisPoints: 500, // 5% royalty
-};
-
-/**
- * Collection Mint Address - Social-Fi Usernames
- * This is the parent NFT that all username NFTs belong to
- * For MVP: Set this after creating the collection
- */
-export const SOCIALFI_COLLECTION = {
-  // Use a placeholder that can be updated later
-  // Format: Devnet collection mint address
-  MINT: (import.meta.env.VITE_COLLECTION_MINT as string) || '11111111111111111111111111111111',
-  
-  // Collection will be set by the app admin
-  AUTHORITY: (import.meta.env.VITE_COLLECTION_AUTHORITY as string) || null,
-} as {
-  MINT: string;
-  AUTHORITY: string | null;
-};
-
-/**
- * Helper to get COLLECTION_MINT as PublicKey
- */
-export const getCollectionMint = (): PublicKey => {
-  try {
-    return new PublicKey(SOCIALFI_COLLECTION.MINT);
-  } catch {
-    throw new Error(
-      'Collection mint not configured. Please set VITE_COLLECTION_MINT env var'
-    );
-  }
-};
-
-// ==================== MARKETPLACE URLS ====================
-
-/**
- * External marketplace URLs for NFT viewing/trading
- */
-export const MARKETPLACE_URLS = {
-  magiceden: (mint: string, network: 'devnet' | 'mainnet' = 'devnet') => {
-    const subdomain = network === 'devnet' ? 'devnet.' : '';
-    return `https://${subdomain}magiceden.io/item-details/${mint}`;
-  },
-  opensea: (mint: string) => 
-    `https://opensea.io/assets/solana/${mint}`,
-  tensor: (mint: string) =>
-    `https://www.tensor.trade/item/${mint}`,
-  solscan: (mint: string, network: 'devnet' | 'mainnet' = 'devnet') => {
-    const cluster = network === 'devnet' ? '?cluster=devnet' : '';
-    return `https://solscan.io/token/${mint}${cluster}`;
-  },
-};
-
-/**
- * NFT Category Colors (for UI)
- */
-export const CATEGORY_COLORS = {
-  premium: '#6366f1', // indigo
-  short: '#f59e0b',   // amber
-  rare: '#ec4899',    // pink
-  custom: '#8b5cf6',  // purple
-};
-
-/**
- * Rarity tiers based on username length
- */
-export const RARITY_TIERS = {
-  legendary: { maxLength: 1, color: '#fbbf24', label: 'Legendary' },
-  epic: { maxLength: 3, color: '#a855f7', label: 'Epic' },
-  rare: { maxLength: 5, color: '#3b82f6', label: 'Rare' },
-  uncommon: { maxLength: 8, color: '#10b981', label: 'Uncommon' },
-  common: { maxLength: Infinity, color: '#6b7280', label: 'Common' },
-};

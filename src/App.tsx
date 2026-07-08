@@ -1,11 +1,16 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryProvider } from './providers/QueryProvider';
 import { SolanaProvider } from './providers/SolanaProvider';
 import { Toaster } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { LoadingSpinner } from './components/LoadingStates';
+import { WalletConnectionManager } from './components/WalletConnectionManager';
+import { LegacyRedirect } from './pages/LegacyRedirect';
 
 const Landing = lazy(() =>
   import('./pages/Landing').then((m) => ({ default: m.Landing })),
@@ -17,64 +22,82 @@ const Explore = lazy(() =>
 const Profile = lazy(() =>
   import('./pages/Profile').then((m) => ({ default: m.Profile })),
 );
-const AirdropDashboard = lazy(() =>
-  import('./pages/AirdropDashboard').then((m) => ({ default: m.AirdropDashboard })),
-);
-const Subscriptions = lazy(() =>
-  import('./pages/Subscriptions').then((m) => ({ default: m.Subscriptions })),
-);
-const CreatorDashboard = lazy(() =>
-  import('./pages/CreatorDashboard').then((m) => ({ default: m.CreatorDashboard })),
-);
-const GroupsDiscovery = lazy(() => import('./pages/GroupsDiscovery'));
-const GroupDetail = lazy(() =>
-  import('./pages/GroupDetail').then((m) => ({ default: m.GroupDetail })),
-);
-const UsernameMarketplace = lazy(() =>
-  import('./pages/UsernameMarketplace').then((m) => ({ default: m.UsernameMarketplace })),
-);
-const Governance = lazy(() =>
-  import('./pages/Governance').then((m) => ({ default: m.Governance })),
-);
-const CreatorShares = lazy(() =>
-  import('./pages/CreatorShares').then((m) => ({ default: m.CreatorShares })),
-);
-const ModerationDashboard = lazy(() =>
-  import('./pages/ModerationDashboard').then((m) => ({ default: m.ModerationDashboard })),
-);
-const DataExport = lazy(() =>
-  import('./pages/DataExport').then((m) => ({ default: m.DataExport })),
+const Post = lazy(() => import('./pages/Post'));
+const Dashboard = lazy(() =>
+  import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })),
 );
 const What = lazy(() => import('./pages/What'));
 const Why = lazy(() => import('./pages/Why'));
 const UserGuide = lazy(() => import('./pages/UserGuide'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
-// Inner component that uses router hooks
+function PageLoader() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <LoadingSpinner size="lg" />
+    </div>
+  );
+}
+
 function RouterContent() {
-  // Enable keyboard shortcuts (must be inside Router)
   useKeyboardShortcuts();
 
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/feed" element={<Feed />} />
         <Route path="/explore" element={<Explore />} />
-        <Route path="/airdrop" element={<AirdropDashboard />} />
-        <Route path="/subscriptions" element={<Subscriptions />} />
-        <Route path="/creator" element={<CreatorDashboard />} />
-        <Route path="/groups" element={<GroupsDiscovery />} />
-        <Route path="/groups/:groupId" element={<GroupDetail />} />
-        <Route path="/marketplace" element={<UsernameMarketplace />} />
-        <Route path="/governance" element={<Governance />} />
-        <Route path="/shares" element={<CreatorShares />} />
-        <Route path="/moderation" element={<ModerationDashboard />} />
-        <Route path="/export" element={<DataExport />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/what" element={<What />} />
         <Route path="/why" element={<Why />} />
         <Route path="/guide" element={<UserGuide />} />
+        <Route path="/post/:postId" element={<Post />} />
+
+        {/* Legacy routes → MVP redirects */}
+        <Route
+          path="/shares"
+          element={<LegacyRedirect to="/dashboard" canonical="/dashboard" />}
+        />
+        <Route
+          path="/creator"
+          element={<LegacyRedirect to="/dashboard" canonical="/dashboard" />}
+        />
+        <Route
+          path="/marketplace"
+          element={<LegacyRedirect to="/guide#coming-soon" canonical="/guide" />}
+        />
+        <Route
+          path="/groups"
+          element={<LegacyRedirect to="/guide#coming-soon" canonical="/guide" />}
+        />
+        <Route
+          path="/groups/:groupId"
+          element={<LegacyRedirect to="/guide#coming-soon" canonical="/guide" />}
+        />
+        <Route
+          path="/governance"
+          element={<LegacyRedirect to="/guide#coming-soon" canonical="/guide" />}
+        />
+        <Route
+          path="/subscriptions"
+          element={<LegacyRedirect to="/guide#coming-soon" canonical="/guide" />}
+        />
+        <Route
+          path="/airdrop"
+          element={<LegacyRedirect to="/guide#coming-soon" canonical="/guide" />}
+        />
+        <Route
+          path="/moderation"
+          element={<LegacyRedirect to="/guide#coming-soon" canonical="/guide" />}
+        />
+        <Route
+          path="/export"
+          element={<LegacyRedirect to="/guide#coming-soon" canonical="/guide" />}
+        />
+
         <Route path="/:username" element={<Profile />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );
@@ -87,6 +110,7 @@ function App() {
         <QueryProvider>
           <SolanaProvider>
             <BrowserRouter>
+              <WalletConnectionManager />
               <RouterContent />
             </BrowserRouter>
             <Toaster
@@ -94,12 +118,14 @@ function App() {
               toastOptions={{
                 duration: 3000,
                 style: {
-                  background: '#1e293b',
-                  color: '#fff',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'var(--color-surface)',
+                  color: 'var(--color-foreground)',
+                  border: '1px solid var(--color-border)',
                 },
               }}
             />
+            <Analytics />
+            <SpeedInsights />
           </SolanaProvider>
         </QueryProvider>
       </ErrorBoundary>

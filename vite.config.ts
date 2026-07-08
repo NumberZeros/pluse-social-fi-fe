@@ -19,7 +19,14 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['buffer'],
+    include: [
+      'buffer',
+      '@solana/spl-token',
+      '@solana/web3.js',
+      '@solana/wallet-adapter-react',
+      '@solana/wallet-adapter-react-ui',
+      '@solana/wallet-adapter-walletconnect',
+    ],
   },
   build: {
     // We intentionally keep the WebGL stack (three/R3F/Drei) in its own chunk.
@@ -30,7 +37,8 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
 
-          // Keep WebGL stack isolated so the app shell stays light.
+          // WebGL stack only — do NOT split @solana/ into its own chunk.
+          // Doing so creates a vendor↔solana circular import that crashes Buffer init in production.
           if (
             id.includes('/three/') ||
             id.includes('/@react-three/fiber/') ||
@@ -38,9 +46,6 @@ export default defineConfig({
           ) {
             return 'three';
           }
-
-          // Wallet + chain deps can be heavy and change less often.
-          if (id.includes('/@solana/')) return 'solana';
 
           // Animation libs
           if (id.includes('/framer-motion/')) return 'motion';

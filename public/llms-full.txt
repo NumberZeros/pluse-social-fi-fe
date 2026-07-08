@@ -1,0 +1,356 @@
+# Index
+
+# Pulse Social
+
+> Creator-first social platform on Solana. Fans buy Supporter Shares to unlock exclusive content; creators earn via direct SOL tips and on-chain supporter pools — no platform middleman.
+
+Pulse Social v1.1 (MVP) ships one product loop: **fans buy Supporter Shares → unlock supporters-only posts → creators earn on-chain**. The live deployment runs on Solana Devnet. Post metadata and media use Pinata IPFS; access to gated content is verified on-chain via share holdings.
+
+Key terms:
+- **Supporter Shares**: on-chain pool fans buy into to support a creator; holdings gate exclusive posts.
+- **accessLevel**: post metadata field — `public` or `supporters`.
+- **MVP scope**: marketplace, governance, groups, and subscription tiers are deferred (UI hidden); focus is Supporter Shares.
+
+## Product
+
+- [What is Pulse Social](https://pulsesol.xyz/what.md): Platform overview, core features, and how Supporter Shares work for fans and creators.
+- [Why Pulse Social](https://pulsesol.xyz/why.md): Problems with Web2 social platforms and why on-chain creator support matters.
+- [User Guide](https://pulsesol.xyz/guide.md): Step-by-step onboarding — wallet, profile, pool, posts, and supporter access.
+- [Whitepaper](https://pulsesol.xyz/whitepaper.md): Full MVP protocol and product architecture in LLM-readable Markdown.
+
+## Platform
+
+- [Home](https://pulsesol.xyz/): Landing page and primary value proposition.
+- [Feed](https://pulsesol.xyz/feed): Social feed with public and supporter-gated posts.
+- [Explore](https://pulsesol.xyz/explore): Discover creators and trending content.
+- [Creator Dashboard](https://pulsesol.xyz/dashboard): Launch Supporter Shares pool, manage posts, and view supporter stats.
+
+## Developer
+
+- [GitHub Frontend](https://github.com/NumberZeros/pluse-social-fi-fe): Open-source React/Vite app, Anchor SDK integration, and deployment config.
+- [llms-full.txt](https://pulsesol.xyz/llms-full.txt): Complete concatenated context for LLM agents (single-fetch).
+- [Sitemap](https://pulsesol.xyz/sitemap.xml): Machine-readable index of static and on-chain profile/post URLs.
+
+## Optional
+
+- [Tokenomics](https://pulsesol.xyz/tokenomics.md): Post-MVP token model and economic design notes.
+- [robots.txt](https://pulsesol.xyz/robots.txt): Crawler directives; dashboard and legacy routes are disallowed.
+
+---
+
+# What
+
+# What is Pulse Social
+
+Pulse helps creators earn on Solana. Fans buy **Supporter Shares** to unlock exclusive content. Tips go to your wallet; share support flows to your on-chain pool.
+
+## Core Features
+
+### Supporter Shares
+
+Fans back you on-chain. Early supporters pay less as your community grows. Supporters unlock your exclusive posts.
+
+### Direct Tips
+
+Send SOL to creators in one click. 100% goes to their wallet — no platform cut.
+
+### On-chain Profile & Feed
+
+Your profile, followers, and posts live on Solana. Build an audience you own.
+
+### IPFS Content
+
+Public preview on IPFS; full exclusive content is stored separately and fetched only after on-chain access is verified.
+
+## How It Works
+
+1. **Create profile** — Connect your wallet and claim your on-chain username.
+2. **Launch Supporter Shares** — Initialize your supporter pool from the Dashboard.
+3. **Post exclusive content** — Share public updates or gate posts to supporters only.
+4. **Fans support & unlock** — Supporters buy shares, unlock your feed, and can tip you.
+
+## How It's Built
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| Blockchain | Solana | Fast, low-cost transactions |
+| Storage | IPFS via Pinata | Decentralized post storage |
+| Access | On-chain shares | Verified supporter access |
+
+## MVP Scope
+
+Pulse Social v1.1 focuses on one product loop: fans buy Supporter Shares → unlock supporters-only posts → creators earn on-chain. Marketplace, governance, groups, and subscription tiers are deferred post-MVP.
+
+Live deployment: [pulsesol.xyz](https://pulsesol.xyz/) on Solana Devnet.
+
+---
+
+# Why
+
+# Why Pulse Social
+
+Web2 platforms take 30%+, own your audience, and control the algorithm. Creators deserve better.
+
+## The Old Way (Web2 Problems)
+
+### Platform Risk
+
+Your account can be banned or suspended without warning. Years of content and followers gone in an instant.
+
+### Zero Ownership
+
+You don't own your username, content, or followers. The platform owns everything and can change rules anytime.
+
+### Value Extraction
+
+Platforms make billions from your content and data. Creators earn pennies while platforms take 30–50% cuts.
+
+### Data Silos
+
+Your social graph is locked in. Can't take followers to other platforms. Start from zero every time.
+
+### Censorship
+
+Arbitrary content moderation. No appeals. No transparency. What you can say is controlled by corporations.
+
+## The Pulse Way
+
+### Supporter Shares
+
+Fans buy shares to support you and unlock exclusive content — real utility, not speculation.
+
+### Direct Earnings
+
+Tips land in your wallet. Share support flows to your on-chain pool — no platform taking 30%.
+
+### Own Your Audience
+
+On-chain profile and followers you control. Your community travels with you.
+
+### Exclusive Content Gating
+
+Post supporter-only updates. Access verified on-chain before content renders.
+
+### Built on Solana
+
+Fast, cheap transactions. The creator coin ecosystem is growing on Solana.
+
+## Why Solana?
+
+- **Blazing Fast** — 400ms block times. Posts appear instantly.
+- **Ultra Cheap** — Low transaction fees make posting, tipping, and supporting creators affordable.
+- **Global Scale** — 65,000+ TPS capacity for millions of concurrent users.
+
+## Creator Economics
+
+| Metric | Value |
+|--------|-------|
+| Tips to wallet | 100% |
+| Platform cut on tips | 0% |
+| Core product loop | 1 (Supporter Shares) |
+| Exclusive posts | Unlimited |
+
+Tips have 0% platform fee. When you sell Supporter Shares, 10% stays in the creator's pool vault (not a platform cut) to keep the supporter pool healthy.
+
+---
+
+# Guide
+
+# Pulse Social User Guide
+
+Step-by-step onboarding for creators and fans on Pulse Social.
+
+## Create your profile
+
+Claim your on-chain username and set up your creator identity.
+
+1. Connect your Solana wallet
+2. Open Dashboard from the navigation
+3. Complete Step 1: Create profile and choose your username
+4. Your profile is stored on-chain and visible at /:username
+
+## Launch Supporter Shares
+
+Let fans support you and unlock exclusive content.
+
+1. From Dashboard, complete Step 2: Launch Supporter Shares
+2. Confirm the on-chain transaction to initialize your pool
+3. Fans visit your profile and click Support Creator
+4. Price grows as more supporters join — early supporters pay less
+5. Track supporters and volume on your Dashboard
+
+## Post exclusive content
+
+Gate posts to supporters only using IPFS accessLevel.
+
+1. Go to Feed and click + Post in the navigation
+2. Write your content (up to 280 characters)
+3. Toggle "Supporters only" to gate the post
+4. Only wallets holding your Supporter Shares can read the full content
+5. Non-supporters see a blurred preview with a "Become a supporter" CTA
+
+## Become a supporter
+
+Back a creator and unlock their exclusive feed.
+
+1. Discover creators on Explore or Feed
+2. Visit their profile and click Support Creator
+3. Choose how many Supporter Shares to buy
+4. Confirm the transaction in your wallet
+5. Return to their posts — exclusive content is now unlocked
+
+## Send tips
+
+Send SOL directly to creators — 100% goes to their wallet.
+
+1. Find a post you want to support
+2. Click the tip icon (dollar sign)
+3. Enter the amount of SOL to send
+4. Confirm the transaction
+5. The creator receives SOL instantly
+
+## Frequently Asked Questions
+
+### What are Supporter Shares?
+
+Supporter Shares let fans back a creator on-chain. Holders unlock exclusive posts. Price grows as more people support.
+
+### How is exclusive content protected?
+
+Supporter-only posts store a public preview on IPFS (teaser only). Full content lives in a separate gated blob fetched only after the app verifies your Supporter Shares on-chain.
+
+### What fees apply when I cash out support?
+
+Tips have 0% platform fee. When you sell Supporter Shares, 10% stays in the creator's pool vault (not a platform cut) to keep the supporter pool healthy.
+
+### What are gas fees on Solana?
+
+Transactions typically cost less than $0.01 on Solana.
+
+### Is Pinata required?
+
+Yes for production. Set VITE_PINATA_JWT in your environment. Dev builds can use local mock storage.
+
+### Where did Marketplace, Groups, and Governance go?
+
+These features are deferred post-MVP. Legacy URLs redirect to the guide.
+
+---
+
+# Whitepaper
+
+# Pulse Social Whitepaper
+**Version 1.1 | MVP — Supporter Shares**
+
+> **MVP focus:** This document describes the live product loop — **fans buy Supporter Shares to unlock exclusive creator content on Solana**. Broader protocol features (governance, username NFTs, groups) are deferred post-MVP but remain in the smart contract for future releases.
+
+## Executive Summary
+
+Pulse Social is a **creator-first social platform on Solana**. The MVP centers on one loop:
+
+**Fans buy Supporter Shares → unlock supporters-only posts → creators earn via shares and tips.**
+
+Creators launch a Supporter Shares pool from their dashboard, post public or gated content (metadata on IPFS, `accessLevel: supporters`), and fans verify access on-chain before content is revealed. Tips are peer-to-peer SOL transfers with no platform fee.
+
+## 1. Problem Statement
+
+### Web2 Social Media Failures
+- **Platform Risk**: Creators can lose audiences and income overnight
+- **Value Extraction**: Platforms take large cuts of creator earnings
+- **No Direct Support**: Fans cannot easily back creators they believe in
+- **Gated Content Friction**: Paywalls are opaque and platform-controlled
+
+### What Creators Need
+- A simple way to monetize a loyal fan base
+- Transparent, on-chain proof of support
+- Content gating that fans can trust
+- Low fees and fast settlement
+
+## 2. The Pulse MVP Solution
+
+### Core Principles
+1. **Creator-First**: Supporter Shares + tips, not ads
+2. **On-Chain Support**: Share holdings are verifiable on Solana
+3. **Content Gating**: IPFS metadata + on-chain access checks
+4. **Affordable**: Solana transaction costs are fractions of a cent
+5. **Focused Scope**: MVP ships one loop well before expanding
+
+### Product Architecture (MVP)
+
+**Identity & Social**
+- On-chain profiles with usernames
+- Feed, follows, likes, comments
+- Explore discovery
+
+**Supporter Shares**
+- `initializeCreatorPool` — creator launches pool
+- `buyShares` / `sellShares` — fans support or cash out
+- Price scales with pool supply on-chain
+
+**Content**
+- Post metadata on Pinata IPFS
+- `accessLevel: "public" | "supporters"`
+- Client verifies `getShareHolding(fan, creator) > 0` before render
+
+**Monetization**
+- Direct SOL tips (100% to creator wallet)
+- Supporter Shares revenue via pool mechanics
+
+## 3. Technology Stack (MVP)
+
+- **Solana**: Profiles, posts, shares, tips, follows
+- **Anchor**: Smart contract framework
+- **Pinata IPFS**: Post content and media (required in production)
+- **React + Vite**: Frontend on Vercel
+- **Wallet Adapter**: Phantom, Solflare, etc.
+
+**Program ID (devnet):** `FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL`
+
+## 4. Deferred Features (Post-MVP)
+
+The contract includes additional modules not exposed in the MVP UI:
+
+- Username NFT marketplace
+- Subscription tiers
+- Groups & communities
+- Governance staking & proposals
+- Post NFT minting
+- Reposts & airdrop mechanics
+
+Legacy URLs redirect to `/guide#coming-soon`.
+
+## 5. Roadmap
+
+### Phase 1: Supporter Shares MVP ✅
+- Scope freeze and USP-focused UI
+- Supporter-only gating (IPFS + on-chain)
+- Creator dashboard + onboarding wizard
+- Production Pinata requirement
+
+### Phase 2: Mainnet Launch
+- Security audit (shares module)
+- Mainnet deployment
+- Event indexing for faster feeds
+
+### Phase 3: Protocol Expansion
+- Re-enable marketplace, groups, governance based on traction
+- Mobile apps
+- Developer API
+
+## 6. Team
+
+**Founder**: Tho Nguyen
+- GitHub: github.com/NumberZeros
+- LinkedIn: linkedin.com/in/thọ-nguyễn-941348360
+
+## Conclusion
+
+Pulse Social MVP proves that fans can support creators directly on-chain — with exclusive content as the reward, not speculation-first trading.
+
+**Support creators. Unlock exclusive content. Built on Solana.**
+
+---
+
+**Disclaimer**: This whitepaper is for informational purposes only and does not constitute financial advice.
+
+**Last Updated**: June 2026

@@ -1,24 +1,79 @@
 import { useEffect, useRef } from 'react';
-import { useWallet } from '../lib/wallet-adapter';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { useUserStore } from '../stores/useUserStore';
+import { useQueryClient } from '@tanstack/react-query';
+import { useProfile } from '../hooks/useProfile';
+import { WalletOnboardingSheet } from './wallet/WalletOnboardingSheet';
+import { identifyWallet, trackEvent } from '../lib/analytics';
+
+const WALLET_SCOPED_QUERY_KEYS = [
+  'feed_timeline',
+  'profile',
+  'is_following',
+  'followers',
+  'following',
+  'supporter_access',
+  'user_share_holdings',
+  'shares',
+  'feed_engagement',
+  'has_liked',
+  'creator_posts',
+  'creator_post_count',
+  'creator_supporters',
+  'single_post',
+  'resolve_username',
+  'user_replies',
+  'trending_topics',
+  'suggested_users',
+  'all_creator_pools',
+  'post_comments',
+] as const;
 
 /**
- * Syncs wallet connection state with global store
- * Updated to use our custom wallet adapter
+ * Syncs wallet connection state with global store and invalidates wallet-scoped queries on account change.
  */
 export function WalletConnectionManager() {
   const { publicKey, connected } = useWallet();
   const setWalletAddress = useUserStore((state) => state.setWalletAddress);
-  const syncedRef = useRef(false);
+  const setUsername = useUserStore((state) => state.setUsername);
+  const resetProfile = useUserStore((state) => state.resetProfile);
+  const queryClient = useQueryClient();
+  const prevPubkeyRef = useRef<string | null>(null);
+  const trackedWalletRef = useRef<string | null>(null);
+  const { profile } = useProfile(publicKey ?? undefined);
 
   useEffect(() => {
-    if (connected && publicKey && !syncedRef.current) {
-      syncedRef.current = true;
-      setWalletAddress(publicKey.toBase58());
-    } else if (!connected && syncedRef.current) {
-      syncedRef.current = false;
+    if (connected && profile?.username) {
+      setUsername(profile.username);
     }
-  }, [connected, publicKey, setWalletAddress]);
+  }, [connected, profile?.username, setUsername]);
 
-  return null;
+  useEffect(() => {
+    const pubkeyStr = publicKey?.toBase58() ?? null;
+
+    if (connected && pubkeyStr) {
+      setWalletAddress(pubkeyStr);
+      if (trackedWalletRef.current !== pubkeyStr) {
+        trackedWalletRef.current = pubkeyStr;
+        identifyWallet(pubkeyStr);
+        trackEvent('wallet_connected', { wallet_address: pubkeyStr });
+      }
+    }
+
+    const prev = prevPubkeyRef.current;
+    if (prev !== pubkeyStr) {
+      for (const key of WALLET_SCOPED_QUERY_KEYS) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
+      prevPubkeyRef.current = pubkeyStr;
+    }
+
+    if (!connected) {
+      resetProfile();
+      prevPubkeyRef.current = null;
+      trackedWalletRef.current = null;
+    }
+  }, [connected, publicKey, setWalletAddress, resetProfile, queryClient]);
+
+  return <WalletOnboardingSheet />;
 }

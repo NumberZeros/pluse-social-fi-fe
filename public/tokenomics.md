@@ -1,5 +1,7 @@
 # $PULSE Tokenomics
 
+> **Note:** The live MVP focuses on **Supporter Shares** (SOL) and direct tips. Token launch and airdrop mechanics described below are **post-MVP** and not required for the current product.
+
 ## Token Overview
 
 **Symbol**: $PULSE  

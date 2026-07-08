@@ -1,0 +1,105 @@
+/* Design system effects & legacy utility redirects */
+
+.glass-ds {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+}
+
+.shadow-ds {
+  box-shadow: var(--shadow-ds);
+}
+
+.shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+.bg-gradient-logo {
+  background: var(--gradient-logo);
+}
+
+.bg-gradient-cta {
+  background: var(--gradient-cta);
+}
+
+.text-gradient-brand {
+  background: var(--gradient-logo);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.mesh-gradient-lens {
+  background:
+    radial-gradient(
+      at 0% 0%,
+      color-mix(in srgb, var(--color-primary) 15%, transparent) 0px,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 100% 0%,
+      color-mix(in srgb, var(--color-primary) 15%, transparent) 0px,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 100% 100%,
+      color-mix(in srgb, var(--color-secondary) 10%, transparent) 0px,
+      transparent 50%
+    );
+}
+
+.mask-linear-gradient {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+}
+
+.direction-reverse {
+  animation-direction: reverse;
+}
+
+/* Focus — primary ring */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:focus {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  width: auto;
+  height: auto;
+  padding: 1rem;
+  clip: auto;
+  background-color: var(--color-primary);
+  color: var(--color-background);
+  font-weight: bold;
+  z-index: 9999;
+  border-radius: var(--radius-ds-sm);
+}

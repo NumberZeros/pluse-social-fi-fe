@@ -2,7 +2,7 @@
 
 # Pulse Social
 
-**Decentralized Social Platform on Solana**
+**Creator platform on Solana — fans buy Supporter Shares to unlock exclusive content**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Solana](https://img.shields.io/badge/Solana-Devnet-purple)](https://solana.com)
@@ -10,7 +10,7 @@
 [![React](https://img.shields.io/badge/React-19.2-61dafb)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.0-646cff)](https://vitejs.dev/)
 
-[Live Demo](https://pulse.thosoft.xyz) • [Smart Contract](../social-fi-contract) • [Whitepaper](./public/whitepaper.md)
+[Live Demo](https://pulsesol.xyz) • [Smart Contract](../social-fi-contract) • [Whitepaper](./public/whitepaper.md) • [llms.txt](https://pulsesol.xyz/llms.txt)
 
 </div>
 
@@ -21,8 +21,27 @@
 ### Prerequisites
 
 - Node.js 18+
-- pnpm 8+
+- pnpm 11.9+ (pinned via `packageManager` in `package.json`)
 - Solana wallet (Phantom, Solflare, etc.)
+
+### Package manager (`pnpm-workspace.yaml`)
+
+This is a **single-app repo**, not a monorepo. pnpm 11 still requires `pnpm-workspace.yaml` at the project root for build-script policy (`allowBuilds`).
+
+The file whitelists native build scripts used by the Solana stack:
+
+| Package | Used by |
+|---------|---------|
+| `esbuild` | Vite, tsx |
+| `bigint-buffer` | `@solana/spl-token` |
+| `bufferutil`, `utf-8-validate` | optional WebSocket perf for `@solana/web3.js` |
+
+Unused Metaplex/Irys deps were removed to avoid extra native crypto (`keccak`, `secp256k1`). Vite is standard **^6** (not the `rolldown-vite` alias).
+
+```bash
+corepack enable   # once, if pnpm is not on PATH
+pnpm install
+```
 
 ### Installation
 
@@ -42,99 +61,78 @@ cp .env.example .env
 pnpm dev
 ```
 
+### Production requirements
+
+- `VITE_PINATA_JWT` is **required** for production builds (post metadata and media).
+- See [Mainnet Checklist](./docs/MAINNET_CHECKLIST.md) and [Launch Metrics](./docs/LAUNCH_METRICS.md) before going live.
+
+Get your Pinata JWT from [pinata.cloud](https://pinata.cloud)
+
 ### Environment Variables
 
 ```env
 VITE_SOLANA_NETWORK=devnet
 VITE_PROGRAM_ID=FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL
 VITE_PINATA_JWT=<your-pinata-jwt>
+VITE_WALLETCONNECT_PROJECT_ID=<walletconnect-project-id>  # iOS Safari / mobile
 ```
 
-Get your Pinata JWT from [pinata.cloud](https://pinata.cloud)
 
----
+## 🎯 What is Pulse Social?
 
-## 🎯 Problem Statement
+Pulse Social is a **creator-first social platform on Solana** built around one core loop:
 
-Current social media platforms face critical issues:
+**Fans buy Supporter Shares → unlock exclusive content → creators earn directly.**
 
-- **Centralized Control**: Platforms control your data, content, and monetization
-- **Creator Exploitation**: Platforms take 30-50% of creator earnings
-- **No True Ownership**: Users don't own their content, followers, or identity
-- **Arbitrary Censorship**: Accounts can be banned without transparency
-- **Zero Portability**: Can't migrate your social graph to other platforms
+No platform cut on tips. No speculation-first trading UI. Support is the product.
 
-## 💡 Our Solution
+## 💡 Core Value Proposition
 
-Pulse Social is a **fully decentralized social platform** built on Solana that returns power to users and creators:
+| For fans | For creators |
+|----------|--------------|
+| Buy Supporter Shares to unlock supporters-only posts | Launch a Supporter Shares pool in minutes |
+| On-chain proof of support | Direct SOL tips with no middleman |
+| Follow creators and engage on-chain | Dashboard for supporters, earnings, and posts |
+| Portable wallet identity | IPFS-hosted content with access gating |
 
-- ✅ **True Ownership**: On-chain profiles, content references, and social graphs
-- ✅ **Direct Monetization**: Creators keep 100% of earnings (tips, subscriptions, shares)
-- ✅ **Blockchain Identity**: Username NFTs - portable across Web3
-- ✅ **Community Governance**: DAO-controlled platform decisions
-- ✅ **Censorship Resistance**: Transparent, on-chain moderation with appeals
-- ✅ **Data Sovereignty**: Export and own all your data
+## ✨ MVP Features
 
-## ✨ Key Features
+### Supporter Shares
+- Launch a pool from **Dashboard** (`/dashboard`)
+- Fans buy shares to become supporters
+- Cash out support anytime (sell shares back to pool)
+- On-chain verification gates exclusive content
 
-### 🔐 Core Social Features
-- **On-Chain Identity**: Username NFTs with blockchain verification
-- **Instant Tipping**: Send SOL directly to creators (no intermediaries)
-- **Social Graph**: On-chain profiles, followers, and social connections
-- **Content Creation**: Posts, comments, likes, reposts with hashtag support
-- **Post NFTs**: Mint your posts as NFTs with images on Solana blockchain
-- **Decentralized Storage**: Content and NFT metadata on Pinata IPFS
+### Content & Gating
+- Create public or **Supporters only** posts
+- Media + metadata on Pinata IPFS
+- `accessLevel` in post metadata + on-chain share check before render
+- Feed and profile respect gating with blur + CTA
 
-### 💎 Creator Economy
-- **Subscription Tiers**: Create Bronze/Silver/Gold tiers for exclusive content
-- **Creator Shares**: Trade creator shares with bonding curve pricing
-- **Direct Revenue**: Keep 100% of earnings from tips and subscriptions
-- **Analytics Dashboard**: Real-time earnings, subscribers, and engagement metrics
-- **Portfolio Tracking**: Monitor share holdings and portfolio value
+### Social Layer (simplified)
+- On-chain posts, likes, comments, tips
+- Follow creators
+- Explore trending and supporters-only content
+- Creator profiles with support CTA
 
-### 🏛️ Decentralized Governance
-- **Token Staking**: Lock tokens for 0-365 days with APY up to 30%
-- **Voting Power**: Earn multipliers (1x-3x) based on lock duration
-- **Proposals**: Create and vote on platform governance decisions
-- **Treasury Management**: Community-controlled fund allocation
-- **Transparent Execution**: On-chain proposal execution
+### Creator Dashboard
+- 3-step onboarding wizard (profile → pool → first post)
+- Stats: tips, supporters, share supply, post count
+- Supporter list from on-chain holdings
 
-### 🏪 Username Marketplace
-- **Username NFTs**: Trade premium handles like traditional NFTs
-- **Auction System**: Bid on rare and short usernames
-- **Price Discovery**: Market-driven pricing based on demand
-- **Cross-Platform**: Usernames work across all Solana dApps
+## 🚫 Intentionally Out of MVP Scope
 
-### 👥 Community Features
-- **Private Groups**: Token-gated or NFT-gated communities
-- **Role Hierarchy**: Owner, Admin, Moderator, Member permissions
-- **Entry Requirements**: Free, token-hold, NFT-hold, or SOL payment
-- **Group Governance**: Member-driven decision making
+These exist in the contract/SDK but are **hidden in the UI** (redirect to `/guide#coming-soon`):
 
-### 🛡️ On-Chain Moderation
-- **Community Reports**: Decentralized content moderation
-- **Transparent Actions**: All moderation decisions recorded on-chain
-- **Appeal System**: Challenge unfair moderation decisions
-- **Reputation System**: Track user behavior and violations
+- Username NFT marketplace
+- Subscription tiers
+- Groups & communities
+- Governance / staking
+- Post NFT minting
+- Reposts
+- Airdrop & referrals
 
-### 🎁 Fair Launch Airdrop
-- **Merit-Based**: Rewards for posts, tips, engagement, and activity
-- **Anti-Sybil**: Bonus multipliers for real user behavior
-- **Referral Rewards**: Earn for bringing new users
-- **Transparent Allocation**: Real-time eligibility tracking
-
-### 📊 Data Ownership
-- **GDPR Compliance**: Export all your data anytime (JSON/CSV)
-- **Full Portability**: Take your social graph to any platform
-- **Privacy Controls**: Manage what data is stored and shared
-- **Decentralized Backup**: Content stored on decentralized networks
-
-### 📖 User Guide
-- **Comprehensive Documentation**: Step-by-step guides for all features
-- **Interactive Search**: Find guides quickly with keyword search
-- **Quick Navigation**: Table of contents with anchor links
-- **FAQ Section**: Answers to common questions
-- **Best Practices**: Tips for optimal platform usage
+See the [User Guide](https://pulsesol.xyz/guide#coming-soon) for the full roadmap.
 
 ## 🏗️ Architecture
 
@@ -145,13 +143,13 @@ Pulse Social is a **fully decentralized social platform** built on Solana that r
 - Vite 6 (build tool)
 - TailwindCSS + Framer Motion
 - React Query (data fetching & caching)
-- Solana Web3.js + Wallet Adapter
+- Solana Web3.js + [@solana/wallet-adapter](https://github.com/anza-xyz/wallet-adapter) (Phantom, Solflare, Wallet Standard, WalletConnect, MWA)
 - IndexedDB (offline cache)
 
 **Blockchain:**
 - Solana Devnet
 - Anchor Framework 0.32.1
-- Metaplex Token Metadata
+- `@solana/web3.js` + `@solana/spl-token`
 - Program ID: `FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL`
 
 **Storage:**
@@ -163,14 +161,16 @@ Pulse Social is a **fully decentralized social platform** built on Solana that r
 ```
 src/
 ├── components/       # React components
-│   ├── feed/        # Feed, posts, create post
-│   ├── profile/     # User profiles
-│   ├── wallet/      # Wallet connection
+│   ├── feed/        # Feed, posts, gating, create post
+│   ├── shares/      # Buy/sell Supporter Shares modals
+│   ├── dashboard/   # Creator onboarding wizard
+│   ├── wallet/      # WalletButton, NetworkBanner, onboarding
 │   └── layout/      # App shell, navigation
+├── providers/       # SolanaProvider (Connection + Wallet + Modal)
 ├── hooks/           # Custom React hooks
 │   ├── useFeed.ts   # Post operations
-│   ├── useMintPost.ts  # NFT minting
-│   └── useCache.ts  # IndexedDB cache
+│   ├── useShares.ts # Supporter Shares
+│   └── useSupporterAccess.ts  # Gating checks
 ├── services/        # Business logic
 │   ├── socialfi-sdk.ts  # Smart contract SDK
 │   └── storage.ts   # Cache management
@@ -178,106 +178,23 @@ src/
 ├── pages/           # Route pages
 └── idl/             # Anchor IDL types
 ```
-- **� Quick Start
-
-### Prerequisites
-
-- Node.js 20+ and pnpm 9+
-- Solana wallet (Phantom or Solflare)
-- Some Devnet SOL for testing ([Get from faucet](https://faucet.solana.com/))
-
-### Installation
-
-```bash
-# Clone repository
-git clone https://github.com/NumberZeros/social-fi-fe.git
-cd social-fi-fe
-
-# Install dependencies
-pnpm install
-
-# Copy environment template
-cp .env.example .env
-
-# Configure your environment
-nano .env
-```
-
-### Development
-
-```bash
-# Start development server
-pnpm dev
-# → http://localhost:5173
-
-# Type-check
-pnpm type-check
-
-# Build for production
-pnpm build
-
-# Preview production build
-pnpm preview
-```
-
-### Code Quality
-
-```bash
-# Lint with auto-fix
-pnpm lint
-
-# Format code
-pnpm format
-
-# Check formatting
-pnpm format:check
-```
-
-### Testing on Devnet
-
-1. Switch your wallet to **Solana Devnet**
-2. Get Devnet SOL: https://faucet.solana.com/
-3. Connect wallet on https://pulse.thosoft.xyz
-4. Test features:
-   - Create profile
-   - Send tips
-   - Buy/sell creator shares
-   - Join groups
-   - Participate in governanceenv
-VITE_API_URL=http://localhost:3000/api
-VITE_SOLANA_NETWORK=devnet  # or mainnet
-VITE_SOLANA_RPC_URL=https://api.devnet.solana.com
-```
 
 ## 🚀 Development
 
 ```bash
-# Start dev server (with HMR)
-pnpm dev
-
-# Type check and build
-pnpm build
-
-# Lint code
-pnpm lint
-
-# Auto-fix lint issues
-pnpm lint:fix
-
-# Format code
-pnpm format
-
-# Check formatting
-pnpm format:check
-
-# Preview production build
-pnpm preview
+pnpm dev          # Start dev server
+pnpm type-check   # TypeScript check
+pnpm build        # Production build
+pnpm lint         # Lint
+pnpm format       # Format
+pnpm preview      # Preview build
+pnpm smoke:devnet # Devnet on-chain smoke test (Supporter Shares flow)
+pnpm smoke:check  # Read-only devnet check (program + platform config)
 ```
 
-## 📁 Project Structure
+`pnpm sync-idl` copies IDL from `../social-fi-contract` after `anchor build`.
 
-```
-src🤝 Contributing
+## 🤝 Contributing
 
 We welcome contributions from the community! Here's how you can help:
 
@@ -315,142 +232,88 @@ We welcome contributions from the community! Here's how you can help:
 ## 📚 Documentation
 
 ### For Users
-- **[User Guide](https://pulse.thosoft.xyz/guide)**: Complete step-by-step guide for all features
-- **[What is Pulse](https://pulse.thosoft.xyz/what)**: Platform overview and core concepts
-- **[Why Pulse](https://pulse.thosoft.xyz/why)**: Benefits of decentralized social
+- **[User Guide](https://pulsesol.xyz/guide)**: Complete step-by-step guide for all features
+- **[What is Pulse](https://pulsesol.xyz/what)**: Platform overview and core concepts
+- **[Why Pulse](https://pulsesol.xyz/why)**: Benefits of decentralized social
 
 ### For Developers
-- **[Blockchain Integration Status](./BLOCKCHAIN_STATUS.md)**: Current implementation status
-- **[Code Analysis](./CODE_ANALYSIS.md)**: Codebase structure and cleanup
-- **[Whitepaper](./public/whitepaper.md)**: Complete technical documentation
-- **[Tokenomics](./public/tokenomics.md)**: $PULSE token economics
+- **[Whitepaper](./public/whitepaper.md)**: MVP technical overview (Supporter Shares)
+- **[Tokenomics](./public/tokenomics.md)**: $PULSE token economics (post-MVP)
 
 ## 🎯 Key Technical Details
 
-### Bonding Curve (Creator Shares)
-```typescript
-price = basePrice × (supply / 100)²
-```
-Price increases quadratically with supply, ensuring early supporters benefit.
+### Supporter Shares Pricing
+Share price scales with pool supply on-chain. Early supporters pay less; creators benefit as their community grows.
 
-### Governance Staking
-| Lock Period | APY  | Voting Power |
-|-------------|------|--------------|
-| No lock     | 5%   | 1.0x         |
-| 30 days     | 10%  | 1.2x         |
-| 90 days     | 15%  | 1.5x         |
-| 180 days    | 20%  | 2.0x         |
-| 365 days    | 30%  | 3.0x         |
+### Content Gating
+```typescript
+// IPFS metadata
+{ accessLevel: 'public' | 'supporters', content: '...', images: [...] }
+
+// Unlock check
+sdk.getShareHolding(fanPubkey, creatorPubkey) > 0
+```
 
 ### Smart Contract (Anchor)
 - **Program ID**: `FHHfGX8mYxagDmhsXgJUfLnx1rw2M138e3beCwWELdgL`
 - **Network**: Solana Devnet
-- **Instructions**: 28 (tips, shares, groups, governance, etc.)
-- **Security**: Audited and tested on Devnet
-│   ├── useGovernanceStore.ts   # Staking & proposals
-│   ├── useSharesStore.ts       # Creator shares
-│   ├── useModerationStore.ts   # Reports & bans
-│   ├── useAirdropStore.ts      # Airdrop criteria
-│   ├── useExportStore.ts       # Data exports
-│   └── useUIStore.ts           # Modal states
-├── utils/
-│   ├── format.ts          # Date, number, file size formatting
-│   ├── clipboard.ts       # Copy/share utilities
-│   └─Application Routes
+- **MVP instructions**: profiles, posts, tips, shares buy/sell, follows, likes, comments
+
+### Application Routes (MVP)
 
 | Route          | Feature              | Status      |
 |----------------|----------------------|-------------|
-| `/`            | Landing Page         | ✅ Complete |
-| `/feed`        | Social Feed          | ✅ Complete |
-| `/explore`     | Trending Content     | ⏳ Pending  |
-| `/what`        | What is Pulse        | ✅ Complete |
-| `/why`         | Why Pulse            | ✅ Complete |
-| `/guide`       | User Guide           | ✅ Complete |
-| `/airdrop`     | Airdrop Dashboard    | ✅ Complete |
-| `/:username`   | User Profile         | ✅ Complete |
-| `/subscriptions` | Manage Subscriptions | ✅ Complete |
-| `/creator`     | Creator Dashboard    | ✅ Complete |
-| `/groups`      | Groups Discovery     | ✅ Complete |
-| `/groups/:id`  | Group Detail         | ✅ Complete |
-| `/marketplace` | Username Trading     | ✅ Complete |
-| `/governance`  | Staking & Voting     | ✅ Complete |
-| `/shares`      | Creator Shares       | ✅ Complete |
-| `/moderation`  | Moderation Tools     | 🔄 UI Only |
-| `/export`      | Data Export          | 🔄 UI Only |
+| `/`            | Landing Page         | ✅          |
+| `/feed`        | Social Feed          | ✅ On-chain |
+| `/explore`     | Discover Creators    | ✅ On-chain |
+| `/dashboard`   | Creator Dashboard    | ✅ On-chain |
+| `/what`        | What is Pulse        | ✅ Static   |
+| `/why`         | Why Pulse            | ✅ Static   |
+| `/guide`       | User Guide           | ✅ Static   |
+| `/:username`   | Creator Profile      | ✅ On-chain |
 
-**Legend**: ✅ Complete | ⏳ Pending Storage | 🔄 UI Only
+Legacy routes (`/creator`, `/shares`, `/marketplace`, `/governance`, etc.) redirect to MVP pages or Coming Soon.
 
 ## 🗺️ Roadmap
 
-### Phase 1: Core Infrastructure ✅
-- [x] Smart contract deployment (Anchor)
-- [x] Frontend architecture
-- [x] Wallet integration
-- [x] Basic SDK implementation
+### Phase 1: Supporter Shares MVP ✅
+- [x] Scope freeze — hide non-MVP features
+- [x] Supporter-only content gating (IPFS + on-chain)
+- [x] Creator dashboard + onboarding wizard
+- [x] Landing & marketing aligned to USP
+- [x] Production Pinata requirement + launch docs
 
-### Phase 2: Social Features (Current)
-- [x] On-chain tipping
-- [x] Profile creation
-- [x] Creator shares trading
-- [x] Social feed with posts, likes, reposts
-- [x] Follow system
-- [x] User guide documentation
-- [ ] Post storage (Shadow Drive/Arweave)
-- [ ] Social graph queries
-- [ ] Real-time updates
-
-### Phase 3: Advanced Features
-- [ ] Group functionality
-- [ ] Governance execution
+### Phase 2: Post-MVP (contract exists, UI hidden)
+- [ ] Groups & communities
+- [ ] Governance staking
 - [ ] Username marketplace
-- [ ] Subscription system
-- [ ] Moderation system
+- [ ] Subscription tiers (replaced by shares in MVP)
+- [ ] Post NFT minting
 
-### Phase 4: Optimization
-- [ ] Event indexing
-- [ ] Caching layer
-- [ ] Mobile optimization
-- [ ] Performance improvements
-
-### Phase 5: Mainnet Launch
+### Phase 3: Mainnet Launch
 - [ ] Security audit
 - [ ] Mainnet deployment
-- [ ] Airdrop distribution
-- [ ] Community launch
+- [ ] Event indexing & notifications
+- [ ] Mobile optimization
 
 ## 🛣️ Current Status
 
-**Working Features:**
-- ✅ Profile creation (on-chain)
-- ✅ Tipping system
-- ✅ Creator shares (buy/sell)
-- ✅ Social feed with engagement
-- ✅ Follow/unfollow system
-- ✅ Subscription tiers
-- ✅ Groups & communities
-- ✅ Governance staking & voting
-- ✅ Username marketplace UI
-- ✅ Comprehensive user guide
+**MVP (live on devnet):**
+- ✅ Supporter Shares buy/sell
+- ✅ Supporters-only post gating
+- ✅ Creator dashboard & onboarding
+- ✅ Feed, explore, profiles, tips
+- ✅ Follow system
 - ✅ Wallet connection
 
-**In Progress:**
-- 🔄 Post storage integration (Shadow Drive)
-- 🔄 Username listing queries (PDA)
-- 🔄 Event indexing
-- 🔄 Real-time notifications
-
-**Next Steps:**
-1. Implement decentralized storage (Shadow Drive/Arweave)
-2. Complete PDA query system for marketplace
-3. Build event indexer for real-time updates
-4. Add push notifications
-5. Mobile app development
-
-See [BLOCKCHAIN_STATUS.md](./BLOCKCHAIN_STATUS.md) for detailed integration status.
+**Next:**
+1. Mainnet checklist completion
+2. Event indexer for faster feeds
+3. Re-enable cut features post-launch based on traction
 
 ## 📞 Contact & Links
 
-- **Live Demo**: [pulse.thosoft.xyz](https://pulse.thosoft.xyz)
+- **Live Demo**: [pulsesol.xyz](https://pulsesol.xyz)
 - **GitHub**: [@NumberZeros](https://github.com/NumberZeros)
 - **Repository**: [social-fi-fe](https://github.com/NumberZeros/social-fi-fe)
 - **Email**: tho.nguyen.soft@gmail.com
@@ -474,94 +337,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ on Solana**
 
-**Empowering Creators • Decentralizing Social • Community Owned**
+**Support creators. Unlock exclusive content. Built on Solana.**
 
 [⭐ Star this repo](https://github.com/NumberZeros/social-fi-fe) • [🐛 Report Bug](https://github.com/NumberZeros/social-fi-fe/issues) • [💡 Request Feature](https://github.com/NumberZeros/social-fi-fe/issues)
 
 </div>
-
-### Code Quality
-- **Zero ESLint errors/warnings** - Clean, maintainable code
-- **Prettier formatted** - Consistent code style across 50+ files
-- **Shared utilities** - 11 reusable formatting/clipboard functions
-- **Dead code removed** - No unused imports or files
-
-## � Deployment
-
-### Vercel (Recommended)
-
-1. Install Vercel CLI:
-```bash
-pnpm add -g vercel
-```
-
-2. Deploy to Vercel:
-```bash
-vercel
-```
-
-3. Set environment variables in Vercel Dashboard:
-   - `VITE_SOLANA_NETWORK` - devnet or mainnet-beta
-   - `VITE_SOLANA_RPC_URL` - Your RPC endpoint
-   - `VITE_API_URL` - Your API endpoint (optional)
-
-The project includes `vercel.json` with optimized settings:
-- ✅ SPA routing configured
-- ✅ Asset caching (1 year for immutable assets)
-- ✅ Automatic PNPM detection
-- ✅ Vite framework preset
-
-### Manual Deployment
-
-Build the project:
-```bash
-pnpm build
-```
-
-The `dist/` folder contains the production build. Deploy it to any static hosting service:
-- Vercel
-- Netlify
-- Cloudflare Pages
-- AWS S3 + CloudFront
-- GitHub Pages
-
-## �📖 Documentation
-
-- **Whitepaper**: [public/whitepaper.md](public/whitepaper.md) - Complete technical documentation
-- **Tokenomics**: [public/tokenomics.md](public/tokenomics.md) - $PULSE token economics
-
-## 🚦 Routes
-
-| Route                     | Page                     | Description                      |
-|---------------------------|--------------------------|----------------------------------|
-| `/`                       | Landing                  | Hero + username minting          |
-| `/feed`                   | Feed                     | Main social feed with posts      |
-| `/explore`                | Explore                  | Trending content & discovery     |
-| `/what`                   | What                     | Platform introduction            |
-| `/why`                    | Why                      | Benefits & use cases             |
-| `/guide`                  | UserGuide                | Complete feature documentation   |
-| `/airdrop`                | AirdropDashboard         | Track airdrop eligibility        |
-| `/:username`              | Profile                  | User profiles with follow system |
-| `/subscriptions`          | Subscriptions            | Manage creator subscriptions     |
-| `/creator`                | CreatorDashboard         | Creator analytics & tier mgmt    |
-| `/groups`                 | GroupsDiscovery          | Browse & create groups           |
-| `/groups/:id`             | GroupDetail              | Group feed & member management   |
-| `/marketplace`            | UsernameMarketplace      | Trade username NFTs              |
-| `/governance`             | Governance               | Stake tokens & vote on proposals |
-| `/shares`                 | CreatorShares            | Trade creator shares (bonding curve) |
-| `/moderation`             | ModerationDashboard      | Moderation tools (mods only)     |
-| `/export`                 | DataExport               | Download your data (GDPR)        |
-
-## 🔗 Links
-
-- **Live App**: [pulse.thosoft.xyz](https://pulse.thosoft.xyz)
-- **GitHub**: [github.com/NumberZeros/social-fi-fe](https://github.com/NumberZeros/social-fi-fe)
-- **Developer**: [Tho Nguyen on LinkedIn](https://www.linkedin.com/in/th%E1%BB%8D-nguy%E1%BB%85n-941348360/)
-
-## 📄 License
-
-MIT License
-
----
-
-**Built with ❤️ on Solana** • **Powered by ZK Compression** • **Community First**

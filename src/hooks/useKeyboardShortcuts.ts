@@ -7,7 +7,6 @@ export function useKeyboardShortcuts() {
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      // Ignore if user is typing in input/textarea
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement ||
@@ -16,41 +15,33 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      // Check for keyboard shortcuts
       switch (e.key.toLowerCase()) {
         case 'h':
           if (!e.ctrlKey && !e.metaKey && !e.altKey) {
             navigate('/');
-            toast.success('📍 Home');
+            toast.success('Home');
           }
           break;
         case 'f':
           if (!e.ctrlKey && !e.metaKey && !e.altKey) {
             navigate('/feed');
-            toast.success('📰 Feed');
+            toast.success('Feed');
           }
           break;
         case 'e':
           if (!e.ctrlKey && !e.metaKey && !e.altKey) {
             navigate('/explore');
-            toast.success('🔍 Explore');
+            toast.success('Explore');
           }
           break;
-        case 'p':
+        case 'd':
           if (!e.ctrlKey && !e.metaKey && !e.altKey) {
-            navigate('/profile/me');
-            toast.success('👤 Profile');
-          }
-          break;
-        case 'a':
-          if (!e.ctrlKey && !e.metaKey && !e.altKey) {
-            navigate('/airdrop');
-            toast.success('🎁 Airdrop');
+            navigate('/dashboard');
+            toast.success('Dashboard');
           }
           break;
         case 'n':
           if (!e.ctrlKey && !e.metaKey && !e.altKey) {
-            // Focus on create post textarea
             const createPostTextarea = document.querySelector(
               'textarea[placeholder*="happening"]',
             ) as HTMLTextAreaElement;
@@ -63,7 +54,6 @@ export function useKeyboardShortcuts() {
         case '/':
           if (!e.ctrlKey && !e.metaKey && !e.altKey) {
             e.preventDefault();
-            // Focus on search input
             const searchInput = document.querySelector(
               'input[placeholder*="Search"]',
             ) as HTMLInputElement;
@@ -79,13 +69,14 @@ export function useKeyboardShortcuts() {
           }
           break;
         case 'escape': {
-          // Close modals or blur focused element
           const activeElement = document.activeElement as HTMLElement;
           if (activeElement) {
             activeElement.blur();
           }
           break;
         }
+        default:
+          break;
       }
     };
 
@@ -96,14 +87,13 @@ export function useKeyboardShortcuts() {
 
 function showKeyboardShortcuts() {
   const shortcuts = `
-🎹 Keyboard Shortcuts:
+Keyboard Shortcuts:
 
 Navigation:
 • H - Home
 • F - Feed
 • E - Explore
-• P - Profile
-• A - Airdrop
+• D - Dashboard
 
 Actions:
 • N - New Post (focus)
@@ -115,9 +105,9 @@ Actions:
   toast.success(shortcuts, {
     duration: 5000,
     style: {
-      background: '#1a1a1a',
-      color: '#fff',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
+      background: 'var(--color-surface)',
+      color: 'var(--color-foreground)',
+      border: '1px solid var(--color-border)',
       padding: '20px',
       whiteSpace: 'pre-line',
       textAlign: 'left',

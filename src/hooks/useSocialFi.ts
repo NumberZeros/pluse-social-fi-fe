@@ -1,8 +1,12 @@
 import { useCallback, useMemo } from 'react';
-import { useWallet, useConnection, useAnchorWallet } from '../lib/wallet-adapter';
+import { useWallet, useConnection, useAnchorWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { toast } from 'react-hot-toast';
 import { SocialFiSDK } from '../services/socialfi-sdk';
+import { assertPlatformNotPaused } from '../utils/platformPauseGuard';
+import { useRequireWallet } from './useRequireWallet';
+import { captureTxError } from '../lib/sentry';
+import { trackEvent } from '../lib/analytics';
 
 /**
  * Main hook for interacting with Social-Fi smart contract
@@ -13,6 +17,7 @@ export function useSocialFi() {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
+  const requireWallet = useRequireWallet();
 
   // Create SDK instance
   const sdk = useMemo(() => {
@@ -29,24 +34,24 @@ export function useSocialFi() {
 
   const createProfile = useCallback(
     async (username: string) => {
-      if (!sdk) {
-        toast.error('Please connect your wallet');
-        return null;
-      }
+      if (!requireWallet()) return null;
+      if (!sdk) return null;
 
       try {
+        await assertPlatformNotPaused(sdk);
         toast.loading('Creating profile...', { id: 'create-profile' });
         const result = await sdk.createProfile(username);
         toast.success('Profile created successfully!', { id: 'create-profile' });
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Create profile error:', error);
+        captureTxError('createProfile', error);
         const message = parseAnchorError(error);
         toast.error(message, { id: 'create-profile' });
         throw error;
       }
     },
-    [sdk]
+    [sdk, requireWallet]
   );
 
   const getUserProfile = useCallback(
@@ -65,61 +70,60 @@ export function useSocialFi() {
 
   const sendTip = useCallback(
     async (recipientPubkey: PublicKey, amount: number) => {
-      if (!sdk) {
-        toast.error('Please connect your wallet');
-        return null;
-      }
+      if (!requireWallet()) return null;
+      if (!sdk) return null;
 
       try {
+        await assertPlatformNotPaused(sdk);
         toast.loading(`Sending ${amount} SOL tip...`, { id: 'send-tip' });
         const signature = await sdk.sendTip(recipientPubkey, amount * 1e9);
         toast.success('Tip sent successfully!', { id: 'send-tip' });
         return signature;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Send tip error:', error);
+        captureTxError('sendTip', error);
         const message = parseAnchorError(error);
         toast.error(message, { id: 'send-tip' });
         throw error;
       }
     },
-    [sdk]
+    [sdk, requireWallet]
   );
 
   // ==================== SHARES OPERATIONS ====================
 
   const buyShares = useCallback(
     async (creatorPubkey: PublicKey, amount: number, maxPricePerShare: number) => {
-      if (!sdk) {
-        toast.error('Please connect your wallet');
-        return null;
-      }
+      if (!requireWallet()) return null;
+      if (!sdk) return null;
 
       try {
-        toast.loading(`Buying ${amount} shares...`, { id: 'buy-shares' });
+        await assertPlatformNotPaused(sdk);
+        toast.loading(`Supporting with ${amount} Supporter Share${amount > 1 ? 's' : ''}...`, { id: 'buy-shares' });
         const signature = await sdk.buyShares(creatorPubkey, amount, maxPricePerShare * 1e9);
-        toast.success(`Bought ${amount} shares!`, { id: 'buy-shares' });
+        toast.success(`You're now a supporter!`, { id: 'buy-shares' });
         return signature;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Buy shares error:', error);
+        captureTxError('buyShares', error, { creator: creatorPubkey.toBase58(), amount });
         const message = parseAnchorError(error);
         toast.error(message, { id: 'buy-shares' });
         throw error;
       }
     },
-    [sdk]
+    [sdk, requireWallet]
   );
 
   const sellShares = useCallback(
     async (creatorPubkey: PublicKey, amount: number, minPricePerShare: number) => {
-      if (!sdk) {
-        toast.error('Please connect your wallet');
-        return null;
-      }
+      if (!requireWallet()) return null;
+      if (!sdk) return null;
 
       try {
-        toast.loading(`Selling ${amount} shares...`, { id: 'sell-shares' });
+        await assertPlatformNotPaused(sdk);
+        toast.loading(`Cashing out ${amount} Supporter Share${amount > 1 ? 's' : ''}...`, { id: 'sell-shares' });
         const signature = await sdk.sellShares(creatorPubkey, amount, minPricePerShare * 1e9);
-        toast.success(`Sold ${amount} shares!`, { id: 'sell-shares' });
+        toast.success(`Cashed out support`, { id: 'sell-shares' });
         return signature;
       } catch (error: any) {
         console.error('Sell shares error:', error);
@@ -128,7 +132,7 @@ export function useSocialFi() {
         throw error;
       }
     },
-    [sdk]
+    [sdk, requireWallet]
   );
 
   const getCreatorShares = useCallback(
@@ -159,8 +163,41 @@ export function useSocialFi() {
     [sdk]
   );
 
+  const initializeCreatorPool = useCallback(async () => {
+    if (!requireWallet()) return null;
+    if (!sdk) return null;
+
+    try {
+      await assertPlatformNotPaused(sdk);
+      toast.loading('Launching Supporter Shares...', { id: 'init-pool' });
+      const result = await sdk.initializeCreatorPool();
+      toast.success('Supporter Shares pool launched!', { id: 'init-pool' });
+      trackEvent('pool_launched');
+      return result;
+    } catch (error: unknown) {
+      console.error('Initialize pool error:', error);
+      captureTxError('initializeCreatorPool', error);
+      const message = parseAnchorError(error);
+      toast.error(message, { id: 'init-pool' });
+      throw error;
+    }
+  }, [sdk, requireWallet]);
+
+  const getShareHolding = useCallback(
+    async (holderPubkey: PublicKey, creatorPubkey: PublicKey) => {
+      if (!sdk) return { amount: 0 };
+      try {
+        return await sdk.getShareHolding(holderPubkey, creatorPubkey);
+      } catch (error: any) {
+        console.error('Get share holding error:', error);
+        return { amount: 0 };
+      }
+    },
+    [sdk]
+  );
+
   // ==================== ADVANCED FEATURES ====================
-  // TODO: Add subscriptions, groups, governance hooks when implementing those features
+  // Post-MVP: subscriptions, groups, governance hooks live in SDK only
 
   // ==================== UTILITIES ====================
 
@@ -189,69 +226,10 @@ export function useSocialFi() {
     }
   }, [sdk]);
 
-  // ==================== MARKETPLACE (Username NFT) ====================
-
-  const mintUsername = useCallback(
-    async (username: string, metadataUri: string) => {
-      if (!sdk) {
-        toast.error('Please connect your wallet');
-        return null;
-      }
-
-      try {
-        toast.loading('⚙️ Minting username NFT...', { id: 'mint-username' });
-        const result = await sdk.mintUsername(username, metadataUri);
-        
-        toast.loading('🏛️ Setting collection...', { id: 'mint-username' });
-        const collectionSig = await sdk.setCollectionForUsername(
-          result.nft,
-          result.mint
-        );
-
-        toast.success('🎉 Username NFT minted! Check Magic Eden in 5-10 min', {
-          id: 'mint-username',
-          duration: 5000,
-        });
-
-        return {
-          nft: result.nft,
-          mint: result.mint,
-          signature: result.signature,
-          collectionSignature: collectionSig,
-        };
-      } catch (error: any) {
-        console.error('Mint username error:', error);
-        const message = parseAnchorError(error);
-        toast.error(message, { id: 'mint-username' });
-        throw error;
-      }
-    },
-    [sdk]
-  );
-
-  const setCollectionForUsername = useCallback(
-    async (usernameNft: PublicKey, mint: PublicKey) => {
-      if (!sdk) {
-        toast.error('Please connect your wallet');
-        return null;
-      }
-
-      try {
-        return await sdk.setCollectionForUsername(usernameNft, mint);
-      } catch (error: any) {
-        console.error('Set collection error:', error);
-        const message = parseAnchorError(error);
-        toast.error(message, { id: 'set-collection' });
-        throw error;
-      }
-    },
-    [sdk]
-  );
-
   return {
     // SDK instance
     sdk,
-    isConnected: !!publicKey,
+    isConnected: !!anchorWallet && !!publicKey,
     publicKey,
 
     // Profile operations
@@ -264,10 +242,8 @@ export function useSocialFi() {
     sellShares,
     getCreatorShares,
     calculateSharePrice,
-
-    // Marketplace operations (NEW)
-    mintUsername,
-    setCollectionForUsername,
+    initializeCreatorPool,
+    getShareHolding,
 
     // Utilities
     getBalance,
