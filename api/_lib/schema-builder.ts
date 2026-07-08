@@ -1,4 +1,4 @@
-import { buildPostMeta, buildProfileMeta, buildStaticPageMeta } from './meta-builder.js';
+import { buildStaticPageMeta } from './meta-builder.js';
 import type { PageMeta } from './meta-builder.js';
 import { fetchPostMetadata } from './ipfs.js';
 import { absoluteUrl } from './constants.js';
@@ -156,4 +156,4 @@ export function buildSchemaFromPostMeta(meta: PageMeta): object {
   };
 }
 
-export { buildPostMeta, buildProfileMeta, buildStaticPageMeta };
+export { buildStaticPageMeta };

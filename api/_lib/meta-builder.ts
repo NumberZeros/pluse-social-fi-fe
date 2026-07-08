@@ -1,6 +1,4 @@
-import { sanitizeImageUrl } from './sanitize-image-url.js';
-import { absoluteUrl, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, OG_HEIGHT, OG_WIDTH, SITE_NAME } from './constants.js';
-import { fetchPostMetadata } from './ipfs.js';
+import { absoluteUrl, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_NAME } from './constants.js';
 
 export interface PageMeta {
   title: string;
@@ -75,68 +73,6 @@ export function buildStaticPageMeta(page: string): PageMeta | null {
   return {
     ...config,
     url: absoluteUrl(config.path),
-  };
-}
-
-export async function buildPostMeta(postId: string): Promise<PageMeta | null> {
-  const { PublicKey } = await import('@solana/web3.js');
-  const { fetchPost, fetchProfile } = await import('./solana.js');
-  const post = await fetchPost(postId);
-  if (!post) return null;
-
-  const [metadata, profile] = await Promise.all([
-    fetchPostMetadata(post.uri),
-    fetchProfile(new PublicKey(post.author)),
-  ]);
-  const authorName = profile?.username || post.author.slice(0, 8);
-  const isGated = metadata.accessLevel === 'supporters';
-
-  const cardImage = absoluteUrl(`/api/og-image/post/${postId}`);
-  let image = cardImage;
-  let imageWidth: number | undefined = OG_WIDTH;
-  let imageHeight: number | undefined = OG_HEIGHT;
-
-  if (!isGated && metadata.images[0]) {
-    const sanitized = sanitizeImageUrl(metadata.images[0]);
-    if (sanitized) {
-      image = sanitized;
-      imageWidth = undefined;
-      imageHeight = undefined;
-    }
-  }
-
-  return {
-    title: `${authorName}: ${isGated ? 'Supporters-only post' : metadata.content.slice(0, 60)} | ${SITE_NAME}`,
-    description: isGated
-      ? `Supporters-only post by @${authorName}. Buy Supporter Shares to unlock.`
-      : metadata.content.slice(0, 160) || DEFAULT_DESCRIPTION,
-    url: absoluteUrl(`/post/${postId}`),
-    image,
-    imageWidth,
-    imageHeight,
-    type: 'article',
-    robots: isGated ? 'noindex, nofollow' : 'index, follow',
-    author: authorName,
-    publishedTime: new Date(post.createdAt * 1000).toISOString(),
-  };
-}
-
-export async function buildProfileMeta(username: string): Promise<PageMeta | null> {
-  const { resolveUsername, fetchProfile } = await import('./solana.js');
-  const pubkey = await resolveUsername(username);
-  if (!pubkey) return null;
-
-  const profile = await fetchProfile(pubkey);
-  const displayName = profile?.username || username;
-
-  return {
-    title: `@${displayName} | ${SITE_NAME}`,
-    description: `View @${displayName}'s profile on Pulse Social. Support with Supporter Shares to unlock exclusive posts.`,
-    url: absoluteUrl(`/${displayName}`),
-    image: absoluteUrl(`/api/og-image/profile/${encodeURIComponent(displayName)}`),
-    type: 'profile',
-    robots: 'index, follow',
-    author: displayName,
   };
 }
 

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { renderBotHtml } from '../../_lib/bot-html.js';
-import { buildProfileMeta } from '../../_lib/meta-builder.js';
+import { buildProfileMeta } from '../../_lib/profile-meta.js';
 import { buildSchemaForProfile } from '../../_lib/schema-builder.js';
 
 export const config = {

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { renderBotHtml } from '../../_lib/bot-html.js';
-import { buildPostMeta } from '../../_lib/meta-builder.js';
+import { buildPostMeta } from '../../_lib/post-meta.js';
 import { buildSchemaFromPostMeta } from '../../_lib/schema-builder.js';
 
 export const config = {
