@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { MotionCard } from '../design-system';
 import { ArrowLeft } from 'lucide-react';
 import { AppLayout } from '../components/layout/AppLayout';
 import { SEO } from '../components/SEO';
@@ -142,7 +142,7 @@ export function Post() {
       <div className="max-w-2xl mx-auto pb-12">
         <Link
           to="/feed"
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-muted hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Feed
@@ -151,22 +151,23 @@ export function Post() {
         {isLoading ? (
           <PostSkeleton />
         ) : isError || !feedPost ? (
-          <motion.div
+          <MotionCard
+            variant="glass"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="glass-card rounded-2xl p-12 border border-white/10 text-center"
+            className="rounded-2xl p-12 border border-border text-center"
           >
             <h1 className="text-2xl font-bold mb-2">Post not found</h1>
-            <p className="text-gray-400 mb-6">
+            <p className="text-muted mb-6">
               This post may have been removed or the link is invalid.
             </p>
             <Link
               to="/feed"
-              className="text-[var(--color-solana-green)] hover:underline"
+              className="text-primary hover:underline"
             >
               Go to Feed
             </Link>
-          </motion.div>
+          </MotionCard>
         ) : (
           <FeedPostCard
             post={feedPost}

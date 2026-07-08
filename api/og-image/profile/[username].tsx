@@ -1,4 +1,5 @@
 import { ImageResponse } from '@vercel/og';
+import { OG_BACKGROUND, OG_COLORS, OG_MARK } from '../../_lib/og-brand.ts';
 
 export const config = {
   runtime: 'nodejs',
@@ -22,31 +23,28 @@ export default async function handler(req: Request) {
           justifyContent: 'center',
           alignItems: 'center',
           padding: '60px',
-          background: 'linear-gradient(135deg, #000000 0%, #0a1a0a 100%)',
-          color: 'white',
+          background: OG_BACKGROUND,
+          color: OG_COLORS.foreground,
           fontFamily: 'system-ui, sans-serif',
         }}
       >
-        <div
-          style={{
-            width: '120px',
-            height: '120px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #ABFE2C, #14C58E)',
-            marginBottom: '32px',
-          }}
-        />
+        <svg width="120" height="120" viewBox={OG_MARK.viewBox} style={{ marginBottom: '32px' }}>
+          <path d={OG_MARK.squircle} fill={OG_COLORS.surface} />
+          <path d={OG_MARK.squircle} fill="none" stroke={OG_COLORS.border} strokeWidth="1" />
+          <path d={OG_MARK.pTop} fill={OG_COLORS.primary} fillRule="evenodd" />
+          <path d={OG_MARK.pLeg} fill={OG_COLORS.primary} />
+        </svg>
         <div style={{ fontSize: '56px', fontWeight: 800, marginBottom: '16px' }}>
           @{displayName}
         </div>
-        <div style={{ fontSize: '24px', color: '#9ca3af' }}>
+        <div style={{ fontSize: '24px', color: OG_COLORS.muted }}>
           Creator on Pulse Social
         </div>
         <div
           style={{
             marginTop: '40px',
             fontSize: '20px',
-            color: '#ABFE2C',
+            color: OG_COLORS.primary,
             fontWeight: 600,
           }}
         >

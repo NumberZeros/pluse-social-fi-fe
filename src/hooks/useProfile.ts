@@ -4,6 +4,7 @@ import { PublicKey } from '@solana/web3.js';
 import { useSocialFi } from './useSocialFi';
 import { useReadOnlySdk } from '../services/read-only-sdk';
 import { CacheManager } from '../services/storage';
+import { trackEvent } from '../lib/analytics';
 
 /**
  * Hook for managing user profile operations
@@ -48,7 +49,8 @@ export function useProfile(ownerPubkey?: PublicKey) {
     mutationFn: async ({ username }: { username: string }) => {
       return await createProfile(username);
     },
-    onSuccess: () => {
+    onSuccess: (_data, { username }) => {
+      trackEvent('profile_created', { username });
       queryClient.invalidateQueries({ queryKey: ['profile', publicKey?.toBase58()] });
     },
   });

@@ -4,6 +4,7 @@ import { PublicKey } from '@solana/web3.js';
 import { useUserShareHoldings } from '../../hooks/useShares';
 import { useReadOnlySdk } from '../../services/read-only-sdk';
 import { useQuery } from '@tanstack/react-query';
+import { Card } from '../../design-system';
 import { SellSharesModal } from '../shares/SellSharesModal';
 
 interface MySupportPanelProps {
@@ -43,7 +44,7 @@ export function MySupportPanel({ walletAddress }: MySupportPanelProps) {
 
   if (holdingsQuery.isPending) {
     return (
-      <div className="glass-card rounded-2xl p-6 border border-white/10 animate-pulse h-32" />
+      <Card variant="glass" className="rounded-2xl p-6 border border-border animate-pulse h-32" />
     );
   }
 
@@ -53,7 +54,7 @@ export function MySupportPanel({ walletAddress }: MySupportPanelProps) {
 
   return (
     <>
-      <div className="glass-card rounded-2xl p-6 border border-white/10">
+      <Card variant="glass" className="rounded-2xl p-6 border border-border">
         <h2 className="text-lg font-bold mb-4">My support</h2>
         <div className="space-y-3">
           {holdings.map((holding) => {
@@ -65,12 +66,12 @@ export function MySupportPanel({ walletAddress }: MySupportPanelProps) {
               >
                 <Link
                   to={`/${username}`}
-                  className="font-medium text-white hover:text-[var(--color-solana-green)] truncate"
+                  className="font-medium text-foreground hover:text-primary truncate"
                 >
                   @{username}
                 </Link>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-gray-400">{holding.amount} shares</span>
+                  <span className="text-muted">{holding.amount} shares</span>
                   <button
                     onClick={() =>
                       setSellCreator({
@@ -78,7 +79,7 @@ export function MySupportPanel({ walletAddress }: MySupportPanelProps) {
                         username,
                       })
                     }
-                    className="px-3 py-1 text-xs font-bold bg-white/10 hover:bg-white/20 rounded-full"
+                    className="px-3 py-1 text-xs font-bold bg-surface-2 hover:bg-surface-2 rounded-pill"
                   >
                     Cash out
                   </button>
@@ -87,10 +88,10 @@ export function MySupportPanel({ walletAddress }: MySupportPanelProps) {
             );
           })}
         </div>
-        <p className="text-xs text-gray-500 mt-4">
+        <p className="text-xs text-muted mt-4">
           Cash out: 10% stays in the creator&apos;s pool (not a platform fee).
         </p>
-      </div>
+      </Card>
 
       {sellCreator && (
         <SellSharesModal

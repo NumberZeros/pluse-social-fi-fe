@@ -25,7 +25,7 @@ export function SiteLayout({
     : `flex-grow pt-20 pb-24 lg:pb-0 px-4 max-w-[1400px] mx-auto w-full ${mainClassName}`;
 
   return (
-    <div className="bg-[#000000] min-h-screen text-white relative overflow-x-hidden selection:bg-[var(--color-solana-green)] selection:text-black">
+    <div className="bg-background min-h-screen text-foreground relative overflow-x-hidden selection:bg-primary selection:text-background">
       <App3DBackground />
 
       <div className="relative z-10 flex flex-col min-h-screen">

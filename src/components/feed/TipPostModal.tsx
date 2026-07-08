@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button, Card, Input } from '../../design-system';
 
 interface TipPostModalProps {
   isOpen: boolean;
@@ -20,16 +21,16 @@ export function TipPostModal({ isOpen, onClose, onSubmit, isSubmitting }: TipPos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="glass-card rounded-2xl p-8 max-w-md w-full border border-white/10">
-        <h2 className="text-2xl font-bold text-white mb-2">Send Tip</h2>
-        <p className="text-gray-400 text-sm mb-6">Support this creator with SOL</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+      <Card variant="glass" className="rounded-2xl p-8 max-w-md w-full border border-border">
+        <h2 className="text-h3 text-foreground mb-2">Send Tip</h2>
+        <p className="text-muted text-sm mb-6">Support this creator with SOL</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="tip-amount" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="tip-amount" className="block text-sm font-medium text-muted mb-2">
               Amount (SOL)
             </label>
-            <input
+            <Input
               id="tip-amount"
               type="number"
               step="0.01"
@@ -37,30 +38,20 @@ export function TipPostModal({ isOpen, onClose, onSubmit, isSubmitting }: TipPos
               max="65"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white"
               required
               disabled={isSubmitting}
             />
           </div>
           <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="flex-1 px-4 py-3 bg-white/5 rounded-lg font-bold hover:bg-white/10"
-            >
+            <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting} className="flex-1">
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 px-4 py-3 bg-[var(--color-solana-green)] text-black rounded-lg font-bold disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={isSubmitting} className="flex-1">
               {isSubmitting ? 'Sending...' : 'Send Tip'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

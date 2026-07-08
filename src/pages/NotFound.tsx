@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 import { SEO } from '../components/SEO';
+import { getButtonClassName } from '../design-system';
 
 export function NotFound() {
   return (
@@ -12,15 +13,12 @@ export function NotFound() {
         url="/404"
       />
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <h1 className="text-6xl font-black mb-4 text-[var(--color-solana-green)]">404</h1>
-        <h2 className="text-2xl font-bold mb-2">Page not found</h2>
-        <p className="text-gray-400 mb-8 max-w-md">
+        <h1 className="text-display mb-4 text-primary">404</h1>
+        <h2 className="text-h3 mb-2">Page not found</h2>
+        <p className="text-body text-muted mb-8 max-w-md">
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
-        <Link
-          to="/"
-          className="px-6 py-3 rounded-full bg-[var(--color-solana-green)] text-black font-semibold hover:opacity-90 transition-opacity"
-        >
+        <Link to="/" className={getButtonClassName('primary', 'md')}>
           Go Home
         </Link>
       </div>

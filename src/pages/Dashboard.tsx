@@ -19,6 +19,7 @@ import {
   BarChart3,
   ExternalLink,
 } from 'lucide-react';
+import { Button, Card, getButtonClassName, MotionCard } from '../design-system';
 
 export function Dashboard() {
   const { publicKey } = useWallet();
@@ -62,23 +63,20 @@ export function Dashboard() {
           noindex
         />
         <div className="min-h-[60vh] flex items-center justify-center">
-          <motion.div
+          <MotionCard
+            variant="glass"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="glass-card rounded-[2.5rem] p-12 text-center max-w-lg border border-[var(--color-solana-green)]/20"
+            className="rounded-[2.5rem] p-12 text-center max-w-lg border border-primary/20"
           >
-            <h2 className="text-3xl font-black text-white mb-4">Dashboard</h2>
-            <p className="text-gray-400 text-lg mb-8">
+            <h2 className="text-h3 text-foreground mb-4">Dashboard</h2>
+            <p className="text-muted text-lg mb-8">
               Connect your wallet to launch Supporter Shares and track your community.
             </p>
-            <button
-              type="button"
-              onClick={() => openWalletModal({ toast: true })}
-              className="px-8 py-4 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-xl font-bold transition-all"
-            >
+            <Button type="button" size="lg" onClick={() => openWalletModal({ toast: true })}>
               Connect Wallet
-            </button>
-          </motion.div>
+            </Button>
+          </MotionCard>
         </div>
       </AppLayout>
     );
@@ -108,15 +106,12 @@ export function Dashboard() {
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
             <div>
-              <h1 className="text-4xl font-black tracking-tight">Dashboard</h1>
-              <p className="text-xl text-gray-400 mt-1">
+              <h1 className="text-h2">Dashboard</h1>
+              <p className="text-xl text-muted mt-1">
                 {profile?.username ? `@${profile.username}` : 'Your creator hub'}
               </p>
             </div>
-            <Link
-              to="/feed"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--color-solana-green)] hover:bg-[#9FE51C] text-black rounded-xl font-bold transition-all"
-            >
+            <Link to="/feed" className={getButtonClassName('primary', 'lg')}>
               + New Post
             </Link>
           </div>
@@ -155,59 +150,60 @@ export function Dashboard() {
 
         <div className="grid lg:grid-cols-2 gap-8">
           <section>
-            <h2 className="text-2xl font-black mb-6">Your Supporters</h2>
+            <h2 className="text-h3 mb-6">Your Supporters</h2>
             {!shares ? (
-              <div className="glass-card rounded-2xl p-8 border border-white/10 text-center text-gray-400">
+              <Card variant="glass" className="rounded-2xl p-8 border border-border text-center text-muted">
                 Launch Supporter Shares to start building your community.
-              </div>
+              </Card>
             ) : supporters.length === 0 ? (
-              <div className="glass-card rounded-2xl p-8 border border-white/10 text-center text-gray-400">
+              <Card variant="glass" className="rounded-2xl p-8 border border-border text-center text-muted">
                 No supporters yet. Share your profile and post exclusive content!
-              </div>
+              </Card>
             ) : (
               <div className="space-y-3">
                 {supporters.map((s) => (
-                  <div
+                  <Card
                     key={s.publicKey}
-                    className="glass-card rounded-xl p-4 border border-white/10 flex justify-between items-center"
+                    variant="glass"
+                    className="rounded-xl p-4 border border-border flex justify-between items-center"
                   >
                     <Link
                       to={`/${s.holder}`}
-                      className="font-mono text-sm text-white hover:text-[var(--color-solana-green)]"
+                      className="font-mono text-sm text-foreground hover:text-primary"
                     >
                       {s.holder.slice(0, 4)}...{s.holder.slice(-4)}
                     </Link>
-                    <span className="text-[var(--color-solana-green)] font-bold">
+                    <span className="text-primary font-bold">
                       {s.amount} Supporter Shares
                     </span>
-                  </div>
+                  </Card>
                 ))}
               </div>
             )}
           </section>
 
           <section>
-            <h2 className="text-2xl font-black mb-6">Post performance</h2>
-            <div className="glass-card rounded-2xl p-6 border border-white/10">
+            <h2 className="text-h3 mb-6">Post performance</h2>
+            <Card variant="glass" className="rounded-2xl p-6 border border-border">
               {timelinePending ? (
                 <div className="animate-pulse space-y-3">
-                  <div className="h-10 w-16 bg-white/10 rounded" />
-                  <div className="h-4 w-32 bg-white/10 rounded" />
+                  <div className="h-10 w-16 bg-surface-2 rounded" />
+                  <div className="h-4 w-32 bg-surface-2 rounded" />
                 </div>
               ) : (
                 <>
-                  <p className="text-4xl font-black mb-2">{myPosts.length}</p>
-                  <p className="text-gray-400 text-sm mb-6">Total on-chain posts</p>
+                  <p className="text-h2 font-black mb-2">{myPosts.length}</p>
+                  <p className="text-muted text-sm mb-6">Total on-chain posts</p>
                   <Link
                     to={profilePath}
-                    className="inline-flex items-center gap-2 text-[var(--color-solana-green)] text-sm font-medium hover:underline"
+                    className="inline-flex items-center gap-2 text-primary text-sm font-medium hover:underline"
                   >
                     View public profile
                     <ExternalLink className="w-4 h-4" />
                   </Link>
                 </>
               )}
-            </div>
+            </Card>
           </section>
         </div>
       </div>
@@ -227,16 +223,13 @@ function StatCard({
   sub: string;
 }) {
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="p-6 glass-card rounded-2xl border border-white/10"
-    >
-      <div className="flex items-center gap-2 text-gray-400 mb-3">
+    <MotionCard variant="glass" whileHover={{ y: -4 }} className="p-6 rounded-2xl border border-border">
+      <div className="flex items-center gap-2 text-muted mb-3">
         {icon}
         <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
       </div>
       <p className="text-3xl font-black">{value}</p>
-      <p className="text-xs text-gray-500 mt-1">{sub}</p>
-    </motion.div>
+      <p className="text-xs text-muted mt-1">{sub}</p>
+    </MotionCard>
   );
 }

@@ -24,7 +24,7 @@ export function highlightHashtags(text: string): React.ReactNode[] {
     parts.push(
       <span
         key={matchIndex}
-        className="text-[#ABFE2C] hover:underline cursor-pointer font-medium"
+        className="text-primary hover:underline cursor-pointer font-medium"
         onClick={(e) => {
           e.stopPropagation();
           // Could navigate to hashtag page or filter by hashtag

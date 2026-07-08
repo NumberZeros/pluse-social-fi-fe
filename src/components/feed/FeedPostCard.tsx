@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { MotionCard } from '../../design-system';
 import { Link } from 'react-router-dom';
 import { Heart, DollarSign, Lock } from 'lucide-react';
 import { CommentThread } from './CommentThread';
@@ -50,40 +50,41 @@ export function FeedPostCard({
   const authorPath = post.author.authorUsername || post.author.address;
 
   return (
-    <motion.div
+    <MotionCard
+      variant="glass"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="glass-card rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all backdrop-blur-xl bg-black/40 hover:bg-black/60 shadow-lg"
+      className="rounded-2xl p-6 border border-border hover:border-border transition-all backdrop-blur-xl bg-background/40 hover:bg-background/60 shadow-lg"
     >
       <div className="flex items-start gap-3 mb-4">
         <Link to={`/${authorPath}`}>
           <img
             src={post.author.avatar}
             alt={post.author.username}
-            className="w-12 h-12 rounded-full border border-white/10"
+            className="w-12 h-12 rounded-full border border-border"
           />
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <Link
               to={`/${authorPath}`}
-              className="font-bold text-white hover:text-[var(--color-solana-green)] transition-colors"
+              className="font-bold text-foreground hover:text-primary transition-colors"
             >
               {post.author.username}
             </Link>
-            <span className="text-gray-400 text-sm">
+            <span className="text-muted text-sm">
               {post.author.address.slice(0, 4)}...{post.author.address.slice(-4)}
             </span>
-            <span className="text-gray-500 text-sm">·</span>
+            <span className="text-muted text-sm">·</span>
             <Link
               to={`/post/${post.id}`}
-              className="text-gray-500 text-sm hover:text-white transition-colors"
+              className="text-muted text-sm hover:text-foreground transition-colors"
             >
               {new Date(post.timestamp).toLocaleDateString()}
             </Link>
             {post.accessLevel === 'supporters' && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--color-solana-green)]/10 border border-[var(--color-solana-green)]/30 rounded-full text-xs font-medium text-[var(--color-solana-green)]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 border border-primary/30 rounded-full text-xs font-medium text-primary">
                 <Lock className="w-3 h-3" />
                 Supporters
               </span>
@@ -104,7 +105,7 @@ export function FeedPostCard({
         gatedContentUri={post.gatedContentUri}
       />
 
-      <div className="flex items-center gap-6 text-gray-500 pt-4 border-t border-white/5">
+      <div className="flex items-center gap-6 text-muted pt-4 border-t border-border">
         {onLike && (
           <button
             onClick={() => onLike(post.id, post.isLiked)}
@@ -126,10 +127,10 @@ export function FeedPostCard({
           <button
             onClick={() => onTip(post)}
             disabled={isPaused}
-            className="flex items-center gap-2 hover:text-[var(--color-solana-green)] transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 hover:text-primary transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Tip creator"
           >
-            <div className="p-2 rounded-full group-hover:bg-[var(--color-solana-green)]/10">
+            <div className="p-2 rounded-full group-hover:bg-primary/10">
               <DollarSign className="w-5 h-5" />
             </div>
             {showTipCount && (
@@ -149,6 +150,6 @@ export function FeedPostCard({
           />
         )}
       </div>
-    </motion.div>
+    </MotionCard>
   );
 }

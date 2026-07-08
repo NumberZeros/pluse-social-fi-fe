@@ -25,6 +25,7 @@ import { toast } from 'react-hot-toast';
 import { AppLayout } from '../components/layout/AppLayout';
 import { PostSkeleton } from '../components/LoadingStates';
 import { PAGE_SEO_CONFIG } from '../lib/seo/page-config';
+import { Card } from '../design-system';
 import { buildFeedPageSchema } from '../lib/seo/schema';
 
 type FeedTab = 'following' | 'all';
@@ -182,25 +183,25 @@ export function Feed() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-6 lg:pb-12">
         <div className="hidden lg:block lg:col-span-3">
           <div className="sticky top-28 space-y-6">
-            <div className="glass-card rounded-2xl p-6 border border-white/10">
+            <Card variant="glass" className="rounded-2xl p-6 border border-border">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[var(--color-solana-green)] to-blue-500" />
+                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary to-info" />
                 <div>
                   <div className="font-bold">{profile.username || 'Anon User'}</div>
-                  <div className="text-sm text-gray-400">@{profile.username || 'creator'}</div>
+                  <div className="text-sm text-muted">@{profile.username || 'creator'}</div>
                 </div>
               </div>
-              <div className="space-y-4 text-sm text-gray-300">
+              <div className="space-y-4 text-sm text-muted">
                 <div className="flex justify-between">
                   <span>Followers</span>
-                  <span className="font-bold text-white">{followers.length}</span>
+                  <span className="font-bold text-foreground">{followers.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Following</span>
-                  <span className="font-bold text-white">{following.length}</span>
+                  <span className="font-bold text-foreground">{following.length}</span>
                 </div>
               </div>
-            </div>
+            </Card>
 
             {publicKey && <MySupportPanel walletAddress={publicKey.toBase58()} />}
           </div>
@@ -215,15 +216,15 @@ export function Feed() {
             <CreatePost />
 
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex gap-2 p-1 bg-white/5 rounded-full border border-white/10 w-fit">
+              <div className="flex gap-2 p-1 bg-surface-2 rounded-pill border border-border w-fit">
                 {(['following', 'all'] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setFeedTab(tab)}
-                    className={`px-5 py-2 rounded-full text-sm font-bold transition-colors ${
+                    className={`px-5 py-2 rounded-pill text-sm font-bold transition-colors ${
                       feedTab === tab
-                        ? 'bg-[var(--color-solana-green)] text-black'
-                        : 'text-gray-400 hover:text-white'
+                        ? 'bg-primary text-background'
+                        : 'text-muted hover:text-foreground'
                     }`}
                   >
                     {tab === 'following' ? 'Following' : 'All'}
@@ -233,10 +234,10 @@ export function Feed() {
 
               <motion.div
                 animate={{ opacity: isOnline ? 1 : 0.8 }}
-                className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border shrink-0 ${
+                className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-pill border shrink-0 ${
                   isOnline
-                    ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                    ? 'bg-success/10 text-success border-success/20'
+                    : 'bg-warning/10 text-warning border-warning/20'
                 }`}
               >
                 {isOnline ? (
@@ -260,15 +261,15 @@ export function Feed() {
                 ))}
               </div>
             ) : isError ? (
-              <div className="glass-card rounded-2xl p-12 border border-white/10 text-center">
+              <Card variant="glass" className="rounded-2xl p-12 border border-border text-center">
                 <h3 className="text-xl font-bold mb-2">Failed to load feed</h3>
-                <p className="text-gray-400">Check your connection and try again.</p>
-              </div>
+                <p className="text-muted">Check your connection and try again.</p>
+              </Card>
             ) : feedTab === 'following' && !publicKey ? (
-              <div className="glass-card rounded-2xl p-12 border border-white/10 text-center">
+              <Card variant="glass" className="rounded-2xl p-12 border border-border text-center">
                 <h3 className="text-xl font-bold mb-2">Connect to see Following</h3>
-                <p className="text-gray-400">Connect your wallet to view posts from creators you follow.</p>
-              </div>
+                <p className="text-muted">Connect your wallet to view posts from creators you follow.</p>
+              </Card>
             ) : posts.length > 0 ? (
               <div className="space-y-4">
                 {posts.map((post, index) => (
@@ -284,22 +285,22 @@ export function Feed() {
                 ))}
               </div>
             ) : (
-              <div className="glass-card rounded-2xl p-12 border border-white/10 text-center">
+              <Card variant="glass" className="rounded-2xl p-12 border border-border text-center">
                 <h3 className="text-xl font-bold mb-2">
                   {feedTab === 'following' ? 'No posts from people you follow' : 'No posts yet'}
                 </h3>
-                <p className="text-gray-400">
+                <p className="text-muted">
                   {feedTab === 'following'
                     ? 'Follow creators on Explore, or switch to All to see the global feed.'
                     : 'Be the first to post something!'}
                 </p>
-              </div>
+              </Card>
             )}
 
             {!isPending && posts.length > 0 && (
               <div ref={loadMoreRef} className="py-8">
                 {!hasNextPage && (
-                  <div className="text-center text-gray-500 py-4">
+                  <div className="text-center text-muted py-4">
                     <p>You&apos;ve reached the end!</p>
                   </div>
                 )}

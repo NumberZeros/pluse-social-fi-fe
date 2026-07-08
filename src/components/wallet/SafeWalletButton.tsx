@@ -17,7 +17,7 @@ export function SafeWalletButton({
     <div className={compact ? 'inline-flex items-center' : 'flex flex-col items-center gap-2'}>
       <WalletButton className={className} />
       {connecting && !connected && !compact && (
-        <div className="text-xs text-blue-400">
+        <div className="text-xs text-info">
           Connecting to wallet...
         </div>
       )}

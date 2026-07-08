@@ -10,7 +10,7 @@ export function App3DBackground() {
   return (
     <div ref={containerRef} className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
       {/* Deep Space Base */}
-      <div className="absolute inset-0 bg-[#000000]" />
+      <div className="absolute inset-0 bg-background" />
       
       {/* Animated Grid Floor */}
       <div className="absolute inset-0 perspective-[1000px] opacity-30">
@@ -20,11 +20,11 @@ export function App3DBackground() {
       {/* Ambient Glows */}
       <motion.div 
         style={{ y: y1 }}
-        className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--color-solana-green)]/10 blur-[120px]" 
+        className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[120px]" 
       />
       <motion.div 
         style={{ y: y2 }}
-        className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--color-solana-purple)]/10 blur-[120px]" 
+        className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-secondary/10 blur-[120px]" 
       />
 
       {/* Floating Particles (CSS Only for performance) */}
@@ -32,7 +32,7 @@ export function App3DBackground() {
         {[...Array(20)].map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full bg-white/20 animate-float"
+            className="absolute rounded-full bg-surface-2 animate-float"
             style={{
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,

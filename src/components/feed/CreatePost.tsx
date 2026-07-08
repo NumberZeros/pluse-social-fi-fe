@@ -12,6 +12,8 @@ import {
   validateFile,
   type PostAccessLevel,
 } from '../../services/ipfs';
+import { Button, getButtonClassName, MotionCard } from '../../design-system';
+import { trackEvent } from '../../lib/analytics';
 
 interface CreatePostProps {
   onPost?: (content: string, images: string[], accessLevel?: PostAccessLevel) => void;
@@ -68,6 +70,7 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
       }
 
       toast.success('Post created successfully!', { id: uploadToast });
+      trackEvent('post_created', { access_level: accessLevel });
       onPost?.(content, images, accessLevel);
 
       incrementPostsCount();
@@ -160,34 +163,32 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
 
   if (!publicKey) {
     return (
-      <motion.div
+      <MotionCard
+        variant="glass"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-2xl p-6 border border-white/10 text-center"
+        className="rounded-2xl p-6 border border-border text-center"
       >
-        <p className="text-gray-400 mb-4">Connect your wallet to create a post.</p>
-        <button
-          type="button"
-          onClick={() => openWalletModal({ toast: true })}
-          className="px-6 py-2 bg-[var(--color-solana-green)] text-black rounded-full font-bold hover:bg-[#9FE51C] transition-colors"
-        >
+        <p className="text-muted mb-4">Connect your wallet to create a post.</p>
+        <Button type="button" size="sm" onClick={() => openWalletModal({ toast: true })}>
           Connect Wallet
-        </button>
-      </motion.div>
+        </Button>
+      </MotionCard>
     );
   }
 
   return (
-    <motion.div
+    <MotionCard
+      variant="glass"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card rounded-2xl p-6 border border-white/10"
+      className="rounded-2xl p-6 border border-border"
     >
       <div className="flex gap-4">
         <img
           src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${publicKey?.toBase58() || 'user'}`}
           alt="Your avatar"
-          className="w-12 h-12 rounded-full bg-gray-800"
+          className="w-12 h-12 rounded-full bg-surface-2"
         />
 
         <div className="flex-1 space-y-4">
@@ -196,7 +197,7 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
             onChange={(e) => setContent(e.target.value)}
             onFocus={() => setIsExpanded(true)}
             placeholder={placeholder || "What's happening on Solana?"}
-            className="w-full bg-transparent text-white placeholder-gray-500 text-lg resize-none outline-none min-h-[60px] focus:placeholder-gray-400 transition-colors"
+            className="w-full bg-transparent text-foreground placeholder:text-muted text-lg resize-none outline-none min-h-[60px] focus:placeholder:text-muted transition-colors"
             rows={isExpanded ? 4 : 2}
             aria-label="Post content"
             aria-describedby="char-count"
@@ -216,7 +217,7 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
                       <img src={image} alt={`Upload ${index + 1}`} className="w-full h-48 object-cover" />
                       <button
                         onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 w-8 h-8 bg-black/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                        className="absolute top-2 right-2 w-8 h-8 bg-background/80 hover:bg-danger text-foreground rounded-pill flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                         aria-label={`Remove image ${index + 1}`}
                       >
                         <X className="w-4 h-4" />
@@ -235,10 +236,10 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
                       animate={{ opacity: 1, scale: 1 }}
                       className="relative group rounded-xl overflow-hidden"
                     >
-                      <video src={video} controls className="w-full max-h-96 object-contain bg-black" />
+                      <video src={video} controls className="w-full max-h-96 object-contain bg-background" />
                       <button
                         onClick={() => removeVideo(index)}
-                        className="absolute top-2 right-2 w-8 h-8 bg-black/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                        className="absolute top-2 right-2 w-8 h-8 bg-background/80 hover:bg-danger text-foreground rounded-pill flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                         aria-label={`Remove video ${index + 1}`}
                       >
                         <X className="w-4 h-4" />
@@ -254,11 +255,11 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="flex items-center justify-between pt-4 border-t border-white/10"
+              className="flex items-center justify-between pt-4 border-t border-border"
             >
               <div className="flex items-center gap-2 flex-wrap">
                 <label
-                  className={`p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer ${images.length >= 4 || isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`p-2 hover:bg-surface-2 rounded-full transition-colors cursor-pointer ${images.length >= 4 || isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   aria-label="Add images"
                 >
                   <input
@@ -269,11 +270,11 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
                     disabled={images.length >= 4 || isUploading}
                     className="hidden"
                   />
-                  <ImageIcon className="w-5 h-5 text-[#ABFE2C]" />
+                  <ImageIcon className="w-5 h-5 text-primary" />
                 </label>
 
                 <label
-                  className={`p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer ${videos.length >= 1 || isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`p-2 hover:bg-surface-2 rounded-full transition-colors cursor-pointer ${videos.length >= 1 || isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   aria-label="Add video"
                 >
                   <input
@@ -283,7 +284,7 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
                     disabled={videos.length >= 1 || isUploading}
                     className="hidden"
                   />
-                  <Video className="w-5 h-5 text-[#ABFE2C]" />
+                  <Video className="w-5 h-5 text-primary" />
                 </label>
 
                 <button
@@ -292,8 +293,8 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
                   }
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
                     isSupportersOnly
-                      ? 'bg-gradient-to-r from-[var(--color-solana-green)] to-[#ABFE2C] text-black'
-                      : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                      ? 'bg-gradient-to-r from-primary to-primary text-background'
+                      : 'bg-surface-2 text-muted hover:bg-surface-2'
                   }`}
                   aria-label={`Toggle supporter-only post (currently ${isSupportersOnly ? 'ON' : 'OFF'})`}
                 >
@@ -302,7 +303,7 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
                 </button>
 
                 {images.length > 0 && (
-                  <span className="px-3 py-2 text-sm text-gray-400" aria-live="polite">
+                  <span className="px-3 py-2 text-sm text-muted" aria-live="polite">
                     {images.length}/4 images
                   </span>
                 )}
@@ -311,7 +312,7 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
               <div className="flex items-center gap-3">
                 <span
                   id="char-count"
-                  className={`text-sm ${content.length > 280 ? 'text-red-400' : 'text-gray-500'}`}
+                  className={`text-sm ${content.length > 280 ? 'text-danger' : 'text-muted'}`}
                   aria-live="polite"
                 >
                   {content.length}/280
@@ -321,7 +322,7 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
                   whileTap={{ scale: 0.95 }}
                   onClick={handlePost}
                   disabled={!content.trim() || content.length > 280 || isUploading}
-                  className="px-6 py-2 bg-[#ABFE2C] text-black rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#9FE51C] transition-colors"
+                  className={getButtonClassName('primary', 'sm')}
                   aria-label="Submit post"
                 >
                   {isUploading ? 'Posting...' : 'Post'}
@@ -331,6 +332,6 @@ export function CreatePost({ onPost, placeholder, groupId }: CreatePostProps) {
           )}
         </div>
       </div>
-    </motion.div>
+    </MotionCard>
   );
 }

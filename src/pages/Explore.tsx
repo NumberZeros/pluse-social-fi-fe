@@ -20,6 +20,7 @@ import { PostSkeleton } from '../components/LoadingStates';
 import { PAGE_SEO_CONFIG } from '../lib/seo/page-config';
 import { getNetworkLabel } from '../utils/constants';
 import { buildExplorePageSchema } from '../lib/seo/schema';
+import { Input, Card, MotionCard, getButtonClassName } from '../design-system';
 
 const EXPLORE_FILTERS = [
   { id: 'trending', label: 'Trending', icon: <TrendingUp className="w-4 h-4" /> },
@@ -128,19 +129,19 @@ export function Explore() {
           animate={{ opacity: 1, y: 0 }}
           className="relative mb-12 text-center"
         >
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[var(--color-solana-green)]/10 blur-[100px] rounded-full pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
 
-          <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight relative z-10">
+          <h1 className="text-display mb-6 relative z-10">
             Discover{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-solana-green)] to-[#14C58E]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[var(--gradient-green-end)]">
               creators
             </span>
           </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto relative z-10">
+          <p className="text-body text-muted max-w-2xl mx-auto relative z-10">
             Find creators with active Supporter Shares pools. Support them to unlock exclusive content.
           </p>
           {creatorPools.length > 0 && (
-            <p className="text-sm text-gray-500 mt-4 relative z-10">
+            <p className="text-sm text-muted mt-4 relative z-10">
               {creatorPools.length} creator{creatorPools.length !== 1 ? 's' : ''} with Supporter Shares on {getNetworkLabel()}
             </p>
           )}
@@ -153,16 +154,16 @@ export function Explore() {
           className="mb-12 max-w-3xl mx-auto relative z-20"
         >
           <div className="relative group">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400 group-hover:text-[var(--color-solana-green)] transition-colors" />
-            <input
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-muted group-hover:text-primary transition-colors z-10" />
+            <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search creators or posts..."
-              className="w-full pl-16 pr-12 py-5 bg-[#0A0A0A] border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--color-solana-green)] transition-all text-lg shadow-xl"
+              className="h-auto pl-16 pr-12 py-5 rounded-ds-xl text-lg shadow-xl"
             />
             {isSearching && (
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-[var(--color-solana-green)] border-t-transparent rounded-full animate-spin" />
+              <div className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             )}
           </div>
         </motion.div>
@@ -179,11 +180,10 @@ export function Explore() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setActiveFilter(filter.id)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all ${
-                activeFilter === filter.id
-                  ? 'bg-[var(--color-solana-green)] text-black'
-                  : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
-              }`}
+              className={getButtonClassName(
+                activeFilter === filter.id ? 'primary' : 'secondary',
+                'sm',
+              )}
             >
               {filter.icon}
               <span>{filter.label}</span>
@@ -195,17 +195,17 @@ export function Explore() {
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold flex items-center gap-3">
               {activeFilter === 'trending' ? (
-                <Flame className="w-8 h-8 text-orange-500" />
+                <Flame className="w-8 h-8 text-warning" />
               ) : activeFilter === 'supporters' ? (
-                <Lock className="w-8 h-8 text-[var(--color-solana-green)]" />
+                <Lock className="w-8 h-8 text-primary" />
               ) : (
-                <Sparkles className="w-8 h-8 text-blue-400" />
+                <Sparkles className="w-8 h-8 text-info" />
               )}
               {EXPLORE_FILTERS.find((f) => f.id === activeFilter)?.label}
             </h2>
             {debouncedQuery && (
-              <div className="text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
-                Found <span className="text-white font-bold">{filteredPosts.length}</span> results
+              <div className="text-muted bg-surface-2 px-4 py-2 rounded-xl border border-border">
+                Found <span className="text-foreground font-bold">{filteredPosts.length}</span> results
               </div>
             )}
           </div>
@@ -219,26 +219,27 @@ export function Explore() {
                   ))}
                 </div>
               ) : isError ? (
-                <div className="col-span-full py-20 text-center glass-card rounded-[3rem] border border-white/10">
+                <Card variant="glass" className="col-span-full py-20 text-center rounded-[3rem] border border-border">
                   <h3 className="text-2xl font-bold mb-2">Failed to load posts</h3>
-                  <p className="text-gray-400">Check your connection and try again.</p>
-                </div>
+                  <p className="text-muted">Check your connection and try again.</p>
+                </Card>
               ) : filteredPosts.length > 0 ? (
                 filteredPosts.map((post, index) => (
-                  <motion.article
+                  <MotionCard
+                    variant="glass"
                     layout
                     key={post.id}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="glass-card rounded-[2rem] overflow-hidden border border-white/10 hover:border-[var(--color-solana-green)]/30 transition-all group flex flex-col h-full"
+                    className="rounded-[2rem] overflow-hidden border border-border hover:border-primary/30 transition-all group flex flex-col h-full"
                   >
-                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-gray-900 to-black">
+                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-surface-2 to-background">
                       {post.accessLevel === 'supporters' ? (
-                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-black/80 backdrop-blur-md">
-                          <Lock className="w-8 h-8 text-[var(--color-solana-green)]" />
-                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-background/80 backdrop-blur-md">
+                          <Lock className="w-8 h-8 text-primary" />
+                          <span className="text-xs font-bold text-muted uppercase tracking-wider">
                             Supporters only
                           </span>
                         </div>
@@ -249,12 +250,12 @@ export function Explore() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-600 text-sm">
+                        <div className="w-full h-full flex items-center justify-center text-muted text-sm">
                           No media
                         </div>
                       )}
                       {post.accessLevel === 'supporters' && (
-                        <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold border border-[var(--color-solana-green)]/30 text-[var(--color-solana-green)] flex items-center gap-1">
+                        <div className="absolute top-4 right-4 bg-background/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold border border-primary/30 text-primary flex items-center gap-1">
                           <Lock className="w-3 h-3" />
                           Supporters
                         </div>
@@ -266,24 +267,24 @@ export function Explore() {
                         <img
                           src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author}`}
                           alt=""
-                          className="w-10 h-10 rounded-full bg-black border border-white/10"
+                          className="w-10 h-10 rounded-full bg-background border border-border"
                         />
                         <div>
                           <Link
                             to={`/${post.authorPath}`}
-                            className="text-sm font-bold text-white hover:text-[var(--color-solana-green)]"
+                            className="text-sm font-bold text-foreground hover:text-primary"
                           >
                             @{post.authorShort}
                           </Link>
-                          <div className="text-xs text-gray-500">{post.time}</div>
+                          <div className="text-xs text-muted">{post.time}</div>
                         </div>
                       </div>
 
-                      <h3 className="text-lg font-bold mb-2 text-white line-clamp-2">{post.title}</h3>
-                      <p className="text-gray-400 text-sm mb-4 line-clamp-2 flex-1">{post.excerpt}</p>
+                      <h3 className="text-lg font-bold mb-2 text-foreground line-clamp-2">{post.title}</h3>
+                      <p className="text-muted text-sm mb-4 line-clamp-2 flex-1">{post.excerpt}</p>
 
-                      <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                        <div className="flex items-center gap-4 text-gray-500">
+                      <div className="flex items-center justify-between pt-4 border-t border-border">
+                        <div className="flex items-center gap-4 text-muted">
                           <span className="flex items-center gap-1 text-xs">
                             <Heart className="w-4 h-4" />
                             {post.likes}
@@ -300,27 +301,27 @@ export function Explore() {
                         </div>
                         <Link
                           to={`/post/${post.id}`}
-                          className="w-10 h-10 rounded-full bg-white/5 hover:bg-[var(--color-solana-green)] hover:text-black flex items-center justify-center transition-all"
+                          className="w-10 h-10 rounded-full bg-surface-2 hover:bg-primary hover:text-background flex items-center justify-center transition-all"
                           aria-label="View post"
                         >
                           <ArrowRight className="w-5 h-5" />
                         </Link>
                       </div>
                     </div>
-                  </motion.article>
+                  </MotionCard>
                 ))
               ) : (
-                <div className="col-span-full py-20 text-center glass-card rounded-[3rem] border border-white/10 border-dashed">
-                  <Search className="w-10 h-10 text-gray-600 mx-auto mb-4" />
+                <Card variant="glass" className="col-span-full py-20 text-center rounded-[3rem] border border-border border-dashed">
+                  <Search className="w-10 h-10 text-muted mx-auto mb-4" />
                   <h3 className="text-2xl font-bold mb-2">No posts found</h3>
-                  <p className="text-gray-400">
+                  <p className="text-muted">
                     {debouncedQuery
                       ? 'No posts match your search. Try different keywords.'
                       : activeFilter === 'supporters'
                         ? 'No supporters-only posts yet. Check back later!'
                         : 'No posts yet. Be the first to share something!'}
                   </p>
-                </div>
+                </Card>
               )}
             </AnimatePresence>
           </motion.div>

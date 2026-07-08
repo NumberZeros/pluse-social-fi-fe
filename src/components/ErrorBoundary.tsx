@@ -1,6 +1,8 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { motion } from 'framer-motion';
+import { Button, Card } from '../design-system';
+import { captureException } from '../lib/sentry';
 
 interface Props {
   children: ReactNode;
@@ -23,6 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
+    captureException(error, { componentStack: errorInfo.componentStack });
   }
 
   private handleReset = () => {
@@ -39,12 +42,12 @@ export class ErrorBoundary extends Component<Props, State> {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="min-h-screen flex items-center justify-center p-4 bg-black"
+          className="min-h-screen flex items-center justify-center p-4 bg-background"
         >
-          <div className="max-w-md w-full glass-card rounded-2xl p-8 border border-white/10 text-center">
-            <div className="w-20 h-20 mx-auto mb-6 bg-red-500/10 rounded-full flex items-center justify-center">
+          <Card variant="glass" className="max-w-md w-full rounded-2xl p-8 border border-border text-center">
+            <div className="w-20 h-20 mx-auto mb-6 bg-danger/10 rounded-full flex items-center justify-center">
               <svg
-                className="w-10 h-10 text-red-500"
+                className="w-10 h-10 text-danger"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -58,39 +61,37 @@ export class ErrorBoundary extends Component<Props, State> {
               </svg>
             </div>
 
-            <h2 className="text-2xl font-bold mb-3 text-white">Something went wrong</h2>
+            <h2 className="text-h3 mb-3 text-foreground">Something went wrong</h2>
 
-            <p className="text-gray-400 mb-6">
+            <p className="text-muted mb-6">
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
 
             <div className="space-y-3">
-              <button
-                onClick={this.handleReset}
-                className="w-full px-6 py-3 bg-[#ABFE2C] text-black rounded-full font-bold hover:bg-[#9FE51C] transition-colors"
-              >
+              <Button onClick={this.handleReset} className="w-full">
                 Try Again
-              </button>
+              </Button>
 
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => (window.location.href = '/')}
-                className="w-full px-6 py-3 bg-white/5 text-white rounded-full font-bold hover:bg-white/10 transition-colors"
+                className="w-full"
               >
                 Go Home
-              </button>
+              </Button>
             </div>
 
             {import.meta.env.DEV && this.state.error && (
               <details className="mt-6 text-left">
-                <summary className="text-sm text-gray-500 cursor-pointer hover:text-gray-400">
+                <summary className="text-sm text-muted cursor-pointer hover:text-muted">
                   Error Details
                 </summary>
-                <pre className="mt-2 text-xs text-red-400 overflow-auto p-3 bg-black/30 rounded-lg">
+                <pre className="mt-2 text-xs text-danger overflow-auto p-3 bg-background/30 rounded-lg">
                   {this.state.error.stack}
                 </pre>
               </details>
             )}
-          </div>
+          </Card>
         </motion.div>
       );
     }

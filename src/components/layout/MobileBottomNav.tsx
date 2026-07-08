@@ -4,6 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useProfile } from '../../hooks/useProfile';
 import { useFocusCreatePost } from '../../hooks/useFocusCreatePost';
 import { useOpenWalletModal } from '../../hooks/useOpenWalletModal';
+import { Button } from '../../design-system';
 import { IconExplore, IconFeed, IconIdentity } from '../icons/PulseIcons';
 import { isNavItemActive } from './nav-items';
 
@@ -97,10 +98,10 @@ export function MobileBottomNav() {
   const tabClassName = (tab: TabItem) =>
     `flex flex-col items-center justify-center gap-0.5 py-2 min-w-0 ${
       tab.locked
-        ? 'text-gray-600'
+        ? 'text-muted/50'
         : tab.isActive
-          ? 'text-[var(--color-solana-green)]'
-          : 'text-gray-500'
+          ? 'text-primary'
+          : 'text-muted'
     }`;
 
   const renderTabContent = (tab: TabItem) => (
@@ -134,7 +135,7 @@ export function MobileBottomNav() {
 
   return (
     <nav
-        className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-black/90 backdrop-blur-xl border-t border-white/10 pb-[env(safe-area-inset-bottom)]"
+        className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-background/90 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)]"
         aria-label="Mobile navigation"
       >
         {connected ? (
@@ -142,14 +143,15 @@ export function MobileBottomNav() {
             {renderTab(tabs[0])}
             {renderTab(tabs[1])}
             <div className="flex items-center justify-center">
-              <button
+              <Button
                 type="button"
+                size="sm"
                 onClick={focusCreatePost}
-                className="absolute -top-5 w-12 h-12 rounded-full bg-[var(--color-solana-green)] text-black font-bold text-xl shadow-lg shadow-[var(--color-solana-green)]/20 flex items-center justify-center hover:bg-[#9FE51C] transition-colors active:scale-95"
+                className="absolute -top-5 w-12 h-12 !p-0 text-xl shadow-glow active:scale-95"
                 aria-label="Create post"
               >
                 +
-              </button>
+              </Button>
             </div>
             {renderTab(tabs[2])}
             {renderTab(tabs[3])}

@@ -1,155 +1,11 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+@import './design-system/tokens.css';
+@import './design-system/typography.css';
+@import './design-system/effects.css';
 
-@theme {
-  /* Lens-inspired Palette */
-  --color-lens-lime: #abfe2c;
-  --color-lens-dark: #00501e;
-  --color-lens-black: #000000;
-  --color-lens-cream: #f7f7f7;
-  --color-lens-gray: #2c2d30;
-
-  /* Solana Accents */
-  --color-solana-purple: #9945ff;
-  --color-solana-green: #14f195;
-  
-  /* Social-First Color Palette */
-  --color-primary-green: #ABFE2C; /* Main actions, CTAs */
-  --color-primary-green-hover: #9FE51C;
-  --color-social-cyan: #00D4FF; /* Social interactions */
-  --color-social-cyan-hover: #00BFEA;
-  --color-premium-purple: #9333EA; /* Premium, communities */
-  --color-premium-purple-hover: #7C3AED;
-  --color-premium-pink: #EC4899; /* Premium gradient end */
-  --color-value-amber: #FBBF24; /* Trading, value */
-  --color-value-amber-hover: #F59E0B;
-  --color-gradient-green: #14C58E; /* Green gradient end */
-
-  /* Typography */
-  --font-sans: 'Inter', sans-serif;
-  --font-display: 'Space Grotesk', sans-serif;
-
-  /* Animations */
-  --animate-marquee: marquee 30s linear infinite;
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-
-  @keyframes marquee {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
-  }
-}
-
-/* Accessibility - Focus Styles */
-*:focus-visible {
-  outline: 2px solid var(--color-lens-lime);
-  outline-offset: 2px;
-}
-
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--color-lens-lime);
-  outline-offset: 2px;
-}
-
-/* Skip to main content link for screen readers */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
-.sr-only:focus {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  width: auto;
-  height: auto;
-  padding: 1rem;
-  clip: auto;
-  background-color: var(--color-lens-lime);
-  color: black;
-  font-weight: bold;
-  z-index: 9999;
-  border-radius: 0.5rem;
-}
-
-/* Custom Utilities */
-.font-display {
-  font-family: var(--font-display);
-}
-
-.glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.text-gradient-lens {
-  background: linear-gradient(
-    to right,
-    var(--color-lens-lime),
-    var(--color-solana-green)
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.mesh-gradient-lens {
-  background:
-    radial-gradient(
-      at 0% 0%,
-      color-mix(in srgb, var(--color-lens-lime) 15%, transparent) 0px,
-      transparent 50%
-    ),
-    radial-gradient(
-      at 100% 0%,
-      color-mix(in srgb, var(--color-solana-green) 15%, transparent) 0px,
-      transparent 50%
-    ),
-    radial-gradient(
-      at 100% 100%,
-      color-mix(in srgb, var(--color-solana-purple) 10%, transparent) 0px,
-      transparent 50%
-    );
-}
-
-.mask-linear-gradient {
-  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 10%,
-    black 90%,
-    transparent
-  );
-}
-
-.direction-reverse {
-  animation-direction: reverse;
-}
-
+/* Hero 3D scene (landing) */
 .hero-3d-root {
   perspective: 1200px;
   transform-style: preserve-3d;
@@ -172,12 +28,12 @@ textarea:focus-visible {
   background:
     radial-gradient(
       circle at 30% 30%,
-      color-mix(in srgb, var(--color-lens-lime) 26%, transparent),
+      color-mix(in srgb, var(--color-primary) 26%, transparent),
       transparent 55%
     ),
     radial-gradient(
       circle at 70% 70%,
-      color-mix(in srgb, var(--color-solana-purple) 18%, transparent),
+      color-mix(in srgb, var(--color-secondary) 18%, transparent),
       transparent 60%
     );
   filter: blur(40px);
@@ -186,13 +42,13 @@ textarea:focus-visible {
 
 .hero-ribbon {
   transform-style: preserve-3d;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   background: conic-gradient(
     from 180deg,
-    color-mix(in srgb, var(--color-solana-purple) 45%, transparent),
-    color-mix(in srgb, var(--color-solana-green) 45%, transparent),
-    color-mix(in srgb, var(--color-lens-lime) 45%, transparent),
-    color-mix(in srgb, var(--color-solana-purple) 45%, transparent)
+    color-mix(in srgb, var(--color-secondary) 45%, transparent),
+    color-mix(in srgb, var(--color-primary) 45%, transparent),
+    color-mix(in srgb, var(--color-primary) 45%, transparent),
+    color-mix(in srgb, var(--color-secondary) 45%, transparent)
   );
   mask-image: radial-gradient(
     circle,
@@ -232,11 +88,11 @@ textarea:focus-visible {
 
 .hero-ring {
   transform-style: preserve-3d;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
-    0 0 80px color-mix(in srgb, var(--color-lens-lime) 18%, transparent),
-    0 0 120px color-mix(in srgb, var(--color-solana-purple) 12%, transparent);
+    0 0 80px color-mix(in srgb, var(--color-primary) 18%, transparent),
+    0 0 120px color-mix(in srgb, var(--color-secondary) 12%, transparent);
   animation: heroSpin 22s linear infinite;
 }
 
@@ -250,11 +106,11 @@ textarea:focus-visible {
   position: absolute;
   width: 220px;
   height: 320px;
-  border-radius: 24px;
+  border-radius: var(--radius-ds-2xl);
   background: linear-gradient(
     140deg,
-    color-mix(in srgb, var(--color-solana-green) 20%, transparent),
-    color-mix(in srgb, var(--color-solana-purple) 18%, transparent)
+    color-mix(in srgb, var(--color-primary) 20%, transparent),
+    color-mix(in srgb, var(--color-secondary) 18%, transparent)
   );
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
@@ -323,11 +179,11 @@ textarea:focus-visible {
 }
 
 .markdown-content h2 {
-  @apply text-3xl md:text-4xl font-display font-bold tracking-tight mt-16 mb-6 pb-4 border-b border-white/10;
+  @apply text-3xl md:text-4xl font-display font-bold tracking-tight mt-16 mb-6 pb-4 border-b border-border;
 }
 
 .markdown-content h3 {
-  @apply text-2xl font-display font-bold tracking-tight mt-12 mb-4 text-[var(--color-solana-green)];
+  @apply text-2xl font-display font-bold tracking-tight mt-12 mb-4 text-primary;
 }
 
 .markdown-content h4 {
@@ -335,19 +191,19 @@ textarea:focus-visible {
 }
 
 .markdown-content p {
-  @apply text-gray-300 leading-relaxed mb-6;
+  @apply text-muted leading-relaxed mb-6;
 }
 
 .markdown-content a {
-  @apply text-[var(--color-solana-green)] no-underline hover:underline transition-colors;
+  @apply text-primary no-underline hover:underline transition-colors;
 }
 
 .markdown-content strong {
-  @apply text-white font-bold;
+  @apply text-foreground font-bold;
 }
 
 .markdown-content em {
-  @apply italic text-gray-400;
+  @apply italic text-muted;
 }
 
 .markdown-content ul,
@@ -364,15 +220,15 @@ textarea:focus-visible {
 }
 
 .markdown-content li {
-  @apply text-gray-300 leading-relaxed;
+  @apply text-muted leading-relaxed;
 }
 
 .markdown-content code {
-  @apply text-[var(--color-solana-green)] bg-white/5 px-2 py-1 rounded font-mono text-sm;
+  @apply text-primary bg-surface-2 px-2 py-1 rounded font-mono text-sm;
 }
 
 .markdown-content pre {
-  @apply bg-black/40 border border-white/10 rounded-xl p-4 overflow-x-auto my-6;
+  @apply bg-surface border border-border rounded-ds-xl p-4 overflow-x-auto my-6;
 }
 
 .markdown-content pre code {
@@ -384,32 +240,31 @@ textarea:focus-visible {
 }
 
 .markdown-content thead {
-  @apply bg-white/5;
+  @apply bg-surface-2;
 }
 
 .markdown-content th {
-  @apply border border-white/10 p-3 text-left font-bold text-white;
+  @apply border border-border p-3 text-left font-bold text-foreground;
 }
 
 .markdown-content td {
-  @apply border border-white/10 p-3 text-gray-300;
+  @apply border border-border p-3 text-muted;
 }
 
 .markdown-content blockquote {
-  @apply border-l-4 border-[var(--color-solana-green)] pl-6 my-6 italic text-gray-400;
+  @apply border-l-4 border-primary pl-6 my-6 italic text-muted;
 }
 
 .markdown-content hr {
-  @apply border-t border-white/10 my-8;
+  @apply border-t border-border my-8;
 }
 
 .markdown-content img {
-  @apply rounded-xl my-6 max-w-full;
+  @apply rounded-ds-xl my-6 max-w-full;
 }
 
 /* Mobile Optimizations */
 @media (max-width: 768px) {
-  /* Better touch targets */
   button,
   a,
   input,
@@ -418,7 +273,6 @@ textarea:focus-visible {
     min-width: 44px;
   }
 
-  /* Prevent zoom on input focus */
   input[type='text'],
   input[type='number'],
   input[type='email'],
@@ -427,43 +281,34 @@ textarea:focus-visible {
     font-size: 16px !important;
   }
 
-  /* Optimize modal for mobile */
   .fixed.inset-0 {
     padding: 1rem !important;
   }
 
-  /* Prevent horizontal scroll */
   body {
     overflow-x: hidden;
   }
 
-  /* Touch feedback */
   button:active,
   a:active {
     opacity: 0.7;
   }
 }
 
-/* Tablet optimizations */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .glass-card {
+  .glass-ds,
+  .glass-ds {
     backdrop-filter: blur(15px);
   }
 }
 
-/* High DPI screens */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .glass-card {
+  .glass-ds,
+  .glass-ds {
     backdrop-filter: blur(12px);
   }
 }
 
-/* Dark mode preference */
-@media (prefers-color-scheme: dark) {
-  /* Already dark by default */
-}
-
-/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -472,7 +317,6 @@ textarea:focus-visible {
   }
 }
 
-/* Safe area for notched devices */
 @supports (padding: env(safe-area-inset-top)) {
   body {
     padding-top: env(safe-area-inset-top);
