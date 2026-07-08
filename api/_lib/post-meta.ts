@@ -1,4 +1,3 @@
-import { PublicKey } from '@solana/web3.js';
 import { sanitizeImageUrl } from './sanitize-image-url.js';
 import {
   absoluteUrl,
@@ -8,7 +7,7 @@ import {
   SITE_NAME,
 } from './constants.js';
 import { fetchPostMetadata } from './ipfs.js';
-import { fetchPost, fetchProfile } from './solana.js';
+import { fetchPost, fetchProfile } from './solana-rpc.js';
 import type { PageMeta } from './meta-builder.js';
 
 export async function buildPostMeta(postId: string): Promise<PageMeta | null> {
@@ -17,7 +16,7 @@ export async function buildPostMeta(postId: string): Promise<PageMeta | null> {
 
   const [metadata, profile] = await Promise.all([
     fetchPostMetadata(post.uri),
-    fetchProfile(new PublicKey(post.author)),
+    fetchProfile(post.author),
   ]);
   const authorName = profile?.username || post.author.slice(0, 8);
   const isGated = metadata.accessLevel === 'supporters';
