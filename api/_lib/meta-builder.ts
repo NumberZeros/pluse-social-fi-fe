@@ -1,8 +1,6 @@
-import { PublicKey } from '@solana/web3.js';
 import { sanitizeImageUrl } from './sanitize-image-url.js';
 import { absoluteUrl, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, OG_HEIGHT, OG_WIDTH, SITE_NAME } from './constants.js';
 import { fetchPostMetadata } from './ipfs.js';
-import { fetchPost, fetchProfile, resolveUsername } from './solana.js';
 
 export interface PageMeta {
   title: string;
@@ -81,6 +79,8 @@ export function buildStaticPageMeta(page: string): PageMeta | null {
 }
 
 export async function buildPostMeta(postId: string): Promise<PageMeta | null> {
+  const { PublicKey } = await import('@solana/web3.js');
+  const { fetchPost, fetchProfile } = await import('./solana.js');
   const post = await fetchPost(postId);
   if (!post) return null;
 
@@ -120,6 +120,7 @@ export async function buildPostMeta(postId: string): Promise<PageMeta | null> {
 }
 
 export async function buildProfileMeta(username: string): Promise<PageMeta | null> {
+  const { resolveUsername, fetchProfile } = await import('./solana.js');
   const pubkey = await resolveUsername(username);
   if (!pubkey) return null;
 

@@ -1,6 +1,5 @@
 import { buildPostMeta, buildProfileMeta, buildStaticPageMeta } from './meta-builder.js';
 import { fetchPostMetadata } from './ipfs.js';
-import { fetchPost, fetchProfile, resolveUsername } from './solana.js';
 import { absoluteUrl } from './constants.js';
 
 export async function buildSchemaForStaticPage(page: string): Promise<object> {
@@ -36,6 +35,7 @@ export async function buildSchemaForStaticPage(page: string): Promise<object> {
 }
 
 export async function buildSchemaForPost(postId: string): Promise<object> {
+  const { fetchPost, fetchProfile } = await import('./solana.js');
   const post = await fetchPost(postId);
   if (!post) return buildDefaultSchema();
 
@@ -77,6 +77,7 @@ export async function buildSchemaForPost(postId: string): Promise<object> {
 }
 
 export async function buildSchemaForProfile(username: string): Promise<object> {
+  const { resolveUsername, fetchProfile } = await import('./solana.js');
   const pubkey = await resolveUsername(username);
   if (!pubkey) return buildDefaultSchema();
 

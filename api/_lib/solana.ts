@@ -1,8 +1,11 @@
+import { createRequire } from 'node:module';
 import { Program, AnchorProvider } from '@coral-xyz/anchor';
 import type { Idl } from '@coral-xyz/anchor';
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
-import idlJson from '../../src/idl/social_fi_contract.json' with { type: 'json' };
 import { getUserProfilePda } from './pda.js';
+
+const require = createRequire(import.meta.url);
+const idlJson = require('./idl.json') as Idl;
 
 const RPC_URL =
   process.env.SOLANA_RPC_URL ||
@@ -34,7 +37,7 @@ function getProgram(): Program {
       signAllTransactions: async <T>(txs: T[]): Promise<T[]> => txs,
     };
     const provider = new AnchorProvider(conn, wallet, { commitment: 'confirmed' });
-    program = new Program(idlJson as Idl, provider);
+    program = new Program(idlJson, new PublicKey(PROGRAM_ID), provider);
   }
   return program;
 }
